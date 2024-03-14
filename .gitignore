@@ -1,0 +1,57 @@
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# compressed files
+*.7z
+*.bz2
+*.bzip2
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.tbz2
+*.tgz
+*.zip
+
+# full directories
+tests/
+releases/
+backups/
+eval/
+figures/
+logo/
+toadd/
+files/
+pyh5md/
+projectweek/
+parallelization/
+hdf5/
+
+# compiled
+__pycache__/
+
+# Sphinx documentation
+doc/build/
+doc/source/_autosummary
+
+# project-related files
+*.npy
+*.pkl
+*.pdf
+*.egg-info/
+*.swp
+*.mp4
+*.gif
+*.h5
+dist/
+config/
+.mypy-cache/
+build/
+
+# Test and example directories and files
+figures
+test/data
+test/.coverage
+test/coverage.xml

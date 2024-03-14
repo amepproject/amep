@@ -1,0 +1,62 @@
+name: "Test Workflow"
+
+on:
+  pull_request:
+  workflow_dispatch:
+  
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: install amep
+        run: |  
+          pip install -e .
+
+
+  test:
+    runs-on: ubuntu-latest
+    needs: [install]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: install test dependencies
+        run: |
+          pip install -e .
+          pip install requests coverage
+
+      - name: run tests
+        working-directory: ./test
+        run: |
+          python -m coverage run -m unittest
+          python -m coverage report
+          python -m coverage xml
+
+  pages:
+    runs-on: ubuntu-latest
+    needs: [install]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: install doc dependencies
+        run: |
+          pip install -e .
+          pip install sphinx myst-parser sphinxemoji sphinx_rtd_theme
+      - name: build documentation
+        working-directory: ./doc
+        run: |
+          make html
+      - uses: actions/upload-artifact@v3
+        with:
+          name: generated-site
+          path: ./doc/build/html
+

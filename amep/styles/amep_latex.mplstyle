@@ -1,0 +1,71 @@
+# Set color cycle
+axes.prop_cycle : cycler('color', ['440154', '46327e', '375b8d', '277f8e', '1fa188', '4ac16d', '9dd93b', 'fde725']) + cycler('marker', ['s', 'D', 'o', 'v', '^', '<', '>', 'X'])
+
+# Set default figure settings
+figure.figsize : 4, 3
+figure.constrained_layout.use : True
+
+# Set colormap specifications
+image.cmap : "plasma"
+
+# Set x axis
+xtick.direction : in
+xtick.major.size : 4
+xtick.major.width : 1
+xtick.minor.size : 2
+xtick.minor.width : 1
+xtick.minor.visible : True
+xtick.top : True
+xtick.labelsize: 10
+
+# Set y axis
+ytick.direction : in
+ytick.major.size : 4
+ytick.major.width : 1
+ytick.minor.size : 2
+ytick.minor.width : 1
+ytick.minor.visible : True
+ytick.right : True
+ytick.labelsize: 10
+
+# Set line widths
+axes.linewidth : 1
+grid.linewidth : 1
+grid.color : "#000000"
+grid.linestyle : --    
+grid.alpha : 1.0    
+lines.linewidth : 1
+lines.markersize : 2
+
+# Remove legend frame
+legend.frameon : False
+legend.handlelength: 1
+legend.labelspacing: 0.2
+legend.fontsize: 10
+legend.title_fontsize: 11
+legend.handletextpad: 0.4
+legend.borderpad: 0.3
+legend.borderaxespad: 0.4
+legend.fancybox: False
+
+# Set defaults for saving figures in a file
+# - always save as 'tight' and high resolution
+# - save as pdf per default
+savefig.bbox : tight
+savefig.dpi : 300
+savefig.pad_inches : 0.05
+savefig.format : pdf
+
+# Use serif fonts
+font.serif : cmr10, Computer Modern Serif, DejaVu Serif
+font.family : serif
+font.size: 11
+axes.formatter.use_mathtext : True
+axes.labelsize: 12
+axes.titlesize: 10
+axes.titlepad : 3.0
+mathtext.fontset : cm
+
+# Use LaTeX for math formatting
+text.usetex : True
+text.latex.preamble : \usepackage{amsmath} \usepackage{amssymb}

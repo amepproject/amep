@@ -1,0 +1,217 @@
+# =============================================================================
+# Copyright (C) 2023-2024 Lukas Hecht and the AMEP development team.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# Contact: Lukas Hecht (lukas.hecht@pkm.tu-darmstadt.de)
+# =============================================================================
+#
+# This LAMMPS input script performs a simulation of overdamped active Brownian
+# particles [1,2] within a two-dimensional quadratic simulation box with 
+# periodic boundary conditions. The particles interact with a short-ranged 
+# repulsion modeled by the Weeks-Chandler-Anderson potential [3].
+#
+# To run this simulation, please download the latest LAMMPS version from
+# https://www.lammps.org and compile it as follows:
+#
+# cd 
+# ...
+#
+# Then, you can run the simulation with the following command:
+#
+# /path/to/lammps/src/lmp_serial -in production.run
+#
+# For further details about LAMMPS, please visit their documentation available
+# at https://docs.lammps.org/Manual.html
+#
+# References
+# ----------
+#
+#  ..[1] P. Romanczuk, M. Bär, W. Ebeling, B. Lindner, and L. Schimansky-Geier,
+#        Active Brownian Particles, Eur. Phys. J. Spec. Top. 202, 1 (2012).
+#        https://doi.org/10.1140/epjst/e2012-01529-y
+#  ..[2] L. Hecht, J. C. Ureña, and B. Liebchen, An Introduction to Modeling 
+#        Approaches of Active Matter, ArXiv:2102.13007 [Cond-Mat.Soft] (2021).
+#        http://arxiv.org/abs/2102.13007
+#  ..[3] J. D. Weeks, D. Chandler, and H. C. Andersen, Role of Repulsive Forces
+#        in Determining the Equilibrium Structure of Simple Liquids,
+#        J. Chem. Phys. 54, 5237 (1971).
+#        https://doi.org/10.1063/1.1674820
+#
+#
+# =============================================================================
+# GENERAL SETUP
+# -------------
+# Set the units for the simulation, the particle style, the spatial dimension,
+# the boundary conditions, and the time step. Here, we use Lennard-Jones units
+# (lj) and the hybrid sphere dipole atom style (spherical particles with a 
+# dipole vector). The dipole vector denotes the direction of the effective 
+# self-propulsion force. Additionally, we specifiy the spatial dimensions (2) 
+# and the boundary conditions (periodic, p). Finally, we set the time step to
+# 1e-6 time units.
+# =============================================================================
+units		lj			         # use Lennard-Jones units (i.e., kB=1)
+atom_style	hybrid sphere dipole # particle type: spheres with dipole
+dimension	2			         # dimension of the simulation
+boundary    p p p				 # periodic boundaries in each direction
+
+
+# =============================================================================
+# USER INPUT
+# -------------
+# Set simulation parameters.
+# =============================================================================
+variable L       equal 79.266 # box length 
+variable N       equal 4000   # number of particles
+variable v0      equal 100    # self-propulsion speed
+variable gamma_t equal 1.0    # translational drag coefficient
+variable gamma_r equal 1.0    # rotational drag coefficient
+variable kBT     equal 1.0    # molecular temperature
+variable seed    equal 1234   # random seed
+
+variable dt            equal 1e-5   # time step
+variable eqb_steps     equal 100000  # number of time steps for equilibration
+variable prd_steps     equal 500000 # number of time steps for the production run
+variable write_every   equal 10000   # write out data every this many time steps
+variable write_restart equal 50000 # write out a restart file this many time steps
+
+
+# =============================================================================
+# CREATE SIMULATION BOX AND PARTICLES
+# -----------------------------------
+# Here, we define the simulation box and create 4,000 particles. The size of
+# the simulation box is chosen such that an area fraction of approximately 0.5
+# is reached.
+# =============================================================================
+# Simulation box with box boundaries xlo, xhi, ylo, yhi, zlo, zhi
+region      simbox block 0 ${L} 0 ${L} -0.5 0.5
+create_box	2 simbox
+
+# Create N atoms of one type at random positions inside the simulation box
+create_atoms 1 random ${N} ${seed} simbox
+
+# Set magnitude of the dipole vector to 1 and initialize the orientation of
+# each particle randomly
+set	group all dipole/random ${seed} 1.0
+
+# Set the mass of the particles. Here, we need both mass settings due to the
+# hybrid atom style. Note that the mass is ignored in the simulation because
+# we use the overdamped model.
+mass 1 1.0
+set	type 1 mass 1.0
+
+# =============================================================================
+# SPECIFY PAIR INTERACTIONS
+# -------------------------
+# Here, we define the interactions between the particles. We use the Weeks-
+# Chandler-Anderson potential, which is a shifted and truncated version of the
+# Lennard-Jones potential. We set the effective particle diameter to 1 and use
+# the corresponding cutoff distance of 1.122. The strength of the potential is
+# set to 10.
+# =============================================================================
+pair_style  lj/cut 1.122
+pair_modify shift yes
+pair_coeff  * * 10.0 1.0 1.122
+
+
+# =============================================================================
+# NEIGHBOR LIST CONFIGURATION
+# ---------------------------
+# Next, we specify some details for the neighbor list. The list is build each
+# time step with a skin distance of 0.3, i.e., all neighbors within a distance
+# of the cutoff of the pair interaction plus the skin distance are stored in 
+# the neighbor list.
+# =============================================================================
+neighbor	 0.3 bin	  	 # skin distance (neighbors within LJ cutoff + 0.3)
+neigh_modify every 1 delay 0 # build list every time step
+
+
+# =============================================================================
+# RUNTIME CONFIGURATION
+# ---------------------
+# Specify how often and which information should be printed when running the 
+# simulation and set the time step.
+# =============================================================================
+# Print step temp epair emol etotal press every write_every time step
+thermo_style one
+thermo ${write_every}
+
+# Set time step
+timestep ${dt}
+
+
+# =============================================================================
+# EQUILIBRATION RUN
+# -----------------
+# This simulation run first performs an energy minimization to avoid 
+# overlapping particles and second, it performs a short simulation without
+# self propulsion to generate an initial condition with randomly positioned,
+# non-overlapping particles.
+# =============================================================================
+# energy minimization
+min_style hftn
+minimize 1.0e-6 1.0e-6 10000 10000
+
+# Passive Brownian particles
+# use:: fix ID group-ID brownian/sphere T seed gamma_t <value> gamma_r <value> rng <uniform/gaussian/none>
+fix eqb1 all brownian/sphere ${kBT} ${seed} gamma_t ${gamma_t} gamma_r ${gamma_r} rng gaussian
+
+# Enforce 2d mode
+# use:: fix ID group-ID enforce2d
+fix	eqb2 all enforce2d
+
+# Run the equilibration for this many time steps
+run ${eqb_steps}
+
+# Reset the time step
+reset_timestep 0
+
+# Unfix above fixes
+unfix eqb1
+unfix eqb2
+
+
+# =============================================================================
+# PRODUCTION RUN
+# --------------
+# Final simulation run simulating active Brownian particles. This simulation
+# starts from the state prepared in the previous equilibration run.
+# =============================================================================
+# Add effective self-propulsion force
+# use:: fix ID group-ID propel/self mode magnitude
+fix	propulsion all propel/self dipole ${v0}
+
+# Brownian integration
+# use:: fix ID group-ID brownian/sphere T seed gamma_t <value> gamma_r <value> rng <uniform/gaussian/none>
+fix brownian all brownian/sphere ${kBT} ${seed} gamma_t ${gamma_t} gamma_r ${gamma_r} rng gaussian
+
+# Enforce 2d mode
+# use:: fix ID group-ID enforce2d
+fix	enf2d all enforce2d
+
+
+# Write restart file periodically
+restart ${write_restart} restart-1.rst restart-2.rst
+
+# Save data in dump files. Note that velocities vx and vy are note well defined
+# because the simulation is purely overdamped.
+dump writedata all custom ${write_every} dump*.txt id type x y z xu yu zu vx vy fx fy mux muy mu radius omegaz mass
+dump_modify writedata sort 1
+
+# Run simulation for this many time steps
+run ${prd_steps}
+
+# Save the final data in a data file and a restart file
+write_data final.data
+write_restart final.rst

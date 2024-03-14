@@ -1,0 +1,425 @@
+LAMMPS (4 May 2022)
+# =============================================================================
+# Copyright (C) 2023-2024 Lukas Hecht and the AMEP development team.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# Contact: Lukas Hecht (lukas.hecht@pkm.tu-darmstadt.de)
+# =============================================================================
+#
+# This LAMMPS input script performs a simulation of overdamped active Brownian
+# particles [1,2] within a two-dimensional quadratic simulation box with
+# periodic boundary conditions. The particles interact with a short-ranged
+# repulsion modeled by the Weeks-Chandler-Anderson potential [3].
+#
+# To run this simulation, please download the latest LAMMPS version from
+# https://www.lammps.org and compile it as follows:
+#
+# cd
+# ...
+#
+# Then, you can run the simulation with the following command:
+#
+# /path/to/lammps/src/lmp_serial -in production.run
+#
+# For further details about LAMMPS, please visit their documentation available
+# at https://docs.lammps.org/Manual.html
+#
+# References
+# ----------
+#
+#  ..[1] P. Romanczuk, M. Bär, W. Ebeling, B. Lindner, and L. Schimansky-Geier,
+#        Active Brownian Particles, Eur. Phys. J. Spec. Top. 202, 1 (2012).
+#        https://doi.org/10.1140/epjst/e2012-01529-y
+#  ..[2] L. Hecht, J. C. Ureña, and B. Liebchen, An Introduction to Modeling
+#        Approaches of Active Matter, ArXiv:2102.13007 [Cond-Mat.Soft] (2021).
+#        http://arxiv.org/abs/2102.13007
+#  ..[3] J. D. Weeks, D. Chandler, and H. C. Andersen, Role of Repulsive Forces
+#        in Determining the Equilibrium Structure of Simple Liquids,
+#        J. Chem. Phys. 54, 5237 (1971).
+#        https://doi.org/10.1063/1.1674820
+#
+#
+# =============================================================================
+# GENERAL SETUP
+# -------------
+# Set the units for the simulation, the particle style, the spatial dimension,
+# the boundary conditions, and the time step. Here, we use Lennard-Jones units
+# (lj) and the hybrid sphere dipole atom style (spherical particles with a
+# dipole vector). The dipole vector denotes the direction of the effective
+# self-propulsion force. Additionally, we specifiy the spatial dimensions (2)
+# and the boundary conditions (periodic, p). Finally, we set the time step to
+# 1e-6 time units.
+# =============================================================================
+units		lj			         # use Lennard-Jones units (i.e., kB=1)
+atom_style	hybrid sphere dipole # particle type: spheres with dipole
+WARNING: Atom style hybrid defines both, per-type and per-atom masses; both must be set, but only per-atom masses will be used (../atom_vec_hybrid.cpp:130)
+dimension	2			         # dimension of the simulation
+boundary    p p p				 # periodic boundaries in each direction
+
+
+# =============================================================================
+# USER INPUT
+# -------------
+# Set simulation parameters.
+# =============================================================================
+variable L       equal 79.266 # box length
+variable N       equal 4000   # number of particles
+variable v0      equal 100    # self-propulsion speed
+variable gamma_t equal 1.0    # translational drag coefficient
+variable gamma_r equal 1.0    # rotational drag coefficient
+variable kBT     equal 1.0    # molecular temperature
+variable seed    equal 1234   # random seed
+
+variable dt            equal 1e-5   # time step
+variable eqb_steps     equal 100000  # number of time steps for equilibration
+variable prd_steps     equal 500000 # number of time steps for the production run
+variable write_every   equal 10000   # write out data every this many time steps
+variable write_restart equal 50000 # write out a restart file this many time steps
+
+
+# =============================================================================
+# CREATE SIMULATION BOX AND PARTICLES
+# -----------------------------------
+# Here, we define the simulation box and create 4,000 particles. The size of
+# the simulation box is chosen such that an area fraction of approximately 0.5
+# is reached.
+# =============================================================================
+# Simulation box with box boundaries xlo, xhi, ylo, yhi, zlo, zhi
+region      simbox block 0 ${L} 0 ${L} -0.5 0.5
+region      simbox block 0 79.266 0 ${L} -0.5 0.5
+region      simbox block 0 79.266 0 79.266 -0.5 0.5
+create_box	2 simbox
+Created orthogonal box = (0 0 -0.5) to (79.266 79.266 0.5)
+  1 by 1 by 1 MPI processor grid
+
+# Create N atoms of one type at random positions inside the simulation box
+create_atoms 1 random ${N} ${seed} simbox
+create_atoms 1 random 4000 ${seed} simbox
+create_atoms 1 random 4000 1234 simbox
+Created 4000 atoms
+  using lattice units in orthogonal box = (0 0 -0.5) to (79.266 79.266 0.5)
+  create_atoms CPU = 0.001 seconds
+
+# Set magnitude of the dipole vector to 1 and initialize the orientation of
+# each particle randomly
+set	group all dipole/random ${seed} 1.0
+set	group all dipole/random 1234 1.0
+Setting atom values ...
+  4000 settings made for dipole/random
+
+# Set the mass of the particles. Here, we need both mass settings due to the
+# hybrid atom style. Note that the mass is ignored in the simulation because
+# we use the overdamped model.
+mass 1 1.0
+set	type 1 mass 1.0
+Setting atom values ...
+  4000 settings made for mass
+
+# =============================================================================
+# SPECIFY PAIR INTERACTIONS
+# -------------------------
+# Here, we define the interactions between the particles. We use the Weeks-
+# Chandler-Anderson potential, which is a shifted and truncated version of the
+# Lennard-Jones potential. We set the effective particle diameter to 1 and use
+# the corresponding cutoff distance of 1.122. The strength of the potential is
+# set to 10.
+# =============================================================================
+pair_style  lj/cut 1.122
+pair_modify shift yes
+pair_coeff  * * 10.0 1.0 1.122
+
+
+# =============================================================================
+# NEIGHBOR LIST CONFIGURATION
+# ---------------------------
+# Next, we specify some details for the neighbor list. The list is build each
+# time step with a skin distance of 0.3, i.e., all neighbors within a distance
+# of the cutoff of the pair interaction plus the skin distance are stored in
+# the neighbor list.
+# =============================================================================
+neighbor	 0.3 bin	  	 # skin distance (neighbors within LJ cutoff + 0.3)
+neigh_modify every 1 delay 0 # build list every time step
+
+
+# =============================================================================
+# RUNTIME CONFIGURATION
+# ---------------------
+# Specify how often and which information should be printed when running the
+# simulation and set the time step.
+# =============================================================================
+# Print step temp epair emol etotal press every write_every time step
+thermo_style one
+thermo ${write_every}
+thermo 10000
+
+# Set time step
+timestep ${dt}
+timestep 1e-05
+
+
+# =============================================================================
+# EQUILIBRATION RUN
+# -----------------
+# This simulation run first performs an energy minimization to avoid
+# overlapping particles and second, it performs a short simulation without
+# self propulsion to generate an initial condition with randomly positioned,
+# non-overlapping particles.
+# =============================================================================
+# energy minimization
+min_style hftn
+minimize 1.0e-6 1.0e-6 10000 10000
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.422
+  ghost atom cutoff = 1.422
+  binsize = 0.711, bins = 112 112 2
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/2d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 7.765 | 7.765 | 7.765 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   0              1.3573738e+20  0              1.3573738e+20  5.1848574e+20
+      1428   0              1.6523891e-06  0              1.6523891e-06  0.0059640483 
+Loop time of 0.98636 on 1 procs for 1427 steps with 4000 atoms
+
+99.6% CPU use with 1 MPI tasks x no OpenMP threads
+
+Minimization stats:
+  Stopping criterion = max force evaluations
+  Energy initial, next-to-last, final = 
+    1.35737379237096e+20 1.65256215021081e-06 1.65238905232057e-06
+  Force two-norm initial, final = 4.7720327e+26 3.6638239
+  Force max component initial, final = 3.0538371e+26 0.45819552
+  Final line search alpha, max atom move = 0 0
+  Iterations, force evaluations = 1427 10003
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.54695    | 0.54695    | 0.54695    |   0.0 | 55.45
+Neigh   | 0.009169   | 0.009169   | 0.009169   |   0.0 |  0.93
+Comm    | 0.050956   | 0.050956   | 0.050956   |   0.0 |  5.17
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 0.3793     |            |       | 38.45
+
+Nlocal:           4000 ave        4000 max        4000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:            293 ave         293 max         293 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:           8010 ave        8010 max        8010 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 8010
+Ave neighs/atom = 2.0025
+Neighbor list builds = 25
+Dangerous builds = 2
+
+# Passive Brownian particles
+# use:: fix ID group-ID brownian/sphere T seed gamma_t <value> gamma_r <value> rng <uniform/gaussian/none>
+fix eqb1 all brownian/sphere ${kBT} ${seed} gamma_t ${gamma_t} gamma_r ${gamma_r} rng gaussian
+fix eqb1 all brownian/sphere 1 ${seed} gamma_t ${gamma_t} gamma_r ${gamma_r} rng gaussian
+fix eqb1 all brownian/sphere 1 1234 gamma_t ${gamma_t} gamma_r ${gamma_r} rng gaussian
+fix eqb1 all brownian/sphere 1 1234 gamma_t 1 gamma_r ${gamma_r} rng gaussian
+fix eqb1 all brownian/sphere 1 1234 gamma_t 1 gamma_r 1 rng gaussian
+
+# Enforce 2d mode
+# use:: fix ID group-ID enforce2d
+fix	eqb2 all enforce2d
+
+# Run the equilibration for this many time steps
+run ${eqb_steps}
+run 100000
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 5.14 | 5.14 | 5.14 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+      1428   0              1.6523891e-06  0              1.6523891e-06  0.0059640483 
+     10000   197439.46      0.20708363     0              197390.31      125667.86    
+     20000   203451.91      0.18105101     0              203401.23      129494.19    
+     30000   205696.98      0.18428043     0              205645.74      130923.13    
+     40000   204861.5       0.18267873     0              204810.47      130391.35    
+     50000   201086.5       0.17948956     0              201036.41      127988.62    
+     60000   201541.64      0.19449535     0              201491.45      128278.44    
+     70000   205386.89      0.18856949     0              205335.73      130725.81    
+     80000   195926.85      0.17134608     0              195878.04      124704.52    
+     90000   200180.16      0.17653682     0              200130.3       127411.74    
+    100000   196362.04      0.1682125      0              196313.12      124981.45    
+    101428   199699.15      0.17185149     0              199649.39      127105.49    
+Loop time of 44.7091 on 1 procs for 100000 steps with 4000 atoms
+
+Performance: 1932.494 tau/day, 2236.683 timesteps/s
+99.9% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 6.3261     | 6.3261     | 6.3261     |   0.0 | 14.15
+Neigh   | 0.5237     | 0.5237     | 0.5237     |   0.0 |  1.17
+Comm    | 0.55425    | 0.55425    | 0.55425    |   0.0 |  1.24
+Output  | 0.00032998 | 0.00032998 | 0.00032998 |   0.0 |  0.00
+Modify  | 36.56      | 36.56      | 36.56      |   0.0 | 81.77
+Other   |            | 0.7451     |            |       |  1.67
+
+Nlocal:           4000 ave        4000 max        4000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:            291 ave         291 max         291 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:           7587 ave        7587 max        7587 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 7587
+Ave neighs/atom = 1.89675
+Neighbor list builds = 1506
+Dangerous builds = 0
+
+# Reset the time step
+reset_timestep 0
+
+# Unfix above fixes
+unfix eqb1
+unfix eqb2
+
+
+# =============================================================================
+# PRODUCTION RUN
+# --------------
+# Final simulation run simulating active Brownian particles. This simulation
+# starts from the state prepared in the previous equilibration run.
+# =============================================================================
+# Add effective self-propulsion force
+# use:: fix ID group-ID propel/self mode magnitude
+fix	propulsion all propel/self dipole ${v0}
+fix	propulsion all propel/self dipole 100
+
+# Brownian integration
+# use:: fix ID group-ID brownian/sphere T seed gamma_t <value> gamma_r <value> rng <uniform/gaussian/none>
+fix brownian all brownian/sphere ${kBT} ${seed} gamma_t ${gamma_t} gamma_r ${gamma_r} rng gaussian
+fix brownian all brownian/sphere 1 ${seed} gamma_t ${gamma_t} gamma_r ${gamma_r} rng gaussian
+fix brownian all brownian/sphere 1 1234 gamma_t ${gamma_t} gamma_r ${gamma_r} rng gaussian
+fix brownian all brownian/sphere 1 1234 gamma_t 1 gamma_r ${gamma_r} rng gaussian
+fix brownian all brownian/sphere 1 1234 gamma_t 1 gamma_r 1 rng gaussian
+
+# Enforce 2d mode
+# use:: fix ID group-ID enforce2d
+fix	enf2d all enforce2d
+
+
+# Write restart file periodically
+restart ${write_restart} restart-1.rst restart-2.rst
+restart 50000 restart-1.rst restart-2.rst
+
+# Save data in dump files
+dump writedata all custom ${write_every} dump*.txt id type x y z xu yu zu vx vy fx fy mux muy mu radius omegaz mass
+dump writedata all custom 10000 dump*.txt id type x y z xu yu zu vx vy fx fy mux muy mu radius omegaz mass
+dump_modify writedata sort 1
+
+# Run simulation for this many time steps
+run ${prd_steps}
+run 500000
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 7.504 | 7.504 | 7.504 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   199699.15      0.17185149     0              199649.39      127100.48    
+     10000   205277.97      3.3561876      0              205230.01      130815.79    
+     20000   202177.09      3.848283       0              202130.39      128959.06    
+     30000   207038.73      4.1297802      0              206991.1       132154.59    
+     40000   199514.46      4.4853861      0              199469.07      127451.19    
+     50000   203973.61      4.859534       0              203927.48      130364.19    
+     60000   206296         5.0833484      0              206249.51      131909.23    
+     70000   204587.76      5.4977625      0              204542.11      130879.91    
+     80000   203177.93      5.9746753      0              203133.11      130026.45    
+     90000   199619.31      6.8338086      0              199576.24      127805.02    
+    100000   206206.67      7.7332751      0              206162.85      132050.96    
+    110000   206137.37      9.2614313      0              206095.1       132048.07    
+    120000   201885.68      10.011379      0              201845.22      129363.54    
+    130000   207604.35      11.748894      0              207564.2       133020.83    
+    140000   213172.36      13.095986      0              213132.16      136575.2     
+    150000   205408.99      14.866143      0              205372.5       131662.42    
+    160000   209204.89      16.149075      0              209168.74      134062.46    
+    170000   209000.16      16.452421      0              208964.37      133939.01    
+    180000   210733.24      17.211859      0              210697.77      135041.75    
+    190000   206286.19      18.11937       0              206252.74      132212.03    
+    200000   210233.9       19.354684      0              210200.69      134738.25    
+    210000   211399.21      19.467411      0              211365.83      135455.21    
+    220000   211895.89      19.717096      0              211862.63      135770.89    
+    230000   209205.39      20.059184      0              209173.14      134064.63    
+    240000   216519.78      20.417663      0              216486.07      138706.1     
+    250000   211700.59      22.155159      0              211669.82      135654.22    
+    260000   212306.22      23.527979      0              212276.67      136036.47    
+    270000   219394.11      23.717522      0              219362.98      140524.91    
+    280000   221147.84      24.162014      0              221116.71      141616.07    
+    290000   206945.15      24.046949      0              206917.46      132551.5     
+    300000   214661.41      24.576779      0              214632.33      137481.35    
+    310000   206617.02      25.139404      0              206590.51      132368.35    
+    320000   211573.61      25.659792      0              211546.38      135518.37    
+    330000   209300.81      25.854473      0              209274.34      134056.44    
+    340000   212701.77      25.66997       0              212674.27      136194.16    
+    350000   210591.58      25.146293      0              210564.08      134859       
+    360000   213068.79      25.079572      0              213040.6       136415.84    
+    370000   214739.81      24.467694      0              214710.59      137440.2     
+    380000   212607.42      23.294612      0              212577.56      136034.4     
+    390000   215782.23      22.817565      0              215751.1       138053.72    
+    400000   216925.21      22.953394      0              216893.94      138795.22    
+    410000   208499.07      21.604597      0              208468.55      133402.68    
+    420000   207594.3       20.492712      0              207562.9       132831.6     
+    430000   212346.63      21.054973      0              212314.6       135848.52    
+    440000   213236.65      20.770043      0              213204.12      136395.97    
+    450000   208236.91      19.870696      0              208204.72      133189.49    
+    460000   211492.82      19.74797       0              211459.7       135259.41    
+    470000   207646.6       19.745897      0              207614.44      132787.34    
+    480000   206476.86      19.990365      0              206445.23      132021.45    
+    490000   211840.06      19.894574      0              211806.99      135417.9     
+    500000   213139.33      18.79673       0              213104.85      136249.06    
+Loop time of 244.151 on 1 procs for 500000 steps with 4000 atoms
+
+Performance: 1769.394 tau/day, 2047.910 timesteps/s
+99.8% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 46.758     | 46.758     | 46.758     |   0.0 | 19.15
+Neigh   | 3.2449     | 3.2449     | 3.2449     |   0.0 |  1.33
+Comm    | 2.7804     | 2.7804     | 2.7804     |   0.0 |  1.14
+Output  | 0.71992    | 0.71992    | 0.71992    |   0.0 |  0.29
+Modify  | 186.84     | 186.84     | 186.84     |   0.0 | 76.53
+Other   |            | 3.81       |            |       |  1.56
+
+Nlocal:           4000 ave        4000 max        4000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:            249 ave         249 max         249 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          10654 ave       10654 max       10654 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 10654
+Ave neighs/atom = 2.6635
+Neighbor list builds = 10109
+Dangerous builds = 0
+
+# Save the final data in a data file and a restart file
+write_data final.data
+System init for write_data ...
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+WARNING: Not all mixed pair coeffs generated from mixing. Use write_data with 'pair ij' option to store all pair coeffs. (../write_data.cpp:309)
+write_restart final.rst
+System init for write_restart ...
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Total wall time: 0:04:49
