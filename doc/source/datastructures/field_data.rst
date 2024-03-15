@@ -35,3 +35,5 @@ should have the folowing form::
    <field 0 1> <field 1 1> <field 2 1> <field 3 1>
    <field 0 2> <field 1 2> <field 2 2> <field 3 2>
    ...
+
+An exemplary dataset can be found `here <https://github.com/amepproject/amep/tree/main/examples/data>`_.

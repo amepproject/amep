@@ -1,6 +1,6 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-<center><img src="https://github.com/amepproject/amep/blob/main/doc/source/_static/images/amep-logo_v2.png" alt="amep logo" width="200" height="200"/></center>
+<center><img src="https://raw.githubusercontent.com/amepproject/amep/main/doc/source/_static/images/amep-logo_v2.png" alt="amep logo" width="200" height="200"/></center>
 
 The **AMEP** (**A**ctive **M**atter **E**valuation **P**ackage) Python library 
 is a powerful tool for analyzing data from molecular-dynamics (MD), 
@@ -14,7 +14,7 @@ format. To be fast and usable on modern HPC (**H**igh **P**erformance
 **C**omputing) hardware, the methods are optimized to run also in parallel.
 
 
-## Description
+# Description
 
 The **AMEP** Python library provides a unified framework for handling 
 both particle-based and continuum simulation data. It is made for the analysis 
@@ -78,14 +78,14 @@ simulation data.
 | Kinetic temperature | ❌ | ✔ | ❌ |
 
 
-## Installation
+# Installation
 
 The **AMEP** library can be installed either via `pip` or by manually adding 
 the `amep` directory to your Python path. Installation via `pip` is 
 recommended. To use all plot animation features, please additionally install 
 FFmpeg (https://ffmpeg.org/) on your machine (see below).
 
-### Manual installation
+## Manual installation
 
 Before installing **AMEP** manually, ensure that your Python environment 
 fulfills the required specifications as published together with each release. 
@@ -111,7 +111,7 @@ to the `.bash_profile` file (Linux only). If you use the Anaconda distribution,
 you can alternatively add the `amep` directory to `Lib/site-packages` in the 
 Anaconda installation path.
 
-### Installation via pip
+## Installation via pip
 
 The installation via `pip` is recommended. Please ensure that the Python 
 modules `setuptools` and `build` are installed in your Python environment. 
@@ -121,7 +121,7 @@ and install it via `pip install ./amep-<version>.targ.gz`. Alternatively, you
 can also install **AMEP** from source by `pip install -e amep` while being one 
 directory above the source.
 
-### FFmpeg
+## FFmpeg
 
 **AMEP** provides the possibility to animate plots and trajectories. 
 **To enable all animation features, FFmpeg must be installed on the device on** 
@@ -130,7 +130,7 @@ directory above the source.
 to download FFmpeg and to get further information on how to install FFmpeg on your machine.
 
 
-## Getting started
+# Getting started
 
 The following example briefly demonstrates the **AMEP** workflow. A typical 
 task is to calculate the average of an observable over several frames of the 
@@ -168,7 +168,7 @@ fig.savefig(rdf.name + '.pdf')
 For more detailed examples, check the [examples](https://github.com/amepproject/amep/tree/main/examples) directory.
 
 
-## Module descriptions
+# Module descriptions
 
 In the following, we provide a list of all **AMEP** modules together with a 
 short description.
@@ -192,7 +192,7 @@ short description.
 | utils.py | collection of utility functions |
 
 
-## Data Formats
+# Data Formats
 
 **AMEP** is compatible with multiple data formats. The current version can load 
 particle-based simulation data obtained from LAMMPS (https://www.lammps.org) 
@@ -229,10 +229,10 @@ DATA: <fieldname 0> <fieldname 1> <fieldname 2> <fieldname 3>
 ...
 ```
 
-## Support
+# Support
 If you need support for using **AMEP**, we recommend to use our [GitHub discussions](https://github.com/amepproject/amep/discussions) page. If you find a bug, please create an [issue](https://github.com/amepproject/amep/issues).
 
-### Creating issues
+## Creating issues
 To create an issue, go to [https://github.com/amepproject/amep/issues](https://github.com/amepproject/amep/issues) and
 click on `New issue`. Then, continue with the following steps:
 
@@ -244,13 +244,13 @@ When creating issues, text is written as markdown, which allows formatting text,
 tables for example. A useful guide can be found [here](https://www.markdownguide.org/).
 
 
-## Roadmap
+# Roadmap
 Planned new features for future releases are listed as issues in the [issue list](https://github.com/amepproject/amep/issues).
 
-## Contributing
+# Contributing
 If you want to contribute to this project, please check the file [CONTRIBUTING.md](https://github.com/amepproject/amep/blob/main/CONTRIBUTING.md).
 
-## Contributors/Authors
+# Contributors/Authors
 The following people contributed to **AMEP**:
 
 - Lukas Hecht (creator and lead developer)
@@ -262,7 +262,7 @@ The following people contributed to **AMEP**:
 - Lukas Walter (former developer)
 - Malte Cordts (former developer)
 
-## Acknowledgments
+# Acknowledgments
 Many thanks to the whole 
 [group of Benno Liebchen](https://www.ipkm.tu-darmstadt.de/research_ipkm/liebchen_group/index.en.jsp) 
 at the Institute for Condensed Matter Physics at Technical University of 
@@ -274,7 +274,7 @@ and Research, and the state governments participating on the basis of the
 resolutions of the GWK for national high performance computing at universities 
 (https://www.nhr-verein.de/unsere-partner).
 
-## License
+# License
 The **AMEP** library is published under the GNU General Public License, 
 version 3 or any later version. Please see the file [LICENSE](https://github.com/amepproject/amep/blob/main/LICENSE) for more 
 information.

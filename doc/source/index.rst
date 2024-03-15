@@ -1,5 +1,14 @@
+.. image:: /_static/images/amep-logo_v2.png
+  :width: 200
+  :align: center
+
+
+AMEP documentation
+==================
+
 .. include:: ../../README.md
    :parser: myst_parser.sphinx_
+   :start-line: 4
 
 Table of Contents
 =================
