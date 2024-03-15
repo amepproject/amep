@@ -21,7 +21,7 @@
 This file contains a basic example on how to use AMEP to analyze 
 particle-based simulation data such as obtained from a molecular or Brownian 
 dynamics simulations with LAMMPS for example. It is based on the example data 
-available at (ADD URL HERE).
+available at https://github.com/amepproject/amep/tree/main/examples/data.
 """
 # load required modules
 import amep

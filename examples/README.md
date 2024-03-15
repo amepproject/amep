@@ -1,9 +1,10 @@
 # AMEP example data
 In this directory, we provide the simulation data which we have used for all 
 **AMEP** examples. This data can either be downloaded directly from the 
-repository or with the following download link:
+[repository](https://github.com/amepproject/amep/tree/main/examples/data) 
+or with the following download link:
 
-**add the download link here...**
+https://download-directory.github.io/?url=https://github.com/amepproject/amep/tree/main/examples/data
 
 For **AMEP** beginners, we strongly recommend to download this data and run 
 the examples to get familiar with the **AMEP** workflow.

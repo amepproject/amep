@@ -21,7 +21,7 @@
 This file contains a basic example on how to use AMEP to analyze 
 continuum simulation data such as obtained from the numerical solution of 
 partial differential equations such as the Keller-Segel model for example. It 
-is based on the example data available at (ADD URL HERE).
+is based on the example data available at https://github.com/amepproject/amep/tree/main/examples/data.
 """
 import amep
 

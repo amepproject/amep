@@ -1,9 +1,6 @@
-[![Latest Release](https://git.rwth-aachen.de/liebchengroup/aghecht/amep/-/badges/release.svg)](https://git.rwth-aachen.de/liebchengroup/aghecht/amep/-/releases)
-[![pipeline](https://git.rwth-aachen.de/liebchengroup/aghecht/amep/badges/main/pipeline.svg)](https://git.rwth-aachen.de/liebchengroup/aghecht/amep/-/pipelines)
-[![coverage](https://git.rwth-aachen.de/liebchengroup/aghecht/amep/badges/main/coverage.svg)](https://git.rwth-aachen.de/liebchengroup/aghecht/amep)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-# AMEP
+<center><img src="https://github.com/amepproject/amep/blob/main/doc/source/_static/images/amep-logo_v2.png" alt="amep logo" width="200" height="200"/></center>
 
 The **AMEP** (**A**ctive **M**atter **E**valuation **P**ackage) Python library 
 is a powerful tool for analyzing data from molecular-dynamics (MD), 
@@ -168,7 +165,7 @@ fig.savefig(rdf.name + '.png')
 fig.savefig(rdf.name + '.pdf')
 ```
 
-For more detailed examples, check the `examples` directory.
+For more detailed examples, check the [examples](https://github.com/amepproject/amep/tree/main/examples) directory.
 
 
 ## Module descriptions
@@ -233,11 +230,10 @@ DATA: <fieldname 0> <fieldname 1> <fieldname 2> <fieldname 3>
 ```
 
 ## Support
-If you need support for using **AMEP**, we recommend to use our github 
-discussions page. If you find a bug, please create an issue.
+If you need support for using **AMEP**, we recommend to use our [GitHub discussions](https://github.com/amepproject/amep/discussions) page. If you find a bug, please create an [issue](https://github.com/amepproject/amep/issues).
 
 ### Creating issues
-To create an issue, go to the **AMEP** repository, open the issue list, and
+To create an issue, go to [https://github.com/amepproject/amep/issues](https://github.com/amepproject/amep/issues) and
 click on `New issue`. Then, continue with the following steps:
 
 1. Add a short and clear title.
@@ -249,10 +245,10 @@ tables for example. A useful guide can be found [here](https://www.markdownguide
 
 
 ## Roadmap
-Planned new features for future releases are listed as issues in the issue list.
+Planned new features for future releases are listed as issues in the [issue list](https://github.com/amepproject/amep/issues).
 
 ## Contributing
-If you want to contribute to this project, please check the file CONTRIBUTING.md.
+If you want to contribute to this project, please check the file [CONTRIBUTING.md](https://github.com/amepproject/amep/blob/main/CONTRIBUTING.md).
 
 ## Contributors/Authors
 The following people contributed to **AMEP**:
@@ -280,5 +276,5 @@ resolutions of the GWK for national high performance computing at universities
 
 ## License
 The **AMEP** library is published under the GNU General Public License, 
-version 3 or any later version. Please see the file LICENSE for more 
+version 3 or any later version. Please see the file [LICENSE](https://github.com/amepproject/amep/blob/main/LICENSE) for more 
 information.
