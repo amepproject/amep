@@ -50,7 +50,7 @@ jobs:
       - name: install doc dependencies
         run: |
           pip install -e .
-          pip install sphinx myst-parser sphinxemoji sphinx_rtd_theme
+          pip install sphinx myst-parser sphinxemoji sphinx_rtd_theme sphinx-new-tab-link
       - name: build documentation
         working-directory: ./doc
         run: |

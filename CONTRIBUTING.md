@@ -2,8 +2,7 @@
 
 Contributions are always welcome and the **AMEP** development team appreciates 
 any help you give. If you have any comments, ideas, or if you want to 
-contribute to this project, please contact the **AMEP** developers via e-mail 
-(support@amepproject.de) or by starting a discussion on github. When 
+contribute to this project, please contact the **AMEP** developers. When 
 contributing to **AMEP**, please follow the coding guidelines specified below.
 
 ## Pull requests
@@ -125,7 +124,7 @@ add the corresponding test method.
 We always recommend to profile your code. This is very important for writing 
 efficient and fast code. Here is some information about how to profile your 
 code in a Jupyter notebook: First, you need to install the following libraries 
-(see also https://jakevdp.github.io/PythonDataScienceHandbook/01.07-timing-and-profiling.html):
+(see also [https://jakevdp.github.io/PythonDataScienceHandbook/01.07-timing-and-profiling.html](https://jakevdp.github.io/PythonDataScienceHandbook/01.07-timing-and-profiling.html)):
 
 `conda install -c conda-forge line_profiler`
 
