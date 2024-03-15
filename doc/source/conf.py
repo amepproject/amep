@@ -20,7 +20,8 @@ extensions: list = [
         "myst_parser",
         "sphinx.ext.duration",
         "sphinx.ext.autodoc",
-        "sphinx.ext.autosummary"
+        "sphinx.ext.autosummary",
+        "sphinx_new_tab_link"
 ]
 
 templates_path: list = ['_templates']

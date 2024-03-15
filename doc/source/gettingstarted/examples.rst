@@ -2,9 +2,9 @@
 Examples
 ========
 
-The following examples serve as a starting point for everyone who uses **AMEP** for the first time. The examples are based on the data available at
+The following examples serve as a starting point for everyone who uses **AMEP** for the first time. The examples are based on the data available at https://github.com/amepproject/amep/tree/main/examples/data:
 
-add download link here
+`Download zip <https://download-directory.github.io/?url=https://github.com/amepproject/amep/tree/main/examples/data>`_
 
 In the first example, we analyze simulation data from a LAMMPS simulation of active Brownian particles, in the second example of a continuum simulation of the Keller-Segel model for chemotaxis.
 
