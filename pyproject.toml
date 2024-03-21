@@ -1,41 +1,73 @@
 [project]
-name="amep"
-version="1.0.0-dev"
-license={file="LICENSE"}
-authors=[
-	{name="Lukas Hecht", email="lukas.hecht@pkm.tu-darmstadt.de"},
-	]
-description="""The AMEP (Active Matter Evaluation Package) Python library is a powerful tool for analyzing data from molecular-dynamics (MD), Brownian-dynamics (BD), and continuum simulations. It comprises various methods to analyze structural and dynamical properties of condensed matter systems in general and active matter systems in particular. AMEP is exclusively built on Python, and therefore, it is easy to modify and allows to easily add user-defined methods. AMEP provides an efficient data format for saving both simulation data and analysis results based on the HDF5 file format. To be fast and usable on modern HPC (High Performance Computing) hardware, the methods are optimized to run also in parallel."""
-readme="README.md"
-requires-python=">=3.10.0"
-keywords=["active matter", "soft matter", "physics", "data analysis"]
-classifiers=[
+name = "amep"
+version = "1.0.0"
+license = {file="LICENSE"}
+authors = [
+	{name = "Lukas Hecht", email = "lukas.hecht@pkm.tu-darmstadt.de"},
+]
+description = "Active Matter Evaluation Package for data analysis of active matter simulations"
+readme = "README.md"
+requires-python = ">=3.10"
+keywords = [
+    "active matter",
+    "soft matter",
+    "physics",
+    "data analysis",
+    "computational physics",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
 	"Intended Audience :: Science/Research",
+	"Intended Audience :: Education",
+	"License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
 	"Natural Language :: English",
 	"Operating System :: OS Independent",
 	"Programming Language :: Python :: 3",
+	"Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 	"Topic :: Scientific/Engineering :: Physics",
-	"Topic :: Scientific/Engineering :: Visualization"
+	"Topic :: Scientific/Engineering :: Visualization",
 ]
-dependencies=[
-	"h5py>=3.7.0",
-	"matplotlib>=3.6.2",
-	"numba>=0.56.4",
-	"numpy>=1.21.6",
-	"scipy>=1.10.0",
-	"scikit-image>=0.20.0",
-	"tqdm>=4.65.0"
+dependencies = [
+	"h5py >= 3.7.0",
+	"matplotlib >= 3.6.2",
+	"numba >= 0.56.4",
+	"numpy >= 1.21.6",
+	"scipy >= 1.10.0",
+	"scikit-image >= 0.20.0",
+	"tqdm >= 4.65.0"
 ]
+
 [project.urls]
-repository="https://git.rwth-aachen.de/liebchengroup/aghecht/amep"
+"Homepage" = "https://amepproject.de/"
+"Issues" = "https://github.com/amepproject/amep/issues"
+"Repository" = "https://github.com/amepproject/amep"
+"Documentation" = "https://amepproject.de/"
+"Source Code" = "https://github.com/amepproject/amep"
+"Forum" = "https://github.com/amepproject/amep/discussions"
+"Changelog" = "https://github.com/amepproject/amep/blob/main/CHANGELOG.md"
+
+[project.optional-dependencies]
+# Should be a copy of the build dependencies below.
+dev = [
+    "setuptools >= 64",
+]
 
 [build-system]
-requires=["setuptools"]
-build-backend="setuptools.build_meta"
+requires = ["setuptools >= 64"]
+build-backend = "setuptools.build_meta"
+
 [tool.setuptools.packages]
-find={}
+find = {}
+
 [options.packages.find]
-include=["amep"]
-exclude=["hdf5", "config"]
+include = ["amep"]
+exclude = [
+    "doc",
+    "examples",
+    "test",
+]
+
 [tool.setuptools.package-data]
 "amep.styles" = ["*.mplstyle"]

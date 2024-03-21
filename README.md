@@ -1,6 +1,6 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![GitHub Discussions](https://img.shields.io/github/discussions/amepproject/amep)](https://github.com/amepproject/amep/discussions)
-![Python Version from PEP 621 TOML](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Famepproject%2Famep%2Fdoc%2Fupdate%2Fpyproject.toml)
+![Python Version from PEP 621 TOML](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Famepproject%2Famep%2Fmain%2Fpyproject.toml)
 [![Static Badge](https://img.shields.io/badge/documentation-amepproject.de-blue)](https://amepproject.de)
 
 <center><img src="https://raw.githubusercontent.com/amepproject/amep/main/doc/source/_static/images/amep-logo_v2.png" alt="amep logo" width="200" height="200"/></center>
@@ -116,13 +116,13 @@ Anaconda installation path.
 
 ## Installation via pip
 
-The installation via `pip` is recommended. Please ensure that the Python 
-modules `setuptools` and `build` are installed in your Python environment. 
-Then, download the latest version from 
-[https://github.com/amepproject/amep](https://github.com/amepproject/amep) 
-and install it via `pip install ./amep-<version>.targ.gz`. Alternatively, you 
-can also install **AMEP** from source by `pip install -e amep` while being one 
-directory above the source.
+**AMEP** can be simply installed using `pip`: 
+
+```bash
+pip install amep
+```
+
+The installation via `pip` is recommended.
 
 ## FFmpeg
 
@@ -262,6 +262,7 @@ The following people contributed to **AMEP**:
 - Aritra Mukhopadhyay (developer)
 - Mahdieh Ebrahimi (developer)
 - Suvendu Mandal (developer)
+- Benno Liebchen (planning)
 - Lukas Walter (former developer)
 - Malte Cordts (former developer)
 

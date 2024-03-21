@@ -35,10 +35,13 @@ you can alternatively add the ``amep`` directory to ``Lib/site-packages`` in the
 Installation via pip
 --------------------
 
+**AMEP** can be simply installed via pip:
+
+.. code-block:: bash
+
+    pip install amep
+
 The installation via ``pip`` is recommended.
-Please ensure that the Python modules ``setuptools`` and ``build`` are installed in your Python environment.
-Then, download the latest version from https://github.com/amepproject/amep and install it via ``pip install ./amep-<version>.tar.gz``.
-Alternatively, you can can also install from source by ``pip install -e .`` while being inside the unpacked source directory.
 
 ------
 FFmpeg

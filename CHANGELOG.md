@@ -3,11 +3,12 @@
 All notable changes to **AMEP** will be documented in this file. **AMEP** 
 adheres to [semantic versioning](https://semver.org/).
 
-## AMEP 1.0.0-dev
+## AMEP 1.0.0  (21 Mar 2024)
 
 This is the first public version of **AMEP**. It fully integrates the analysis 
 of continuum simulation data, fixes various bugs of version 0.5.0, and provides 
-useful new features. 
+useful new features. It is also the first version that can be installed via 
+conda and pip.
 
 ### New features:
 
