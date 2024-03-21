@@ -9,7 +9,7 @@ https://www.sphinx-doc.org/en/master/usage/configuration.html#project-informatio
 project = 'AMEP'
 copyright = '2023-2024, Lukas Hecht, Kay-Robert Dormann, Kai Luca Spanheimer'
 author = 'Lukas Hecht, Kay-Robert Dormann, Kai Luca Spanheimer'
-release = '1.0.0-dev'
+release = '1.0.0'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -58,7 +58,7 @@ html_theme_options = {
                 # Label for this link
                 "name": "PyPI",
                 # URL where the link will redirect
-                "url": "https://pypi.org/",  # required
+                "url": "https://pypi.org/project/amep/",  # required
                 # Icon class (if "type": "fontawesome"), or path to local image (if "type": "local")
                 "icon": "fa-brands fa-python",
                 # The type of image to be used (see below for details)

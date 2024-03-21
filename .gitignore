@@ -16,18 +16,7 @@
 *.zip
 
 # full directories
-tests/
-releases/
-backups/
-eval/
-figures/
-logo/
-toadd/
-files/
-pyh5md/
-projectweek/
-parallelization/
-hdf5/
+amep.egg-info/
 
 # compiled
 __pycache__/
@@ -51,7 +40,6 @@ config/
 build/
 
 # Test and example directories and files
-figures
 test/data
 test/.coverage
 test/coverage.xml
