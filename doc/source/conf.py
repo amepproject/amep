@@ -58,7 +58,7 @@ html_theme_options = {
                 # Label for this link
                 "name": "PyPI",
                 # URL where the link will redirect
-                "url": "https://pypi.org/",  # required
+                "url": "https://pypi.org/project/amep/",  # required
                 # Icon class (if "type": "fontawesome"), or path to local image (if "type": "local")
                 "icon": "fa-brands fa-python",
                 # The type of image to be used (see below for details)
