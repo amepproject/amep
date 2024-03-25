@@ -1,0 +1,4 @@
+contact_links:
+  - name: Question/Help/Support
+    url: https://github.com/amepproject/amep/discussions
+    about: "If you have a question or need help/support, please use the GitHub discussions."

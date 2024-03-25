@@ -1,0 +1,65 @@
+name: Bug report
+description: Report a bug.
+title: "BUG: <Please add a meaningful title after the 'BUG: ' prefix.>"
+labels: [bug]
+
+body:
+- type: markdown
+  attributes:
+    value: >
+      Thank you for taking the time to report a bug. Before creating a new
+      issue, please check the [issue tracker](https://github.com/amepproject/amep/issues) 
+      for existing issues about the bug.
+      
+- type: textarea
+  attributes:
+    label: "Description:"
+    placeholder: |
+      Please add a precise description of the bug here.
+  validations:
+    required: true
+    
+- type: textarea
+  attributes:
+    label: "Code for reproduction:"
+    placeholder: |
+      Please add a short code example that reproduces the problem. This code 
+      example should be self-contained, i.e., can be copy-pasted into the Python 
+      interpreter or run as-is via `python example.py`.
+    render: python
+  validations:
+    required: true
+    
+- type: textarea
+  attributes:
+    label: "Error message:"
+    placeholder: |
+      If the bug is causing an error message, please include the full error 
+      message (starting from `Traceback: ...`) here.
+      
+- type: textarea
+  attributes:
+    label: "Python and AMEP versions:"
+    placeholder: |
+      Please add the Python and AMEP versions you have used. These can be 
+      obtained via `import sys, amep; print(amep.__version__); print(sys.version)`.
+  valiadations:
+    required: true
+    
+- type: textarea
+  attributes:
+    label: "Additional information:"
+    placeholder: |
+      Please add additional information here. This can include information about 
+      why you think this bug is happening, ideas to fix this bug, 
+      or information about how this issue affects your work.
+  validations:
+    required: false
+    
+- type: dropdown
+  attributes:
+    label: "How did you install AMEP?"
+    options:
+      - pip
+      - conda
+      - from source
