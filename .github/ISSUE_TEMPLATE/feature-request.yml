@@ -10,9 +10,10 @@ body:
       Thank you for proposing/requesting a new feature. Please also check out 
       our [Contributor Guide](https://github.com/amepproject/amep/blob/main/CONTRIBUTING.md) 
       for more information about how to contribute to AMEP. Before creating a 
-      new issue, please check the issue tracker for existing issues about your 
-      feature request. If you are not sure if your proposed new feature should 
-      be included in AMEP, you can also start a new 
+      new issue, please check the 
+      [issue tracker](https://github.com/amepproject/amep/issues) for existing 
+      issues about your feature request. If you are not sure if your proposed 
+      new feature should be included in AMEP, you can also start a new 
       [discussion](https://github.com/amepproject/amep/discussions) 
       before creating an issue.
       

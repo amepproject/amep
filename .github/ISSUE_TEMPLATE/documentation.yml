@@ -8,8 +8,9 @@ body:
   attributes:
     value: >
       Thank you for taking the time to report an issue related to the AMEP 
-      documentation. Before creating a new issue, please check the issue 
-      tracker for existing issues.
+      documentation. Before creating a new issue, please check the 
+      [issue tracker](https://github.com/amepproject/amep/issues) for existing 
+      issues.
       
 - type: textarea
   attributes:

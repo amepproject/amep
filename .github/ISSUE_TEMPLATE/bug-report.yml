@@ -43,7 +43,7 @@ body:
     placeholder: |
       Please add the Python and AMEP versions you have used. These can be 
       obtained via `import sys, amep; print(amep.__version__); print(sys.version)`.
-  valiadations:
+  validations:
     required: true
     
 - type: textarea
