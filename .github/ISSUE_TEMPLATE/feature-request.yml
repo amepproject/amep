@@ -1,0 +1,27 @@
+name: Feature request
+description: Request a new feature.
+title: "FRQ: <Please add a meaningful title after the 'FRQ: ' prefix."
+labels: [new feature]
+
+body:
+- type: markdown
+  attributes:
+    value: >
+      Thank you for proposing/requesting a new feature. Please also check out 
+      our [Contributor Guide](https://github.com/amepproject/amep/blob/main/CONTRIBUTING.md) 
+      for more information about how to contribute to AMEP. Before creating a 
+      new issue, please check the 
+      [issue tracker](https://github.com/amepproject/amep/issues) for existing 
+      issues about your feature request. If you are not sure if your proposed 
+      new feature should be included in AMEP, you can also start a new 
+      [discussion](https://github.com/amepproject/amep/discussions) 
+      before creating an issue.
+      
+- type: textarea
+  attributes:
+    label: "Proposed new feature or change:"
+    placeholder: |
+      Please add a detailed description of your proposed new feature or change 
+      in functionality here.
+  validations:
+    required: true

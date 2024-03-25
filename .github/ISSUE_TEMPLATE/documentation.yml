@@ -1,0 +1,29 @@
+name: Documentation
+description: Report an issue related to the AMEP documentation at https://amepproject.de.
+title: "DOC: <Please add a meaningful title after the 'DOC: ' prefix.>"
+labels: [documentation]
+
+body:
+- type: markdown
+  attributes:
+    value: >
+      Thank you for taking the time to report an issue related to the AMEP 
+      documentation. Before creating a new issue, please check the 
+      [issue tracker](https://github.com/amepproject/amep/issues) for existing 
+      issues.
+      
+- type: textarea
+  attributes:
+    label: "Problem description:"      
+    placeholder: |
+      Please add a description of the issue. Please make sure to add a 
+      reference to the document/code you are referring to. 
+  validations:
+    required: true
+      
+- type: textarea
+  attributes:
+    label: "Suggested content improvement:"
+    placeholder: |
+      Please describe what topics you think are missing from the current 
+      documentation.
