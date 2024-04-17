@@ -1108,6 +1108,7 @@ def pcf_angle(
     Examples
     --------
     >>> import amep
+    >>> import numpy as np
     >>> traj = amep.load.traj("../examples/data/lammps.h5amep")
     >>> frame = traj[-1]
     >>> grt, rt, theta = amep.spatialcor.pcf_angle(
@@ -1116,8 +1117,8 @@ def pcf_angle(
     ... )
     >>> X = rt*np.cos(theta)
     >>> Y = rt*np.sin(theta)
-    >>> fig, axs = amep.plot.new(figsize=(3.7,3))
-    >>> mp = amep.plot.field(axs, grt, X, Y)
+    >>> fig, axs = amep.plot.new(figsize=(3.8,3))
+    >>> mp = amep.plot.field(axs, grt.T, X, Y)
     >>> cax = amep.plot.add_colorbar(
     ...     fig, axs, mp, label=r'$g(\Delta x, \Delta y)$'
     ... )
@@ -1127,6 +1128,10 @@ def pcf_angle(
     >>> axs.set_ylabel(r'$\Delta y$')
     >>> fig.savefig('./figures/spatialcor/spatialcor-pcf_angle.png')
     >>> 
+    
+    .. image:: /_static/images/spatialcor/spatialcor-pcf_angle.png
+      :width: 400
+      :align: center
     
     '''
     # get box length
