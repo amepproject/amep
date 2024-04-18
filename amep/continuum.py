@@ -539,12 +539,15 @@ def identify_clusters(
         The scale of the field. This is needed to improve the segmentation
         done in the watershed algorithm. This keyword is ignored when using
         `method='threshold'`. The default is 1.0.
+        Can also be set to negative value to make bubble detection
+        accesible.
     pbc : bool, optional
         Whether to use periodic boundary conditions. Default is True.
     cutoff: float, optional
         Caps the highest field values to the ratio of the data extent. Default
-        value 1.0 means no cut, 0.9 means the highest 10% of the field get cut
-        off. Needed for clusters with multiple local minima. Combats
+        value 1.0 means no cut, 0.9 means the highest and lowest 10%
+        of the field get cut off.
+        Needed for clusters with multiple local minima. Combats
         oversegmentation. This keyword is ignored when using
         `method='threshold'`. The default is 1.0.
     threshold : float, optional
@@ -608,7 +611,8 @@ def identify_clusters(
             minimum = np.min(dfield)
             maximum = np.max(dfield)
             upper_cut = maximum-(1-cutoff)*(maximum-minimum)
-            dfield_scaled = (np.clip(dfield, minimum, upper_cut) * scale).astype(int)
+            lower_cut = minimum+(1-cutoff)*(maximum-minimum)
+            dfield_scaled = (np.clip(dfield, lower_cut, upper_cut) * scale).astype(int)
 
             # apply watershed
             labels = watershed(-dfield_scaled, markers=None, mask=dfield_scaled)
