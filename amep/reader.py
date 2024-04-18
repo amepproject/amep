@@ -204,9 +204,6 @@ class LammpsReader(BaseReader):
             first = int(self.start*len(files))  # first dump file index
             last  = int(self.stop*len(files))   # last dump file index
 
-            # get time step from log file
-            self.dt = self.__get_timestep_from_logfile()
-
             # dump files to load
             files = files[first:last:self.nth]
 
@@ -530,7 +527,8 @@ class LammpsReader(BaseReader):
                     )
 
             self.steps = steps
-            self.times = steps*self.dt
+            # get time step from log file (this also sets self.times)
+            self.dt = self.__get_timestep_from_logfile()
             self.d = d
         except Exception as e:
             os.remove(os.path.join(savedir, "#temp#"+trajfile))
