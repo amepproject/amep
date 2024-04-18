@@ -348,6 +348,7 @@ class BaseReader:
     def dt(self,x):
         with h5py.File(os.path.join(self.savedir, self.filename), 'a') as root:
             root['params'].attrs['dt'] = x
+        self.times = self.steps*x
 
     @property
     def d(self):

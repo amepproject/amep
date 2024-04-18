@@ -83,10 +83,28 @@ simulation data.
 
 # Installation
 
-The **AMEP** library can be installed either via `pip` or by manually adding 
-the `amep` directory to your Python path. Installation via `pip` is 
+The **AMEP** library can be installed via `pip`, `conda`, or by manually adding 
+the `amep` directory to your Python path. Installation via `pip` or `conda` is 
 recommended. To use all plot animation features, please additionally install 
 FFmpeg (https://ffmpeg.org/) on your machine (see below).
+
+## Installation via pip
+
+**AMEP** can be simply installed from [PyPI](https://pypi.org/project/amep/) 
+via 
+
+```bash
+pip install amep
+```
+
+## Installation via conda
+
+**AMEP** can be simply installed from 
+[conda-forge](https://anaconda.org/conda-forge/amep) via 
+
+```bash
+conda install conda-forge::amep
+```
 
 ## Manual installation
 
@@ -113,16 +131,6 @@ export PYTHONPATH="${PYTHONPATH}:/path/to/amep-<version>"
 to the `.bash_profile` file (Linux only). If you use the Anaconda distribution, 
 you can alternatively add the `amep` directory to `Lib/site-packages` in the 
 Anaconda installation path.
-
-## Installation via pip
-
-**AMEP** can be simply installed using `pip`: 
-
-```bash
-pip install amep
-```
-
-The installation via `pip` is recommended.
 
 ## FFmpeg
 
@@ -216,10 +224,13 @@ COORDINATES: X Y Z
 <X_1> <Y_1> <Z_1>
 ...
 ```
-All data that varies in time is to be put into files named `field_<index>.txt`. 
-The index should increase with time, i.e., the file `field_1000.txt` should 
-contain the data of the continuum simulation at timestep 1000. The data files 
-should have the folowing form:
+All data that varies in time is to be put into files named `dump<index>.txt`. 
+The index should increase with time, i.e., the file `dump1000.txt` should 
+contain the data of the continuum simulation at timestep 1000, and the prefix 
+`dump` is user-defined and can be changed (if it is changed, the new naming 
+convention has to be specified with the keyword `dumps` in `amep.load.traj`, 
+e.g., for files named `field_100.txt`, `field_200.txt`, ..., use 
+`dumps='field_*.txt'`). The data files should have the following form:
 ```
 TIMESTEP:
 <Simulation timestep>
