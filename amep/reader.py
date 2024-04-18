@@ -701,19 +701,6 @@ class ContinuumReader(BaseReader):
         self.__time_warning = False
         self.__verbose = verbose
 
-        # set time step
-        if timestep is not None:
-            self.dt = timestep
-        else:
-            self.dt = 1.0
-            self.__log.warning(
-                "Timestep not set. "\
-                "Use default timestep of 1.0. This value is ignored if the "\
-                "'TIME' is specified in your data files. Please check the "\
-                "required continuum data format for more details. "\
-                "The timestep can be set manually by traj.dt=<dt>."
-            )
-
         try:
             # get data files
             fields = sorted(glob.glob(os.path.join(self.directory,
@@ -744,15 +731,28 @@ class ContinuumReader(BaseReader):
 
             d = self.__set_grid(os.path.join(self.directory, gridfile), delimiter)
             for index, field_file in enumerate(tqdm(fields)):
-                # step = self.__set_field(os.path.join(self.directory,field_file), index, delimiter)
                 step, time = self.__set_field(field_file, index, delimiter)
                 steps[index] = step
                 if time == 0.0:
-                    time = step*self.dt
+                    # use dt=1
+                    time = step
                 times[index] = time
             self.steps = steps
-            self.times = times
+            # set time step
+            if timestep is not None:
+                self.dt = timestep
+            else:
+                self.times = times
+                self.__log.warning(
+                    "Timestep not set. "\
+                    "Use default timestep of 1.0. This value is ignored if the "\
+                    "'TIME' is specified in your data files. Please check the "\
+                    "required continuum data format for more details. "\
+                    "The timestep can be set manually by traj.dt=<dt>."
+                )
+            # set dimension
             self.d = d
+            
         except Exception as err:
             os.remove(os.path.join(savedir, "#temp#"+trajfile))
             if "ContinuumReader: no dump files in this directory." in err.args[0]:
