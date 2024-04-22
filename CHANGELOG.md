@@ -3,7 +3,7 @@
 All notable changes to **AMEP** will be documented in this file. **AMEP** 
 adheres to [semantic versioning](https://semver.org/).
 
-## AMEP 1.0.1
+## AMEP 1.0.1 (22 Apr 2024)
 
 ### Bug fixes:
 
