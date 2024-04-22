@@ -21,10 +21,13 @@ it should have the following form::
    <X_1> <Y_1> <Z_1>
    ...
 
-All data that varies in time is to be put into files named `field_<index>.txt`. 
-The index should increase with time, i.e., the file `field_1000.txt` should 
-contain the data of the continuum simulation at timestep 1000. The data files 
-should have the folowing form::
+All data that varies in time is to be put into files named `dump<index>.txt`. 
+The index should increase with time, i.e., the file `dump1000.txt` should 
+contain the data of the continuum simulation at timestep 1000, and the prefix 
+`dump` is user-defined and can be changed (if it is changed, the new naming 
+convention has to be specified with the keyword `dumps` in `amep.load.traj`, 
+e.g., for files named `field_100.txt`, `field_200.txt`, ..., use 
+`dumps='field_*.txt'`). The data files should have the following form::
 
    TIMESTEP:
    <Simulation timestep>

@@ -3,6 +3,21 @@
 All notable changes to **AMEP** will be documented in this file. **AMEP** 
 adheres to [semantic versioning](https://semver.org/).
 
+## AMEP 1.0.1 (22 Apr 2024)
+
+### Bug fixes:
+
+* bug related to physical times not getting updated when timestep of trajectory object was changed fixed (LH)
+* incompatibility with Python 3.12 related to distutils fixed (LH)
+* bug in watershed cluster detection related to bubble detection fixed (KS)
+* some minor issues in documentation fixed (LH)
+
+### Contributors:
+
+* Lukas Hecht (LH)
+* Kai Luca Spanheimer (KS)
+
+
 ## AMEP 1.0.0  (21 Mar 2024)
 
 This is the first public version of **AMEP**. It fully integrates the analysis 

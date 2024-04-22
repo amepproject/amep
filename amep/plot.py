@@ -36,6 +36,7 @@ from typing import Callable, Iterable
 from os.path import abspath, dirname, join
 from pathlib import Path
 import warnings
+import shutil
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -48,7 +49,6 @@ from matplotlib.collections import LineCollection, PatchCollection
 from matplotlib.colors import to_rgba, ListedColormap
 from matplotlib.animation import FuncAnimation
 from tqdm.autonotebook import tqdm
-from distutils.spawn import find_executable
 
 from .trajectory import FieldTrajectory, ParticleTrajectory
 from .base import get_module_logger
@@ -71,17 +71,19 @@ def matplotlib_plot_defaults():
 
 def style(style_name: str = "", mpl_default: bool = False) -> None:
     r'''
-    Set the locations of major and minor ticks.
+    Set the plot style.
 
     Parameters
     ----------
     style_name : str, optional
-        Specifies the name of the style to apply.
-
+        Specifies the name of the style to apply. Apart from the Matplotlib
+        styles, one can choose the AMEP styles `'amep_latex'` and 
+        `'amep_standard'`. The AMEP styles are used per default when AMEP is
+        imported.
     mpl_default : bool, optional
         Determines whether to apply a style or revert
-        to the default pyplot style.
-        The default is False.
+        to the default pyplot style. The default is False.
+
     Returns
     -------
     None.
@@ -106,7 +108,7 @@ def amep_plot_defaults():
     -------
     None.
     '''
-    if find_executable('latex'):
+    if shutil.which('latex'):
         style('amep_latex')
     else:
         _log.info(
