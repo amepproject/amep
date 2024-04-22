@@ -2175,10 +2175,11 @@ class LDdist(BaseEvaluation):
         trajectory does not contain the radii of the particles, you can
         add the radius (here 0.5) to the trajectory using
         
-        ```python
-        for frame in traj:
-            frame.add_data("radius", 0.5*np.ones(len(frame.n())))
-        ```
+        .. code-block:: python
+
+            for frame in traj:
+                frame.add_data("radius", 0.5*np.ones(len(frame.n())))
+
 
         Parameters
         ----------
