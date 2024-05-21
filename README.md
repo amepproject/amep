@@ -5,6 +5,8 @@
 [![Pepy Total Downlods](https://img.shields.io/pepy/dt/amep?label=pypi%7Cdownloads)](https://pypi.org/project/amep/)
 [![Conda Downloads](https://img.shields.io/conda/d/conda-forge/amep)](https://anaconda.org/conda-forge/amep)
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/amepproject/amep/test.yml?label=pipeline)](https://github.com/amepproject/amep/actions)
+[![Static Badge](https://img.shields.io/badge/arXiv-2404.16533-brown)](https://doi.org/10.48550/arXiv.2404.16533)
+
 
 <center><img src="https://raw.githubusercontent.com/amepproject/amep/main/doc/source/_static/images/amep-logo_v2.png" alt="amep logo" width="200" height="200"/></center>
 
@@ -142,6 +144,40 @@ Anaconda installation path.
 **which you run AMEP**. FFmpeg is not automatically installed when you install 
 **AMEP**. Please visit [https://ffmpeg.org/download.html](https://ffmpeg.org/download.html) 
 to download FFmpeg and to get further information on how to install FFmpeg on your machine.
+
+
+# Citation
+
+If you use **AMEP** for a project that leads to a scientific publication, please acknowledge 
+the use of **AMEP** within the body of your publication for example by copying or adapting 
+the following formulation:
+
+*Data analysis for this publication utilized the AMEP library [1].*
+
+> [1] L. Hecht, K.-R. Dormann, K. L. Spanheimer, M. Ebrahimi, M. Cordts, S. Mandal, 
+>     A. K. Mukhopadhyay, and B. Liebchen, AMEP: The Active Matter Evaluation Package for Python, 
+>     *arXiv [Cond-Mat.Soft]* (2024). Available at: http://arxiv.org/abs/2404.16533.
+
+The pre-print is freely available on [arXiv](https://arxiv.org/abs/2404.16533). To cite this reference, 
+you can use the following BibTeX entry:
+
+```bibtex
+@misc{hecht2024amep,
+    title = {AMEP: The Active Matter Evaluation Package for Python}, 
+    author = {Lukas Hecht and 
+              Kay-Robert Dormann and 
+              Kai Luca Spanheimer and 
+              Mahdieh Ebrahimi and 
+              Malte Cordts and 
+              Suvendu Mandal and 
+              Aritra K. Mukhopadhyay and 
+              Benno Liebchen},
+    year = {2024},
+    eprint = {2404.16533},
+    archivePrefix = {arXiv},
+    primaryClass = {cond-mat.soft}
+}
+```
 
 
 # Getting started
