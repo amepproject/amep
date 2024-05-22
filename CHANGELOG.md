@@ -3,6 +3,19 @@
 All notable changes to **AMEP** will be documented in this file. **AMEP** 
 adheres to [semantic versioning](https://semver.org/).
 
+## AMEP 1.0.2 (22 Mai 2024)
+
+### Bug fixes:
+
+* `fps` can now be set by the user in `amep.plot.animate_trajectory`
+* bug in `amep.evaluate.MSD` related to incorrect data availability checks fixed
+
+### Contributors:
+
+* Lukas Hecht
+
+
+
 ## AMEP 1.0.1 (22 Apr 2024)
 
 ### Bug fixes:
