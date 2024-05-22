@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # =============================================================================
-# Copyright (C) 2023 Lukas Hecht and the AMEP development team.
+# Copyright (C) 2023-2024 Lukas Hecht and the AMEP development team.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,8 +25,6 @@ Test units for the amep.order module.
 # =============================================================================
 import numpy as np
 import unittest
-import sys
-sys.path.append('/Lukas/Documents/17_Promotion/10_scripts/development/amep-dev')
 import amep
 
 # =============================================================================

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # =============================================================================
-# Copyright (C) 2023 Lukas Hecht and the AMEP development team.
+# Copyright (C) 2023-2024 Lukas Hecht and the AMEP development team.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -129,3 +129,6 @@ class TestParticleMethods(unittest.TestCase):
                 first_frame.ids(ptype=ptypes)
                 first_frame.data("x", "vx",
                                  "omegay", "id", ptype=ptypes)
+
+if __name__ == '__main__':
+    unittest.main()

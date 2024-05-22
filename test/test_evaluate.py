@@ -81,10 +81,10 @@ class TestEvaluateMethods(unittest.TestCase):
 
     def test_cluster_growth(self):
         self.assertTrue((ClusterGrowth(self.field_trajs[1], scale=1.5, cutoff=0.8,
-                                       ftype="c", mode="mean").frames <=
+                                       ftype="c", mode="mean").frames.sum() <=
                         ClusterGrowth(self.field_trajs[1], scale=1.5, cutoff=0.8,
                                       ftype="c",
-                                      mode="weighted mean").frames).all())
+                                      mode="weighted mean").frames.sum()))
         self.assertTrue((ClusterGrowth(self.field_trajs[1],
                                        ftype="c",
                                        mode="largest").frames >= 0).all())

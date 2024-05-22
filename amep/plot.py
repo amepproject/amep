@@ -1426,7 +1426,7 @@ def animate_trajectory(
         formatter: Callable[[mpl.axes.Axes,], None] | None = None,
         painter: object | None = None,
         title: str = '', figsize: tuple[float, float] | None = None,
-        start: float = 0.0, stop: float = 1.0, nth: int = 1,
+        start: float = 0.0, stop: float = 1.0, nth: int = 1, fps: int = 10,
         verbose: bool = False, **kwargs) -> None:
     r'''Create a video from a trajectory.
 
@@ -1490,6 +1490,8 @@ def animate_trajectory(
         larger than `start`. The default is 1.0.
     nth : int, optional
         Use each nth frame to make the animate. The default is 1.
+    fps: int, optional
+        The frames per second of the video. The default is 10.
     verbose : bool, optional
         If True, runtime information is printed. The default is False.
     **kwargs
@@ -1668,6 +1670,7 @@ def animate_trajectory(
     with tqdm(total = len(indices)) as pbar:
         anim.save(
             outfile,
+            fps = fps,
             progress_callback = lambda frameindex, nframes: pbar.update()
         )
     plt.close(fig)

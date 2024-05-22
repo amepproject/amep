@@ -1,9 +1,9 @@
 [project]
 name = "amep"
-version = "1.0.1"
+version = "1.0.2"
 license = {file="LICENSE"}
 authors = [
-	{name = "Lukas Hecht", email = "lukas.hecht@pkm.tu-darmstadt.de"},
+    {name = "Lukas Hecht", email = "lukas.hecht@pkm.tu-darmstadt.de"},
 ]
 description = "Active Matter Evaluation Package for data analysis of active matter simulations"
 readme = "README.md"
@@ -17,26 +17,26 @@ keywords = [
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
-	"Intended Audience :: Science/Research",
-	"Intended Audience :: Education",
-	"License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
-	"Natural Language :: English",
-	"Operating System :: OS Independent",
-	"Programming Language :: Python :: 3",
-	"Programming Language :: Python :: 3.10",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-	"Topic :: Scientific/Engineering :: Physics",
-	"Topic :: Scientific/Engineering :: Visualization",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Scientific/Engineering :: Visualization",
 ]
 dependencies = [
-	"h5py >= 3.7.0",
-	"matplotlib >= 3.6.2",
-	"numba >= 0.56.4",
-	"numpy >= 1.21.6",
-	"scipy >= 1.10.0",
-	"scikit-image >= 0.20.0",
-	"tqdm >= 4.65.0"
+    "h5py >= 3.7.0",
+    "matplotlib >= 3.6.2",
+    "numba >= 0.56.4",
+    "numpy >= 1.21.6",
+    "scipy >= 1.10.0",
+    "scikit-image >= 0.20.0",
+    "tqdm >= 4.65.0"
 ]
 
 [project.urls]
