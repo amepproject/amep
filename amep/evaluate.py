@@ -3802,35 +3802,41 @@ class MSD(BaseEvaluation):
             
         # get reference frame at time t0:
         self.__frame0 = self.__traj[self.__nskip]
-
+        
         # check data availability
-        if self.__use_nojump and self.__traj[0].nojump_coords() is None:
-            raise ValueError(
-                'No nojump coordinates available. Call traj.nojump() '\
-                'to calculate the nojump coordinates.'
-            )
-        elif self.__pbc and self.__traj[0].unwrapped_coords() is None\
-        and self.__traj[0].nojump_coords() is None:
-            raise ValueError(
-                'Neither unwrapped nor nojump coordinates are available. '\
-                'Call traj.nojump() to calculate the nojump coordinates or '\
-                'do not apply periodic boundary conditions.'
-            )
-        else:
-            # get mode
-            if self.__use_nojump or\
-            (self.__pbc and self.__traj[0].unwrapped_coords() is None):
-                self.__mode = 'nojump'
-            elif self.__pbc and self.__traj[0].unwrapped_coords() is not None:
-                self.__mode = 'unwrapped'
+        if self.__pbc:
+            if self.__use_nojump:
+                try:
+                    a = self.__traj[0].nojump_coords()
+                except:
+                    raise ValueError(
+                        'No nojump coordinates available. Call traj.nojump() '\
+                        'to calculate the nojump coordinates.'
+                    )
             else:
-                self.__mode = 'normal'
-            # calculation
-            self.__frames, self.__avg, self.__indices = average_func(
-                self.__compute, self.__traj, skip=self.__skip,
-                nr=self.__nav, indices=True
-            )
-            self.__times = self.__traj.times[self.__indices]
+                try:
+                    a = self.__traj[0].unwrapped_coords()
+                except:
+                    raise ValueError(
+                        'There are no unwrapped coordinates available. '\
+                        'Please set use_nojump=True to use nojump coordinates '\
+                        'instead or do not apply periodic boundary conditions.'
+                    )
+        # get mode
+        if self.__pbc and self.__use_nojump:
+            self.__mode = 'nojump'
+        elif self.__pbc:
+            self.__mode = 'unwrapped'
+        else:
+            self.__mode = 'normal'
+
+        # calculation
+        self.__frames, self.__avg, self.__indices = average_func(
+            self.__compute, self.__traj, skip=self.__skip,
+            nr=self.__nav, indices=True
+        )
+        self.__times = self.__traj.times[self.__indices]
+
 
     def __compute(self, frame):
         r'''
