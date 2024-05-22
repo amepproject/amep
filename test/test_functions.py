@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # =============================================================================
-# Copyright (C) 2023 Lukas Hecht and the AMEP development team.
+# Copyright (C) 2023-2024 Lukas Hecht and the AMEP development team.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -50,3 +50,6 @@ class TestMathFunctions(unittest.TestCase):
         new_x = x_vec*0.3 + 2
         axs.plot(new_x, gauss.generate(new_x), label="fit")
         fig.savefig(PLOT_DIR/Path("test_gaussian.pdf"))
+        
+if __name__ == '__main__':
+    unittest.main()
