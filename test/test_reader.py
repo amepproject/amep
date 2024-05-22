@@ -25,8 +25,6 @@ Test units for the amep.reader module.
 # =============================================================================
 import numpy as np
 import unittest
-import sys
-sys.path.append('/Lukas/Documents/17_Promotion/10_scripts/development/amep-dev')
 import amep
 import os
 

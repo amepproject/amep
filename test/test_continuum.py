@@ -146,3 +146,7 @@ class TestFieldMethods(unittest.TestCase):
         )
         plot.field(axe[2], labels, *trajectory[-1].grid)
         fig.savefig(PLOT_DIR/"Cluster_test.pdf")
+
+
+if __name__ == '__main__':
+    unittest.main()

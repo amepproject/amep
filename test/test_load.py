@@ -24,11 +24,9 @@ Test units for the amep.load module.
 # IMPORT MODULES
 # =============================================================================
 import unittest
-import sys
 from zipfile import ZipFile
 from requests import get
 from pathlib import Path
-sys.path.append('/Lukas/Documents/17_Promotion/10_scripts/development/amep-dev')
 import amep
 
 SERVER_URL: str = "https://kuno.fkp.physik.tu-darmstadt.de/d/a3d9887b8a5747e0a56e/files/?p=/"
