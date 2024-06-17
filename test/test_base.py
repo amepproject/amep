@@ -23,31 +23,31 @@ Test units of the amep.base module.
 # =============================================================================
 # IMPORT MODULES
 # =============================================================================
-import numpy as np
+from pathlib import Path
 import unittest
 import os
+import numpy as np
 import amep
 
 # =============================================================================
 # GLOBAL CONFIG.
 # =============================================================================
-DATADIR = './data'
-FIELDDIR = './data/field'
+DATADIR = Path('../examples/data/')
+FIELDDIR = DATADIR/"continuum"
 RNG = np.random.default_rng(1234)
 
 # for field data creation
-BOX = np.array([[-10,10], [-20,20], [-0.5,0.5]])
-SHAPE = np.array([40,80,2])
-X,Y,Z = np.meshgrid(
-    np.linspace(BOX[0,0], BOX[0,1], SHAPE[0]),
-    np.linspace(BOX[1,0], BOX[1,1], SHAPE[1]),
-    np.linspace(BOX[2,0], BOX[2,1], SHAPE[2]),
-    indexing = 'ij'
+BOX = np.array([[0.5, 49.5], [0.5, 49.5], [-0., 0.]])
+SHAPE = np.array([50, 50])
+X, Y = np.meshgrid(
+        np.linspace(BOX[0, 0], BOX[0, 1], SHAPE[0]),
+        np.linspace(BOX[1, 0], BOX[1, 1], SHAPE[1]),
+        indexing='ij'
 )
-COORDS = [X.flatten(), Y.flatten(), Z.flatten()]
-TIMESTEPS = [0, 1000, 2000, 3000]
+COORDS = [X.flatten(), Y.flatten()]
+TIMESTEPS = np.arange(0, 10001, 1000)
 DT = 1.0
-FIELDS = ['rho', 'c', 'alpha', 'beta']
+FIELDS = ['p', 'c']
 
 # create directories if they do not exist
 if not os.path.isdir('./data'):
@@ -58,44 +58,6 @@ if not os.path.isdir(FIELDDIR):
 # =============================================================================
 # TEST DATA GENERATORS
 # =============================================================================
-def create_field_data():
-    
-    # generate grid.txt file
-    with open(
-            os.path.join(FIELDDIR, "grid.txt"),
-            "w",
-            encoding="utf-8"
-    ) as wfile:
-        wfile.write(f'BOX:\n{BOX[0,0]}\t{BOX[0,1]}\n{BOX[1,0]}\t{BOX[1,1]}\n{BOX[2,0]}\t{BOX[2,1]}\n')
-        wfile.write('SHAPE:\n' + '\t'.join(str(s) for s in SHAPE) + '\n')
-        wfile.write('COORDINATES:\tX\tY\tZ\n')
-        wfile.write('\n'.join('\t'.join(
-            str(COORDS[i][j]) for i in range(3)
-        ) for j in range(len(COORDS[0]))))
-    
-    # generate dump files with random data
-    for i, step in enumerate(TIMESTEPS):
-        with open(
-                os.path.join(FIELDDIR, f'field_{step}.txt'),
-                "w",
-                encoding="utf-8"
-        ) as wfile:
-            wfile.write(f'TIMESTEP:\n{step}\nDATA:\t'+'\t'.join(FIELDS)+'\n')
-            wfile.write('\n'.join('\t'.join(
-                str(RNG.random()) for _ in FIELDS
-            ) for _ in range(len(COORDS[0]))))
-            
-    # generate a pseudo simulation script
-    with open(
-        os.path.join(FIELDDIR, "continuum.run"),
-        "w",
-        encoding="utf-8"
-    ) as wfile:
-        wfile.write('line 1\n')
-        wfile.write('line 2\n')
-        wfile.write('line 3\n')
-        wfile.write('line 4\n')
-        wfile.write('line 5')
 
 
 # =============================================================================
@@ -114,21 +76,22 @@ class TestBaseField(unittest.TestCase):
 
         """
         # generate some test field data
-        create_field_data()
-        
+        # create_field_data()
+
         # load the data
         self.traj = amep.load.traj(
             FIELDDIR,
             mode='field',
-            delimiter='\t',
+            delimiter=' ',
             dumps='field_*.txt',
             reload=True,
             timestep=DT
         )
-        
+
         # get frame
         self.frame = self.traj[0]
-    
+
+
     def test_data(self):
         # check shape and data access
         for key in FIELDS:
@@ -138,14 +101,14 @@ class TestBaseField(unittest.TestCase):
                 f'''Data {key} has wrong shape {self.frame.data(key).shape}.
                     Require shape {SHAPE}.'''
             )
-        data = self.frame.data(FIELDS[0], FIELDS[1], FIELDS[2])
+        data = self.frame.data(FIELDS[0], FIELDS[1])
         self.assertEqual(
             data.shape, 
-            (3,) + tuple(SHAPE),
-            f'''Loaded data with keys {[FIELDS[0], FIELDS[1], FIELDS[2]]}
+            (2,) + tuple(SHAPE),
+            f'''Loaded data with keys {[FIELDS[0], FIELDS[1]]}
                 has invalid shape {data.shape}. Require shape {(3,) + SHAPE}'''
         )
-    
+
     def test_step(self):
         # step
         for i in range(self.traj.nframes):
@@ -168,7 +131,7 @@ class TestBaseField(unittest.TestCase):
         # dim
         self.assertEqual(
             self.frame.dim,
-            3,
+            2,
             f'''Incorrect spatial dimension: got {self.frame.dim}
                 instead of 3.'''
         )
@@ -180,9 +143,10 @@ class TestBaseField(unittest.TestCase):
             f'''Incorrect simulation box: got {self.frame.box} instead
                 of {BOX}.'''
         )
+
     def test_volume(self):
         # volume
-        volume = np.prod(np.diff(BOX))
+        volume = np.prod(np.diff(BOX[:2]))
         comparison = self.frame.volume == volume
         self.assertTrue(
             comparison.all(),
@@ -193,7 +157,7 @@ class TestBaseField(unittest.TestCase):
         # grid
         self.assertEqual(
             len(self.frame.grid),
-            len(COORDS),
+            2,
             f'''Incorrect grid dimension: got {len(self.frame.grid)}
                 instead of {len(COORDS)}.'''
         )
@@ -205,7 +169,6 @@ class TestBaseField(unittest.TestCase):
         )
         comparisonx = np.isclose(self.frame.grid[0], X)
         comparisony = np.isclose(self.frame.grid[1], Y)
-        comparisonz = np.isclose(self.frame.grid[2], Z)
         self.assertTrue(
             comparisonx.all(),
             f'''Wrong x coordinates. Found {len(X[comparisonx==0])}
@@ -229,7 +192,7 @@ class TestBaseField(unittest.TestCase):
                 key in FIELDS,
                 f'''Incorrect key {key}. Allowed keys are {FIELDS}.'''
             )
-    
+
 
 # =============================================================================
 # BASETRAJECTORY TESTS
@@ -247,13 +210,13 @@ class TestBaseTrajectory(unittest.TestCase):
 
         """
         # generate some test field data
-        create_field_data()
+        # create_field_data()
         
         # create a trajectory object
         self.traj = amep.load.traj(
             FIELDDIR,
             mode='field',
-            delimiter='\t',
+            delimiter=' ',
             dumps='field_*.txt',
             reload=True,
             timestep=DT
@@ -273,7 +236,7 @@ class TestBaseTrajectory(unittest.TestCase):
         self.traj.add_software_info('version', '4May2023')
         self.traj.add_software_info('web', 'lammps.org')
         self.traj.add_software_info('name', 'LAMMPS')
-        
+
     def test_get_item(self):
         self.assertTrue(
             isinstance(self.traj[0], amep.base.BaseField),
@@ -344,7 +307,7 @@ class TestBaseTrajectory(unittest.TestCase):
             f'''Missing key "affiliation". Stored keys are
             {self.traj.get_author_info('Author A').keys()}.'''
         )
-    
+
     def test_delete_author_info(self):
         # delete author information
         self.traj.delete_author_info('Author B', 'email')
@@ -356,7 +319,7 @@ class TestBaseTrajectory(unittest.TestCase):
         )
         # add the information again
         self.traj.add_author_info('Author B', 'email', 'B@beispiel.de')
-    
+
     def test_authors(self):
         self.assertTrue(
             isinstance(self.traj.authors, list),
@@ -378,7 +341,7 @@ class TestBaseTrajectory(unittest.TestCase):
             self.traj.authors,
             f'''Author "Author B" not in {self.traj.authors}.'''
         )
-    
+
     def test_add_software_info(self):
         # add info
         self.traj.add_software_info('test', 'v102')
@@ -397,7 +360,7 @@ class TestBaseTrajectory(unittest.TestCase):
         )
         # delete software info
         self.traj.delete_software_info('test')
-    
+
     def test_delete_software_info(self):
         # delete software information
         self.traj.delete_software_info('version')
@@ -410,7 +373,7 @@ class TestBaseTrajectory(unittest.TestCase):
         )
         # add deleted information again
         self.traj.add_software_info('version', '4May2023')
-    
+
     def test_software(self):
         self.assertTrue(
             isinstance(self.traj.software, dict),
@@ -428,7 +391,7 @@ class TestBaseTrajectory(unittest.TestCase):
             f'''Got wrong software name {self.traj.software['name']} instead of
             "LAMMPS".'''
         )
-    
+
     def test_info(self):
         self.assertTrue(
             isinstance(self.traj.info, dict),
@@ -449,7 +412,7 @@ class TestBaseTrajectory(unittest.TestCase):
             self.traj.info,
             f'''The key "params" is missing. Got {self.traj.info}.'''
         )
-        
+
     def test_params(self):
         self.assertTrue(
             isinstance(self.traj.params, dict),
@@ -462,7 +425,7 @@ class TestBaseTrajectory(unittest.TestCase):
                 self.traj.params,
                 f'''Missing parameter "{p}". Got {self.traj.params}.'''
             )
-    
+
     def test_add_param(self):
         # add parameter
         self.traj.add_param('A', 1)
@@ -480,7 +443,7 @@ class TestBaseTrajectory(unittest.TestCase):
         )
         # delete parameter
         self.traj.delete_param('A')
-    
+
     def test_delete_param(self):
         # delete parameter
         self.traj.delete_param('dt')
@@ -492,79 +455,79 @@ class TestBaseTrajectory(unittest.TestCase):
         )
         # add pararmeter again
         self.traj.add_param('dt', 1.0)
-    
+
     def test_add_script(self):
         # add script
-        self.traj.add_script(os.path.join(FIELDDIR, "continuum.run"))
+        self.traj.add_script(os.path.join(FIELDDIR, "solver.py"))
         # check if script has been added correctly
         self.assertIn(
-            'continuum.run',
+            'solver.py',
             self.traj.scripts,
-            f'''The script "continuum.run" has not been added to the 
+            f'''The script "solver.py" has not been added to the
             trajectory. Included files are {self.traj.scripts}.'''
         )
         # delete script again
-        self.traj.delete_script('continuum.run')
-    
+        self.traj.delete_script('solver.py')
+
     def test_get_script(self):
         # add script
-        self.traj.add_script(os.path.join(FIELDDIR, "continuum.run"))
+        self.traj.add_script(os.path.join(FIELDDIR, "solver.py"))
         # clean data directory
-        if os.path.exists(os.path.join(DATADIR, "continuum.run")):
-            os.remove(os.path.join(DATADIR, "continuum.run"))
+        if os.path.exists(os.path.join(DATADIR, "solver.py")):
+            os.remove(os.path.join(DATADIR, "solver.py"))
         # test get_script method
         self.assertTrue(
-            isinstance(self.traj.get_script('continuum.run'), list),
-            f'''Invalid type. Got {type(self.traj.get_script('continuum.run'))}
+            isinstance(self.traj.get_script('solver.py'), list),
+            f'''Invalid type. Got {type(self.traj.get_script('solver.py'))}
             instead of list.'''
         )
         self.assertEqual(
-            len(self.traj.get_script('continuum.run')), 
-            5,
+            len(self.traj.get_script('solver.py')), 
+            199,
             f'''Invalid length. Got
-            {len(self.traj.get_script('continuum.run'))} instead of 5.'''
+            {len(self.traj.get_script('solver.py'))} instead of 5.'''
         )
         # write script to file
         _ = self.traj.get_script(
-            'continuum.run',
+            'solver.py',
             store = True, 
             directory = DATADIR
         )
         self.assertTrue(
-            os.path.exists(os.path.join(DATADIR, "continuum.run")),
-            '''Script "continuum.run" has not been stored.'''
+            os.path.exists(os.path.join(DATADIR, "solver.py")),
+            '''Script "solver.py" has not been stored.'''
         )
         # delete script again
-        self.traj.delete_script('continuum.run')
+        self.traj.delete_script('solver.py')
         # clean data directory again
-        if os.path.exists(os.path.join(DATADIR, "continuum.run")):
-            os.remove(os.path.join(DATADIR, "continuum.run"))
+        if os.path.exists(os.path.join(DATADIR, "solver.py")):
+            os.remove(os.path.join(DATADIR, "solver.py"))
 
     def test_delete_script(self):
         # add script
-        self.traj.add_script(os.path.join(FIELDDIR, "continuum.run"))
+        self.traj.add_script(os.path.join(FIELDDIR, "solver.py"))
         # delete script again
-        self.traj.delete_script('continuum.run')
+        self.traj.delete_script('solver.py')
         # check if script has been deleted correctly
         self.assertNotIn(
-            'continuum.run',
+            'solver.py',
             self.traj.scripts,
-            f'''Script "continuum.run" has not been deleted. Available scripts
+            f'''Script "solver.py" has not been deleted. Available scripts
             are {self.traj.scripts}.'''
         )
-    
+
     def test_scripts(self):
         # add script
-        self.traj.add_script(os.path.join(FIELDDIR, "continuum.run"))
+        self.traj.add_script(os.path.join(FIELDDIR, "solver.py"))
         self.assertEqual(
             len(self.traj.scripts),
             1,
             f'''Invalid length. Got {len(self.traj.scripts)} instead of 1.'''
         )
         self.assertIn(
-            'continuum.run',
+            'solver.py',
             self.traj.scripts,
-            f'''Missing file "continuum.run". Included files are
+            f'''Missing file "solver.py". Included files are
             {self.traj.scripts}.'''
         )
 
@@ -644,7 +607,7 @@ class TestBaseTrajectory(unittest.TestCase):
         )
         self.assertEqual(
             self.traj.dim,
-            3,
+            2,
             f'''Invalid dimension. Got {self.traj.dim} instead of 3.'''
         )
         self.assertEqual(
@@ -653,14 +616,16 @@ class TestBaseTrajectory(unittest.TestCase):
             f'''Invalid savedir. Got {self.traj.savedir} instead of
             {FIELDDIR}.'''
         )
-        
+
+
 # =============================================================================
 # BASEFUNCTION TESTS
 # =============================================================================
 class TestBaseFunction(unittest.TestCase):
-    
+    """Test generation and base utilities of the Function object."""
+
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
         """
         Basic setup. Generating test data.
 
@@ -670,94 +635,95 @@ class TestBaseFunction(unittest.TestCase):
 
         """
         # create test data
-        self.x = np.linspace(0,10,100)
-        self.y = 10*self.x + 5
-        
+        cls.x = np.linspace(0, 10, 100)
+        cls.y = 10*cls.x + 5
+
     def test_init(self):
         # initialize function object
-        Function = amep.base.BaseFunction(2)
+        function = amep.base.BaseFunction(2)
         # check number of parameters
         self.assertEqual(
-            Function.nparams,
+            function.nparams,
             2,
-            f"""Invalid number of parameters. Got {Function.nparams}
+            f"""Invalid number of parameters. Got {function.nparams}
             instead of 2."""
         )
         # check length of key and value lists
         self.assertEqual(
-            len(Function.keys),
+            len(function.keys),
             2,
-            f"""Invalid number of keys. Got {len(Function.keys)}
+            f"""Invalid number of keys. Got {len(function.keys)}
             instead of 2."""
         )
         self.assertEqual(
-            len(Function.errors),
+            len(function.errors),
             2,
             f"""Invalid length of fit error list. Got
-            {len(Function.errors)} instead of 2."""
+            {len(function.errors)} instead of 2."""
         )
         self.assertEqual(
-            len(Function.params),
+            len(function.params),
             2,
             f"""Invalid length of fit results list. Got
-            {len(Function.params)} instead of 2."""
+            {len(function.params)} instead of 2."""
         )
-    
+
     def test_fit(self):
         # initialize function object
-        Function = amep.base.BaseFunction(2)
+        function = amep.base.BaseFunction(2)
         # fit the test data
-        Function.fit(self.x, self.y)
+        function.fit(self.x, self.y)
         # check fit parameters
         self.assertTrue(
-            np.isclose(Function.params[0], 10.0),
-            f"""Invalid parameter {Function.keys[0]}. Got {Function.params[0]}
+            np.isclose(function.params[0], 10.0),
+            f"""Invalid parameter {function.keys[0]}. Got {function.params[0]}
             instead of 10.0."""
         )
         self.assertTrue(
-            np.isclose(Function.params[1], 5.0),
-            f"""Invalid parameter {Function.keys[1]}. Got {Function.params[1]}
+            np.isclose(function.params[1], 5.0),
+            f"""Invalid parameter {function.keys[1]}. Got {function.params[1]}
             instead of 5.0."""
         )
-    
+
     def test_generate(self):
         # initialize function object
-        Function = amep.base.BaseFunction(2)
+        function = amep.base.BaseFunction(2)
         # fit the test data
-        Function.fit(self.x, self.y)
+        function.fit(self.x, self.y)
         # generate y data
-        y = Function.generate(self.x)
+        y = function.generate(self.x)
         self.assertTrue(
             np.all(np.isclose(y, self.y)),
             """The generate method returned wrong data."""
         )
-    
+
     def test_properties(self):
         # initialize function object
-        Function = amep.base.BaseFunction(2)
+        function = amep.base.BaseFunction(2)
         # fit the test data
-        Function.fit(self.x, self.y)
+        function.fit(self.x, self.y)
         # check data type
         self.assertTrue(
-            isinstance(Function.keys, list),
-            f"""Invalid type for property keys. Got {type(Function.keys)}
+            isinstance(function.keys, list),
+            f"""Invalid type for property keys. Got {type(function.keys)}
             instead of list."""
         )
         self.assertTrue(
-            isinstance(Function.errors, np.ndarray),
-            f"""Invalid type for property errors. Got {type(Function.errors)}
+            isinstance(function.errors, np.ndarray),
+            f"""Invalid type for property errors. Got {type(function.errors)}
             instead of np.ndarray."""
         )
         self.assertTrue(
-            isinstance(Function.params, np.ndarray),
-            f"""Invalid type for property params. Got {type(Function.params)}
+            isinstance(function.params, np.ndarray),
+            f"""Invalid type for property params. Got {type(function.params)}
             instead of np.ndarray."""
         )
         self.assertTrue(
-            isinstance(Function.results, dict),
-            f"""Invalid type for property results. Got {type(Function.results)}
+            isinstance(function.results, dict),
+            f"""Invalid type for property results. Got {type(function.results)}
             instead of dict."""
         )
-    
-if __name__ == '__main__':
-    unittest.main()
+
+
+# if __name__ == '__main__':
+#     unittest.main()
