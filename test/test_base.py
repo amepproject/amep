@@ -42,31 +42,21 @@ SHAPE = np.array([50, 50])
 X, Y = np.meshgrid(
         np.linspace(BOX[0, 0], BOX[0, 1], SHAPE[0]),
         np.linspace(BOX[1, 0], BOX[1, 1], SHAPE[1]),
-        indexing='ij'
+        indexing='xy'
 )
 COORDS = [X.flatten(), Y.flatten()]
 TIMESTEPS = np.arange(0, 10001, 1000)
 DT = 1.0
 FIELDS = ['p', 'c']
 
-# create directories if they do not exist
-if not os.path.isdir('./data'):
-    os.mkdir('./data')
-if not os.path.isdir(FIELDDIR):
-    os.mkdir(FIELDDIR)
-
-# =============================================================================
-# TEST DATA GENERATORS
-# =============================================================================
-
 
 # =============================================================================
 # BASEFIELD TESTS
 # =============================================================================
 class TestBaseField(unittest.TestCase):
-    
+    """Testing Suite for all rudimetary functions of BaseField."""
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
         """
         Basic setup. Generating test data.
 
@@ -79,7 +69,7 @@ class TestBaseField(unittest.TestCase):
         # create_field_data()
 
         # load the data
-        self.traj = amep.load.traj(
+        cls.traj = amep.load.traj(
             FIELDDIR,
             mode='field',
             delimiter=' ',
@@ -89,11 +79,10 @@ class TestBaseField(unittest.TestCase):
         )
 
         # get frame
-        self.frame = self.traj[0]
-
+        cls.frame = cls.traj[0]
 
     def test_data(self):
-        # check shape and data access
+        """Check shape and data access."""
         for key in FIELDS:
             self.assertEqual(
                 self.frame.data(key).shape,
@@ -103,14 +92,14 @@ class TestBaseField(unittest.TestCase):
             )
         data = self.frame.data(FIELDS[0], FIELDS[1])
         self.assertEqual(
-            data.shape, 
+            data.shape,
             (2,) + tuple(SHAPE),
             f'''Loaded data with keys {[FIELDS[0], FIELDS[1]]}
                 has invalid shape {data.shape}. Require shape {(3,) + SHAPE}'''
         )
 
     def test_step(self):
-        # step
+        """Check Data access for step method."""
         for i in range(self.traj.nframes):
             self.assertEqual(
                 self.traj[i].step,
@@ -118,25 +107,28 @@ class TestBaseField(unittest.TestCase):
                 f'''Incorrect time step: got {self.traj[i].step} instead of
                     {TIMESTEPS[i]} at index {i}.'''
             )
+
     def test_center(self):
-        # center
-        center = (BOX[:,0]+BOX[:,1]) / 2.0
+        """Check Data access for center method."""
+        center = (BOX[:, 0]+BOX[:, 1]) / 2.0
         comparison = self.frame.center == center
         self.assertTrue(
             comparison.all(),
             f'''Incorrect center: got {self.frame.center} instead of
                 {center}.'''
         )
+
     def test_dim(self):
-        # dim
+        """Check Data access for dimension method."""
         self.assertEqual(
             self.frame.dim,
             2,
             f'''Incorrect spatial dimension: got {self.frame.dim}
-                instead of 3.'''
+                instead of 2.'''
         )
+
     def test_box(self):
-        # box
+        """Check Data access for box method."""
         comparison = self.frame.box == BOX
         self.assertTrue(
             comparison.all(),
@@ -145,7 +137,7 @@ class TestBaseField(unittest.TestCase):
         )
 
     def test_volume(self):
-        # volume
+        """Check Data access for Volume method."""
         volume = np.prod(np.diff(BOX[:2]))
         comparison = self.frame.volume == volume
         self.assertTrue(
@@ -153,8 +145,9 @@ class TestBaseField(unittest.TestCase):
             f'''Incorrect simulation box volume: got {self.frame.volume}
                 instead of {volume} with simulation box {BOX}.'''
         )
+
     def test_grid(self):
-        # grid
+        """Check Data access for grid method."""
         self.assertEqual(
             len(self.frame.grid),
             2,
@@ -171,21 +164,17 @@ class TestBaseField(unittest.TestCase):
         comparisony = np.isclose(self.frame.grid[1], Y)
         self.assertTrue(
             comparisonx.all(),
-            f'''Wrong x coordinates. Found {len(X[comparisonx==0])}
+            f'''Wrong x coordinates. Found {len(X[comparisonx == 0])}
                 invalid entries out of {len(X.flatten())}.'''
         )
         self.assertTrue(
             comparisony.all(),
-            f'''Wrong y coordinates. Found {len(Y[comparisony==0])}
+            f'''Wrong y coordinates. Found {len(Y[comparisony == 0])}
                 invalid entries out of {len(Y.flatten())}.'''
         )
-        self.assertTrue(
-            comparisonz.all(),
-            f'''Wrong z coordinates. Found {len(Z[comparisonz==0])}
-                invalid entries out of {len(Z.flatten())}.'''
-        )
+
     def test_keys(self):
-        # keys
+        """Check Data access for keys method."""
         keys = self.frame.keys
         for key in keys:
             self.assertTrue(
@@ -198,9 +187,9 @@ class TestBaseField(unittest.TestCase):
 # BASETRAJECTORY TESTS
 # =============================================================================
 class TestBaseTrajectory(unittest.TestCase):
-    
+    """Testing Suite for all rudimetary functions of BaseTrajectory."""
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
         """
         Basic setup. Generating test data.
 
@@ -211,9 +200,8 @@ class TestBaseTrajectory(unittest.TestCase):
         """
         # generate some test field data
         # create_field_data()
-        
         # create a trajectory object
-        self.traj = amep.load.traj(
+        cls.traj = amep.load.traj(
             FIELDDIR,
             mode='field',
             delimiter=' ',
@@ -221,23 +209,30 @@ class TestBaseTrajectory(unittest.TestCase):
             reload=True,
             timestep=DT
         )
-        
         # add author information
-        self.traj.add_author_info(
+        cls.traj.add_author_info(
             'Author A', 'email', 'A@beispiel.de')
-        self.traj.add_author_info(
+        cls.traj.add_author_info(
             'Author A', 'affiliation', 'Institute A')
-        self.traj.add_author_info(
+        cls.traj.add_author_info(
             'Author B', 'email', 'B@beispiel.de')
-        self.traj.add_author_info(
+        cls.traj.add_author_info(
             'Author B', 'affiliation', 'Institute B')
-        
+
         # add software information
-        self.traj.add_software_info('version', '4May2023')
-        self.traj.add_software_info('web', 'lammps.org')
-        self.traj.add_software_info('name', 'LAMMPS')
+        cls.traj.add_software_info('version', '4May2023')
+        cls.traj.add_software_info('web', 'lammps.org')
+        cls.traj.add_software_info('name', 'LAMMPS')
 
     def test_get_item(self):
+        """
+        Test access to items in the trajectory.
+
+        Returns
+        -------
+        None.
+
+        """
         self.assertTrue(
             isinstance(self.traj[0], amep.base.BaseField),
             f'''traj[0] returns an incorrect item type. Got
@@ -252,20 +247,20 @@ class TestBaseTrajectory(unittest.TestCase):
             len(self.traj[2:]),
             len(TIMESTEPS)-2,
             f'''traj[2:] has incorrect length. Got {len(self.traj[2:])}
-            instead of {len(TIMESTEPS)-2}.'''    
+            instead of {len(TIMESTEPS)-2}.'''
         )
         self.assertTrue(
-            isinstance(self.traj[[0,2]], list),
-            f'''traj[[0,2]] returns an incorrect type. Got {type(self.traj[[0,2]])}
-            instead of list.'''
+            isinstance(self.traj[[0, 2]], list),
+            f'''traj[[0,2]] returns an incorrect type.
+                Got {type(self.traj[[0, 2]])} instead of list.'''
         )
         self.assertEqual(
-            len(self.traj[[0,2]]),
+            len(self.traj[[0, 2]]),
             2,
-            f'''traj[[0,2]] has incorrect length. Got {len(self.traj[[0,2]])}
-            instead of 2.'''    
+            f'''traj[[0,2]] has incorrect length. Got {len(self.traj[[0, 2]])}
+            instead of 2.'''
         )
-        for frame,i in zip(self.traj[[0,2]], [0,2]):
+        for frame, i in zip(self.traj[[0, 2]], [0, 2]):
             self.assertEqual(
                 frame.step,
                 TIMESTEPS[i],
@@ -274,9 +269,17 @@ class TestBaseTrajectory(unittest.TestCase):
             )
 
     def test_add_author_info(self):
+        """
+        Test adding, reading and removing author info to the trajectory.
+
+        Returns
+        -------
+        None.
+
+        """
         # add info
         self.traj.add_author_info('Author A', 'test', 'test')
-        
+
         # check if info has been stored
         self.assertIn(
             'test',
@@ -285,11 +288,19 @@ class TestBaseTrajectory(unittest.TestCase):
             The new key "test" is not in the stored information given by
             {self.traj.get_author_info('Author A').keys()}.'''
         )
-        
+
         # delete info
         self.traj.delete_author_info('Author A', 'test')
 
     def test_get_author_info(self):
+        """
+        Test reading author from to the trajectory.
+
+        Returns
+        -------
+        None.
+
+        """
         self.assertTrue(
             isinstance(self.traj.get_author_info('Author A'), dict),
             f'''Wrong type returned. Got
@@ -309,7 +320,14 @@ class TestBaseTrajectory(unittest.TestCase):
         )
 
     def test_delete_author_info(self):
-        # delete author information
+        """
+        Test deleting author from to the trajectory.
+
+        Returns
+        -------
+        None.
+
+        """
         self.traj.delete_author_info('Author B', 'email')
         # check if it has been deleted correctly
         self.assertNotIn(
@@ -321,6 +339,14 @@ class TestBaseTrajectory(unittest.TestCase):
         self.traj.add_author_info('Author B', 'email', 'B@beispiel.de')
 
     def test_authors(self):
+        """
+        Test acessing author list from to the trajectory.
+
+        Returns
+        -------
+        None.
+
+        """
         self.assertTrue(
             isinstance(self.traj.authors, list),
             f'''Invalid type. Got {type(self.traj.authors)} instead of list'''
@@ -343,6 +369,14 @@ class TestBaseTrajectory(unittest.TestCase):
         )
 
     def test_add_software_info(self):
+        """
+        Test adding software info from to the trajectory.
+
+        Returns
+        -------
+        None.
+
+        """
         # add info
         self.traj.add_software_info('test', 'v102')
         # check if info has been added correctly
@@ -362,6 +396,14 @@ class TestBaseTrajectory(unittest.TestCase):
         self.traj.delete_software_info('test')
 
     def test_delete_software_info(self):
+        """
+        Test deleting software info from to the trajectory.
+
+        Returns
+        -------
+        None.
+
+        """
         # delete software information
         self.traj.delete_software_info('version')
         # check if it has been deleted correctly
@@ -375,6 +417,14 @@ class TestBaseTrajectory(unittest.TestCase):
         self.traj.add_software_info('version', '4May2023')
 
     def test_software(self):
+        """
+        Test acessing software info from to the trajectory.
+
+        Returns
+        -------
+        None.
+
+        """
         self.assertTrue(
             isinstance(self.traj.software, dict),
             f'''Invalid type. Got {type(self.traj.software)} instead of dict'''
@@ -393,6 +443,14 @@ class TestBaseTrajectory(unittest.TestCase):
         )
 
     def test_info(self):
+        """
+        Test acessing general info from to the trajectory.
+
+        Returns
+        -------
+        None.
+
+        """
         self.assertTrue(
             isinstance(self.traj.info, dict),
             f'''Invalid type. Got {type(self.traj.info)} instead of dict.'''
@@ -414,6 +472,14 @@ class TestBaseTrajectory(unittest.TestCase):
         )
 
     def test_params(self):
+        """
+        Test acessing params of the trajectory.
+
+        Returns
+        -------
+        None.
+
+        """
         self.assertTrue(
             isinstance(self.traj.params, dict),
             f'''Invalid type. Got {type(self.traj.params)} instead of dict.'''
@@ -427,6 +493,14 @@ class TestBaseTrajectory(unittest.TestCase):
             )
 
     def test_add_param(self):
+        """
+        Test adding, acessing and deleting params of the trajectory.
+
+        Returns
+        -------
+        None.
+
+        """
         # add parameter
         self.traj.add_param('A', 1)
         # check if parameter has been added correctly
@@ -445,6 +519,14 @@ class TestBaseTrajectory(unittest.TestCase):
         self.traj.delete_param('A')
 
     def test_delete_param(self):
+        """
+        Test deleting params of the trajectory.
+
+        Returns
+        -------
+        None.
+
+        """
         # delete parameter
         self.traj.delete_param('dt')
         # check if parameter has been deleted correctly
@@ -457,7 +539,14 @@ class TestBaseTrajectory(unittest.TestCase):
         self.traj.add_param('dt', 1.0)
 
     def test_add_script(self):
-        # add script
+        """
+        Test adding a script to the trajectory.
+
+        Returns
+        -------
+        None.
+
+        """
         self.traj.add_script(os.path.join(FIELDDIR, "solver.py"))
         # check if script has been added correctly
         self.assertIn(
@@ -470,11 +559,18 @@ class TestBaseTrajectory(unittest.TestCase):
         self.traj.delete_script('solver.py')
 
     def test_get_script(self):
+        """
+        Test adding, acessing and deleting a script in the trajectory.
+
+        Returns
+        -------
+        None.
+
+        """
         # add script
         self.traj.add_script(os.path.join(FIELDDIR, "solver.py"))
         # clean data directory
-        if os.path.exists(os.path.join(DATADIR, "solver.py")):
-            os.remove(os.path.join(DATADIR, "solver.py"))
+        (DATADIR/"solver.py").unlink(missing_ok=True)
         # test get_script method
         self.assertTrue(
             isinstance(self.traj.get_script('solver.py'), list),
@@ -482,7 +578,7 @@ class TestBaseTrajectory(unittest.TestCase):
             instead of list.'''
         )
         self.assertEqual(
-            len(self.traj.get_script('solver.py')), 
+            len(self.traj.get_script('solver.py')),
             199,
             f'''Invalid length. Got
             {len(self.traj.get_script('solver.py'))} instead of 5.'''
@@ -490,8 +586,8 @@ class TestBaseTrajectory(unittest.TestCase):
         # write script to file
         _ = self.traj.get_script(
             'solver.py',
-            store = True, 
-            directory = DATADIR
+            store=True,
+            directory=DATADIR
         )
         self.assertTrue(
             os.path.exists(os.path.join(DATADIR, "solver.py")),
@@ -504,6 +600,14 @@ class TestBaseTrajectory(unittest.TestCase):
             os.remove(os.path.join(DATADIR, "solver.py"))
 
     def test_delete_script(self):
+        """
+        Test deleting a script in the trajectory.
+
+        Returns
+        -------
+        None.
+
+        """
         # add script
         self.traj.add_script(os.path.join(FIELDDIR, "solver.py"))
         # delete script again
@@ -517,6 +621,14 @@ class TestBaseTrajectory(unittest.TestCase):
         )
 
     def test_scripts(self):
+        """
+        Test adding, acessing and deleting a script in the trajectory.
+
+        Returns
+        -------
+        None.
+
+        """
         # add script
         self.traj.add_script(os.path.join(FIELDDIR, "solver.py"))
         self.assertEqual(
@@ -532,6 +644,14 @@ class TestBaseTrajectory(unittest.TestCase):
         )
 
     def test_properties(self):
+        """
+        Test acessing properties in the trajectory.
+
+        Returns
+        -------
+        None.
+
+        """
         self.assertEqual(
             self.traj.version, amep.__version__,
             f'''Invalid version. Got {self.traj.version} instead of
@@ -544,7 +664,7 @@ class TestBaseTrajectory(unittest.TestCase):
         )
         self.assertTrue(
             isinstance(self.traj.reader, amep.reader.ContinuumReader),
-            f'''Invalid type. Got {type(self.traj.reader)} instead of 
+            f'''Invalid type. Got {type(self.traj.reader)} instead of
             amep.reader.ContinuumReader.'''
         )
         self.assertEqual(
@@ -565,14 +685,12 @@ class TestBaseTrajectory(unittest.TestCase):
         self.assertEqual(
             self.traj.nframes,
             len(TIMESTEPS),
-            f'''Invalid number of frames. Got {self.traj.nframes} instead of 
+            f'''Invalid number of frames. Got {self.traj.nframes} instead of
             {len(TIMESTEPS)}.'''
         )
         # check steps
-        invalid_steps = False
-        for step in self.traj.steps:
-            if step not in TIMESTEPS:
-                invalid_steps = True
+        invalid_steps = any(step not in np.array(TIMESTEPS)*DT
+                            for step in self.traj.steps)
         self.assertFalse(
             invalid_steps,
             f'''Invalid step detected. Got {self.traj.steps} instead of
@@ -581,17 +699,15 @@ class TestBaseTrajectory(unittest.TestCase):
         self.assertEqual(
             len(self.traj.steps),
             len(TIMESTEPS),
-            f'''Invalid length of steps. Got {len(self.traj.steps)} instead of 
+            f'''Invalid length of steps. Got {len(self.traj.steps)} instead of
             {len(TIMESTEPS)}.'''
         )
         # check times
-        invalid_times = False
-        for time in self.traj.times:
-            if time not in np.array(TIMESTEPS)*DT:
-                invalid_times = True
+        invalid_times = any(time not in np.array(TIMESTEPS)*DT
+                            for time in self.traj.times)
         self.assertFalse(
             invalid_times,
-            f'''Invalid time detected. Got {self.traj.times} instead of 
+            f'''Invalid time detected. Got {self.traj.times} instead of
             {np.array(TIMESTEPS)*DT}.'''
         )
         self.assertEqual(
@@ -639,6 +755,14 @@ class TestBaseFunction(unittest.TestCase):
         cls.y = 10*cls.x + 5
 
     def test_init(self):
+        """
+        Test initialisation of a BaseFunction.
+
+        Returns
+        -------
+        None.
+
+        """
         # initialize function object
         function = amep.base.BaseFunction(2)
         # check number of parameters
@@ -669,6 +793,14 @@ class TestBaseFunction(unittest.TestCase):
         )
 
     def test_fit(self):
+        """
+        Test fit routines of a BaseFunction.
+
+        Returns
+        -------
+        None.
+
+        """
         # initialize function object
         function = amep.base.BaseFunction(2)
         # fit the test data
@@ -686,6 +818,14 @@ class TestBaseFunction(unittest.TestCase):
         )
 
     def test_generate(self):
+        """
+        Test generation routines of a BaseFunction.
+
+        Returns
+        -------
+        None.
+
+        """
         # initialize function object
         function = amep.base.BaseFunction(2)
         # fit the test data
@@ -698,6 +838,14 @@ class TestBaseFunction(unittest.TestCase):
         )
 
     def test_properties(self):
+        """
+        Test property access in a BaseFunction.
+
+        Returns
+        -------
+        None.
+
+        """
         # initialize function object
         function = amep.base.BaseFunction(2)
         # fit the test data
@@ -723,7 +871,3 @@ class TestBaseFunction(unittest.TestCase):
             f"""Invalid type for property results. Got {type(function.results)}
             instead of dict."""
         )
-
-
-# if __name__ == '__main__':
-#     unittest.main()
