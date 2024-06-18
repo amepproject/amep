@@ -6,7 +6,7 @@ In order to do this I list all test files here as sections
 
 | test script       | depends on downloads/data gen | unnecessary duplications  |
 | ----------------- | ----------------------------- | ------------------------- |
-| base              |          ✔                    |            ✔              |
+| base              |          X                    |            X              |
 | continuum         |          ✔                    |            ✔              |
 | evaluate          |          ✔                    |            ✔              |
 | functions         |          ✔                    |            ✔              |
