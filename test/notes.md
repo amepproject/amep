@@ -8,8 +8,8 @@ In order to do this I list all test files here as sections
 | ----------------- | ----------------------------- | ------------------------- |
 | base              |          ✘                    |            ✘              |
 | continuum         |          ✘                    |            ✘              |
-| evaluate          |          ✔                    |            ✔              |
-| functions         |          ✔                    |            ✔              |
+| evaluate          |          ✘                    |            ✘              |
+| functions         |          ✘                    |            ✔              |
 | load              |          ✔                    |            ✔              |
 | order             |          ✔                    |            ✔              |
 | particle methods  |          ✔                    |            ✔              |

@@ -30,64 +30,66 @@ from matplotlib import use
 from amep.load import traj
 from amep.evaluate import ClusterGrowth, ClusterSizeDist
 use("Agg")
-DATA_DIR = Path("./data")
+DATA_DIR = Path("../examples/data/")
 
-SERVER_URL: str = "https://kuno.fkp.physik.tu-darmstadt.de/d/a3d9887b8a5747e0a56e/files/?p=/"
-URL_END: str = "&dl=1"
-FIELD_DIR: Path = DATA_DIR/"fields"
-PARTICLE_DIR: Path = DATA_DIR/"particles"
+FIELD_DIR: Path = DATA_DIR/"continuum"
+PARTICLE_DIR: Path = DATA_DIR/"lammps"
 PLOT_DIR: Path = DATA_DIR/"plots"
-FILE_NAMES: tuple[str, ...] = ("fields", "particles")
-FILE_END: str = ".zip"
-
-
-def get_test_files():
-    """Gets and extracts needed Simulation data.
-
-    In order to make it accessible for the tests.
-    """
-    for file_name in FILE_NAMES:
-        sim_dir = DATA_DIR
-        zip_path = sim_dir/Path(f"{file_name}{FILE_END}")
-        file_url = f"{SERVER_URL}{file_name}{FILE_END}{URL_END}"
-        sim_dir.mkdir(exist_ok=True)
-        try:
-            print(f"Downloading {file_name}")
-            with open(zip_path, "wb") as ofile:
-                ofile.write(get(file_url, allow_redirects=True).content)
-            print(f"unziping {file_name}")
-            with ZipFile(zip_path, "r") as z_file:
-                z_file.extractall(sim_dir)
-            zip_path.unlink()
-        except:
-            print(f"Downloading and Unziping {file_name} failed!")
 
 
 class TestEvaluateMethods(unittest.TestCase):
     """A test case for all field and continuum data methods"""
     @classmethod
     def setUpClass(cls):
-        DATA_DIR.mkdir(exist_ok=True)
-        PLOT_DIR.mkdir(exist_ok=True)
-        if not FIELD_DIR.is_dir() or not PARTICLE_DIR.is_dir():
-            get_test_files()
-        else:
-            print("Already here")
-        cls.field_trajs = [traj(field) for field in FIELD_DIR.iterdir()]
-        cls.particle_trajs = [traj(field) for field in PARTICLE_DIR.iterdir()]
-
-    # def test_clustersize_dist(self):
-    #     print(ClusterSizeDist(self.field_trajs[0], ftype="c").frames)
+        """Set up needed data"""
+        cls.field_traj = traj(DATA_DIR/"continuum.h5amep")
+        cls.particle_traj = traj(DATA_DIR/"lammps.h5amep")
 
     def test_cluster_growth(self):
-        self.assertTrue((ClusterGrowth(self.field_trajs[1], scale=1.5, cutoff=0.8,
+        """Test the cluster growth methods.
+
+        Due to their weighting they have a given order they take
+        for arbitrary trajectories.
+        This order gets tested here.
+        Since ClusterGrowth calls ClusterSizeDist we don't
+        have to check it separately.
+        """
+        self.assertTrue((ClusterGrowth(self.field_traj, scale=1.5,
+                                       cutoff=0.8,
                                        ftype="c", mode="mean").frames.sum() <=
-                        ClusterGrowth(self.field_trajs[1], scale=1.5, cutoff=0.8,
-                                      ftype="c",
+                        ClusterGrowth(self.field_traj, scale=1.5,
+                                      cutoff=0.8, ftype="c",
                                       mode="weighted mean").frames.sum()))
-        self.assertTrue((ClusterGrowth(self.field_trajs[1],
+        self.assertTrue((ClusterGrowth(self.field_traj,
                                        ftype="c",
                                        mode="largest").frames >= 0).all())
 
-if __name__ == '__main__':
-    unittest.main()
+    def test_energy_methods(self):
+        """Test the energy methods.
+        TO BE IMPLEMENTED
+        """
+        pass
+
+    def test_function(self):
+        """Test arbitray function evaluation.
+        TO BE IMPLEMENTED
+        """
+        pass
+
+    def test_order_evaluations(self):
+        """Test order parameter evaluation.
+        TO BE IMPLEMENTED
+        """
+        pass
+
+    def test_correlation(self):
+        """Test order parameter evaluation.
+        TO BE IMPLEMENTED
+        """
+        pass
+
+    def test_transforms(self):
+        """Test order parameter evaluation.
+        TO BE IMPLEMENTED
+        """
+        pass
