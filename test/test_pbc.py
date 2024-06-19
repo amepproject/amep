@@ -304,22 +304,16 @@ class TestPbc(unittest.TestCase):
             [-8.0, -13.0, -1.25]
         ])
         # comparison
-        failed2d = []
-        for mc in amep.pbc.mirror_points(coords2d, box, enforce_nd=2):
-            found = False
-            for c in mirror_coords2d:
-                if (mc.round(3) == c.round(3)).all():
-                    found = True
-            if not found:
-                failed2d.append(mc)
-        failed3d = []
-        for mc in amep.pbc.mirror_points(coords3d, box):
-            found = False
-            for c in mirror_coords3d:
-                if (mc.round(3) == c.round(3)).all():
-                    found = True
-            if not found:
-                failed3d.append(mc)
+        failed2d = [mc for mc in amep.pbc.mirror_points(coords2d,
+                                                        box,
+                                                        enforce_nd=2)
+                    if not any((mc.round(3) == c.round(3)).all()
+                               for c in mirror_coords2d)
+                    ]
+        failed3d = [mc for mc in amep.pbc.mirror_points(coords3d, box)
+                    if not any((mc.round(3) == c.round(3)).all()
+                               for c in mirror_coords3d)
+                    ]
         # check 2d data indentification
         shape = amep.pbc.mirror_points(coords2d, box, enforce_nd=2).shape
         self.assertEqual(
