@@ -23,30 +23,32 @@ Test units for the amep.reader module.
 # =============================================================================
 # IMPORT MODULES
 # =============================================================================
-import numpy as np
+from pathlib import Path
 import unittest
+import numpy as np
 import amep
 import os
 
 # =============================================================================
 # GLOBAL CONFIG.
 # =============================================================================
-FIELDDIR = './data/field'
-LAMMPSDIR = './data/lammps'
+DATADIR = Path('../examples/data/')
+LAMMPSDIR = DATADIR/'lammps'
+FIELDDIR = DATADIR/'continuum'
+EMPTYDIR = DATADIR/'empty'
 SAVEDIR = './data/trajs'
-EMPTYDIR = './data/emtpy'
-INVALIDFIELDDIR = './data/field/invalid'
+INVALIDFIELDDIR = DATADIR/'invalid'
 
 RNG = np.random.default_rng(1234)
 
 # for field data creation
-BOX = np.array([[-10,10], [-20,20], [-0.5,0.5]])
-SHAPE = np.array([40,80,2])
-X,Y,Z = np.meshgrid(
-    np.linspace(BOX[0,0], BOX[0,1], SHAPE[0]),
-    np.linspace(BOX[1,0], BOX[1,1], SHAPE[1]),
-    np.linspace(BOX[2,0], BOX[2,1], SHAPE[2]),
-    indexing = 'ij'
+BOX = np.array([[-10, 10], [-20, 20], [-0.5, 0.5]])
+SHAPE = np.array([40, 80, 2])
+X, Y, Z = np.meshgrid(
+        np.linspace(BOX[0, 0], BOX[0, 1], SHAPE[0]),
+        np.linspace(BOX[1, 0], BOX[1, 1], SHAPE[1]),
+        np.linspace(BOX[2, 0], BOX[2, 1], SHAPE[2]),
+        indexing='ij'
 )
 COORDS = [X.flatten(), Y.flatten(), Z.flatten()]
 TIMESTEPS = [0, 1000, 2000, 3000]
@@ -54,57 +56,13 @@ FIELDS = ['rho', 'c', 'alpha', 'beta']
 DATA = ['id', 'x', 'y', 'z', 'vx', 'vy', 'fx', 'fy', 'mass', 'radius']
 NATOMS = 100
 
-# for lammps data creation
-
-
-# create directories if they do not exist
-if not os.path.isdir('./data'):
-    os.mkdir('./data')
-if not os.path.isdir(FIELDDIR):
-    os.mkdir(FIELDDIR)
-if not os.path.isdir(LAMMPSDIR):
-    os.mkdir(LAMMPSDIR)
-if not os.path.isdir(SAVEDIR):
-    os.mkdir(SAVEDIR)
-if not os.path.isdir(EMPTYDIR):
-    os.mkdir(EMPTYDIR)
-if not os.path.isdir(INVALIDFIELDDIR):
-    os.mkdir(INVALIDFIELDDIR)
-
-
 
 # =============================================================================
 # TEST DATA GENERATORS
 # =============================================================================
-def create_field_data():
-
-    # generate grid.txt file
-    with open(
-            os.path.join(FIELDDIR, "grid.txt"),
-            "w",
-            encoding="utf-8"
-    ) as wfile:
-        wfile.write(f'BOX:\n{BOX[0,0]}\t{BOX[0,1]}\n{BOX[1,0]}\t{BOX[1,1]}\n{BOX[2,0]}\t{BOX[2,1]}\n')
-        wfile.write('SHAPE:\n' + '\t'.join(str(s) for s in SHAPE) + '\n')
-        wfile.write('COORDINATES:\tX\tY\tZ\n')
-        wfile.write('\n'.join('\t'.join(
-            str(COORDS[i][j]) for i in range(3)
-        ) for j in range(len(COORDS[0]))))
-
-    # generate dump files with random data
-    for i, step in enumerate(TIMESTEPS):
-        with open(
-                os.path.join(FIELDDIR, f'field_{step}.txt'),
-                "w",
-                encoding="utf-8"
-        ) as wfile:
-            wfile.write(f'TIMESTEP:\n{step}\nDATA:\t'+'\t'.join(FIELDS)+'\n')
-            wfile.write('\n'.join('\t'.join(
-                str(RNG.random()) for _ in FIELDS
-            ) for _ in range(len(COORDS[0]))))
-
 def create_invalid_field_data():
-    
+    """Generate a set of invalid field data."""
+
     # INVALID BOX
     # generate grid.txt file
     with open(
@@ -112,7 +70,7 @@ def create_invalid_field_data():
             "w",
             encoding="utf-8"
     ) as wfile:
-        wfile.write(f'BOX:\n{BOX[0,0]}\t{BOX[0,1]}\n{BOX[1,0]}\t{BOX[1,1]}\n')
+        wfile.write(f'BOX:\n{BOX[0, 0]}\t{BOX[0, 1]}\n{BOX[1, 0]}\t{BOX[1, 1]}\n')
         wfile.write('SHAPE:\n' + '\t'.join(str(s) for s in SHAPE) + '\n')
         wfile.write('COORDINATES:\tX\tY\tZ\n')
         wfile.write('\n'.join('\t'.join(
@@ -128,7 +86,7 @@ def create_invalid_field_data():
         wfile.write('\n'.join('\t'.join(
             str(RNG.random()) for _ in FIELDS
         ) for _ in range(len(COORDS[0]))))
-    
+
     # INVALID SHAPE
     # generate grid.txt file
     with open(
@@ -136,7 +94,7 @@ def create_invalid_field_data():
             "w",
             encoding="utf-8"
     ) as wfile:
-        wfile.write(f'BOX:\n{BOX[0,0]}\t{BOX[0,1]}\n{BOX[1,0]}\t{BOX[1,1]}\n{BOX[2,0]}\t{BOX[2,1]}\n')
+        wfile.write(f'BOX:\n{BOX[0, 0]}\t{BOX[0, 1]}\n{BOX[1, 0]}\t{BOX[1, 1]}\n{BOX[2, 0]}\t{BOX[2, 1]}\n')
         wfile.write('COORDINATES:\tX\tY\tZ\n')
         wfile.write('\n'.join('\t'.join(
             str(COORDS[i][j]) for i in range(3)
@@ -151,7 +109,7 @@ def create_invalid_field_data():
         wfile.write('\n'.join('\t'.join(
             str(RNG.random()) for _ in FIELDS
         ) for _ in range(len(COORDS[0]))))
-        
+
     # INVALID COORDINATES
     # generate grid.txt file
     with open(
@@ -159,7 +117,7 @@ def create_invalid_field_data():
             "w",
             encoding="utf-8"
     ) as wfile:
-        wfile.write(f'BOX:\n{BOX[0,0]}\t{BOX[0,1]}\n{BOX[1,0]}\t{BOX[1,1]}\n{BOX[2,0]}\t{BOX[2,1]}\n')
+        wfile.write(f'BOX:\n{BOX[0, 0]}\t{BOX[0, 1]}\n{BOX[1, 0]}\t{BOX[1, 1]}\n{BOX[2, 0]}\t{BOX[2, 1]}\n')
         wfile.write('SHAPE:\n' + '\t'.join(str(s) for s in SHAPE) + '\n')
         wfile.write('COORDINATES:X\tY\tZ\n')
         wfile.write('\n'.join('\t'.join(
@@ -175,7 +133,7 @@ def create_invalid_field_data():
         wfile.write('\n'.join('\t'.join(
             str(RNG.random()) for _ in FIELDS
         ) for _ in range(len(COORDS[0]))))
-        
+
     # INVALID TIMESTEP
     # generate grid.txt file
     with open(
@@ -183,7 +141,7 @@ def create_invalid_field_data():
             "w",
             encoding="utf-8"
     ) as wfile:
-        wfile.write(f'BOX:\n{BOX[0,0]}\t{BOX[0,1]}\n{BOX[1,0]}\t{BOX[1,1]}\n{BOX[2,0]}\t{BOX[2,1]}\n')
+        wfile.write(f'BOX:\n{BOX[0, 0]}\t{BOX[0, 1]}\n{BOX[1, 0]}\t{BOX[1, 1]}\n{BOX[2, 0]}\t{BOX[2, 1]}\n')
         wfile.write('SHAPE:\n' + '\t'.join(str(s) for s in SHAPE) + '\n')
         wfile.write('COORDINATES:\tX\tY\tZ\n')
         wfile.write('\n'.join('\t'.join(
@@ -199,7 +157,7 @@ def create_invalid_field_data():
         wfile.write('\n'.join('\t'.join(
             str(RNG.random()) for _ in FIELDS
         ) for _ in range(len(COORDS[0]))))
-        
+
     # INVALID DATA
     # generate grid.txt file
     with open(
@@ -207,7 +165,7 @@ def create_invalid_field_data():
             "w",
             encoding="utf-8"
     ) as wfile:
-        wfile.write(f'BOX:\n{BOX[0,0]}\t{BOX[0,1]}\n{BOX[1,0]}\t{BOX[1,1]}\n{BOX[2,0]}\t{BOX[2,1]}\n')
+        wfile.write(f'BOX:\n{BOX[0, 0]}\t{BOX[0, 1]}\n{BOX[1, 0]}\t{BOX[1, 1]}\n{BOX[2, 0]}\t{BOX[2, 1]}\n')
         wfile.write('SHAPE:\n' + '\t'.join(str(s) for s in SHAPE) + '\n')
         wfile.write('COORDINATES:\tX\tY\tZ\n')
         wfile.write('\n'.join('\t'.join(
@@ -225,32 +183,13 @@ def create_invalid_field_data():
         ) for _ in range(len(COORDS[0]))))
 
 
-
-def create_lammps_data():
-    
-    # generate dump files with random data
-    for i, step in enumerate(TIMESTEPS):
-        with open(
-                os.path.join(LAMMPSDIR, f'dump{step}.txt'),
-                "w",
-                encoding="utf-8"
-        ) as wfile:
-            wfile.write(f'ITEM: TIMESTEP\n{step}\n')
-            wfile.write(f'ITEM: NUMBER OF ATOMS\n{NATOMS}\n')
-            wfile.write('ITEM: BOX BOUNDS pp pp pp\n')
-            wfile.write(f'{BOX[0,0]} {BOX[0,1]}\n{BOX[1,0]} {BOX[1,1]}\n{BOX[2,0]} {BOX[2,1]}\n')
-            wfile.write('ITEM: ATOMS '+' '.join(DATA)+'\n')
-            wfile.write('\n'.join('\t'.join(
-                str(RNG.random()) for _ in DATA
-            ) for _ in range(NATOMS)))
-
 # =============================================================================
 # MAIN READER TESTS
 # =============================================================================
 class TestContinuumReader(unittest.TestCase):
-    
+
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
         """
         Basic setup. Generating test data.
 
@@ -259,154 +198,153 @@ class TestContinuumReader(unittest.TestCase):
         None.
 
         """
-        # create test data
-        create_field_data()
-        
-        # create corrupted field data
+        INVALIDFIELDDIR.mkdir(exist_ok=True)
+        EMPTYDIR.mkdir(exist_ok=True)
         create_invalid_field_data()
-    
 
-    
     def test_init(self):
+        """Test constructor method."""
         # read data
         _ = amep.reader.ContinuumReader(
             FIELDDIR,
             FIELDDIR,
-            trajfile = 'traj.h5amep',
-            deleteold = False,
-            dumps = 'field_*.txt',
-            gridfile = 'grid.txt',
-            delimiter = '\t',
-            timestep = 1.0
+            trajfile='traj.h5amep',
+            deleteold=False,
+            dumps='field_*.txt',
+            gridfile='grid.txt',
+            delimiter=' ',
+            timestep=1.0
         )
         # test exceptions for invalid/corrupted data
         with self.assertRaises(
                 Exception,
-                msg = 'No exception raised for invalid box.'
+                msg='No exception raised for invalid box.'
         ):
             _ = amep.reader.ContinuumReader(
                 INVALIDFIELDDIR,
                 INVALIDFIELDDIR,
-                trajfile = 'field-box.h5amep',
-                deleteold = False,
-                dumps = 'field-box_*.txt',
-                gridfile = 'grid-box.txt',
-                delimiter = '\t',
-                timestep = 0.5
+                trajfile='field-box.h5amep',
+                deleteold=False,
+                dumps='field-box_*.txt',
+                gridfile='grid-box.txt',
+                delimiter=' ',
+                timestep=0.5
             )
         with self.assertRaises(
                 Exception,
-                msg = 'No exception raised for invalid shape.'
+                msg='No exception raised for invalid shape.'
         ):
             _ = amep.reader.ContinuumReader(
                 INVALIDFIELDDIR,
                 INVALIDFIELDDIR,
-                trajfile = 'field-shape.h5amep',
-                deleteold = False,
-                dumps = 'field-shape_*.txt',
-                gridfile = 'grid-shape.txt',
-                delimiter = '\t',
-                timestep = 0.5
+                trajfile='field-shape.h5amep',
+                deleteold=False,
+                dumps='field-shape_*.txt',
+                gridfile='grid-shape.txt',
+                delimiter=' ',
+                timestep=0.5
             )
         with self.assertRaises(
                 Exception,
-                msg = 'No exception raised for invalid coordinates.'
+                msg='No exception raised for invalid coordinates.'
         ):
             _ = amep.reader.ContinuumReader(
                 INVALIDFIELDDIR,
                 INVALIDFIELDDIR,
-                trajfile = 'field-coords.h5amep',
-                deleteold = False,
-                dumps = 'field-coords_*.txt',
-                gridfile = 'grid-coords.txt',
-                delimiter = '\t',
-                timestep = 0.5
+                trajfile='field-coords.h5amep',
+                deleteold=False,
+                dumps='field-coords_*.txt',
+                gridfile='grid-coords.txt',
+                delimiter=' ',
+                timestep=0.5
             )
         with self.assertRaises(
                 Exception,
-                msg = 'No exception raised for invalid timestep.'
+                msg='No exception raised for invalid timestep.'
         ):
             _ = amep.reader.ContinuumReader(
                 INVALIDFIELDDIR,
                 INVALIDFIELDDIR,
-                trajfile = 'field-step.h5amep',
-                deleteold = False,
-                dumps = 'field-step_*.txt',
-                gridfile = 'grid-step.txt',
-                delimiter = '\t',
-                timestep = 0.5
+                trajfile='field-step.h5amep',
+                deleteold=False,
+                dumps='field-step_*.txt',
+                gridfile='grid-step.txt',
+                delimiter=' ',
+                timestep=0.5
             )
         with self.assertRaises(
                 Exception,
-                msg = 'No exception raised for invalid data.'
+                msg='No exception raised for invalid data.'
         ):
             _ = amep.reader.ContinuumReader(
                 INVALIDFIELDDIR,
                 INVALIDFIELDDIR,
-                trajfile = 'field-data.h5amep',
-                deleteold = False,
-                dumps = 'field-data_*.txt',
-                gridfile = 'grid-data.txt',
-                delimiter = '\t',
-                timestep = 0.5
-            ) 
-            
+                trajfile='field-data.h5amep',
+                deleteold=False,
+                dumps='field-data_*.txt',
+                gridfile='grid-data.txt',
+                delimiter=' ',
+                timestep=0.5
+            )
+
     def test_savedir(self):
+        """Test saving method"""
         _ = amep.reader.ContinuumReader(
             FIELDDIR,
             SAVEDIR,
-            trajfile = 'field.h5amep',
-            deleteold = False,
-            dumps = 'field_*.txt',
-            gridfile = 'grid.txt',
-            delimiter = '\t',
-            timestep = 0.5
+            trajfile='traj.h5amep',
+            deleteold=False,
+            dumps='field_*.txt',
+            gridfile='grid.txt',
+            delimiter=' ',
+            timestep=0.5
         )
         self.assertTrue(
-            os.path.exists(os.path.join(SAVEDIR, 'field.h5amep')),
-            f'''Savedir error: {os.path.join(SAVEDIR, 'field.h5amep')}
+            os.path.exists(os.path.join(SAVEDIR, 'traj.h5amep')),
+            f'''Savedir error: {os.path.join(SAVEDIR, 'traj.h5amep')}
             does not exist.'''
         )
-    
+
     def test_trajfile(self):
         _ = amep.reader.ContinuumReader(
             FIELDDIR,
             FIELDDIR,
-            trajfile = 'field.h5amep',
-            deleteold = False,
-            dumps = 'field_*.txt',
-            gridfile = 'grid.txt',
-            delimiter = '\t',
-            timestep = 0.5
+            trajfile='traj.h5amep',
+            deleteold=False,
+            dumps='field_*.txt',
+            gridfile='grid.txt',
+            delimiter=' ',
+            timestep=0.5
         )
         self.assertTrue(
-            os.path.exists(os.path.join(FIELDDIR, 'field.h5amep')),
-            f'''trajfile error: {os.path.join(FIELDDIR, 'field.h5amep')}
+            os.path.exists(os.path.join(FIELDDIR, 'traj.h5amep')),
+            f'''trajfile error: {os.path.join(FIELDDIR, 'traj.h5amep')}
             does not exist.'''
         )
-    
+
     def test_deleteold(self):
+        """Test backup during creation."""
         # create trajfile
         _ = amep.reader.ContinuumReader(
             FIELDDIR,
             SAVEDIR,
-            trajfile = 'field2.h5amep',
-            deleteold = False,
-            dumps = 'field_*.txt',
-            gridfile = 'grid.txt',
-            delimiter = '\t',
-            timestep = 0.5
+            trajfile='field2.h5amep',
+            deleteold=False,
+            dumps='field_*.txt',
+            gridfile='grid.txt',
+            delimiter=' ',
+            timestep=0.5
         )
         # recreate trajfile and create backup
         _ = amep.reader.ContinuumReader(
             FIELDDIR,
             SAVEDIR,
-            trajfile = 'field2.h5amep',
-            deleteold = False,
-            dumps = 'field_*.txt',
-            gridfile = 'grid.txt',
-            delimiter = '\t',
-            timestep = 0.5
+            trajfile='field2.h5amep',
+            deleteold=False,
+            dumps='field_*.txt',
+            gridfile='grid.txt',
+            delimiter=' ',
+            timestep=0.5
         )
         self.assertTrue(
             os.path.exists(os.path.join(SAVEDIR, '#field2.h5amep')),
@@ -417,95 +355,96 @@ class TestContinuumReader(unittest.TestCase):
         _ = amep.reader.ContinuumReader(
             FIELDDIR,
             SAVEDIR,
-            trajfile = 'field2.h5amep',
-            deleteold = True,
-            dumps = 'field_*.txt',
-            gridfile = 'grid.txt',
-            delimiter = '\t',
-            timestep = 0.5
+            trajfile='field2.h5amep',
+            deleteold=True,
+            dumps='field_*.txt',
+            gridfile='grid.txt',
+            delimiter=' ',
+            timestep=0.5
         )
         self.assertFalse(
             os.path.exists(os.path.join(SAVEDIR, '#field2.h5amep')),
-            f'''Backup error: backup file 
+            f'''Backup error: backup file
             {os.path.join(SAVEDIR, 'field2.h5amep')} has not been deleted.'''
         )
-    
+
     def test_dumps(self):
+        """Test dump methods."""
         with self.assertRaises(
                 Exception,
-                msg = f'''No exception raised for empty directory {EMPTYDIR}.'''
-        ):
+                msg=f'''No exception raised for empty directory {EMPTYDIR}.'''
+                ):
             _ = amep.reader.ContinuumReader(
                 EMPTYDIR,
                 EMPTYDIR,
-                trajfile = 'field.h5amep',
-                deleteold = False,
-                dumps = 'field_*.txt',
-                gridfile = 'grid.txt',
-                delimiter = '\t',
-                timestep = 0.5
-            )
+                trajfile='traj.h5amep',
+                deleteold=False,
+                dumps='field_*.txt',
+                gridfile='grid.txt',
+                delimiter=' ',
+                timestep=0.5
+                )
         self.assertFalse(
-            os.path.exists(os.path.join(EMPTYDIR, 'field.h5amep')),
-            f'''Trajectory file {os.path.join(EMPTYDIR, 'field.h5amep')}
+            os.path.exists(os.path.join(EMPTYDIR, 'traj.h5amep')),
+            f'''Trajectory file {os.path.join(EMPTYDIR, 'traj.h5amep')}
             has been created although there is no data in {EMPTYDIR}.'''
         )
-    
+
     def test_gridfile(self):
         with self.assertRaises(
                 FileNotFoundError,
-                msg = 'No exception raised for wrong grid file name.'
+                msg='No exception raised for wrong grid file name.'
         ):
             _ = amep.reader.ContinuumReader(
                 FIELDDIR,
                 FIELDDIR,
-                trajfile = 'traj.h5amep',
-                deleteold = False,
-                dumps = 'field_*.txt',
-                gridfile = 'test.txt',
-                delimiter = '\t',
-                timestep = 1.0
+                trajfile='traj.h5amep',
+                deleteold=False,
+                dumps='field_*.txt',
+                gridfile='test.txt',
+                delimiter=' ',
+                timestep=1.0
             )
-    
+
     def test_delimiter(self):
         with self.assertRaises(
                 ValueError,
-                msg = 'No ValueError raised for wrong delimiter.'
+                msg='No ValueError raised for wrong delimiter.'
         ):
             _ = amep.reader.ContinuumReader(
                 FIELDDIR,
                 FIELDDIR,
-                trajfile = 'field.h5amep',
-                deleteold = False,
-                dumps = 'field_*.txt',
-                gridfile = 'grid.txt',
-                delimiter = ' ',
-                timestep = 0.5
+                trajfile='traj.h5amep',
+                deleteold=False,
+                dumps='field_*.txt',
+                gridfile='grid.txt',
+                delimiter=',',
+                timestep=0.5
             )
-    
+
     def test_timestep(self):
         # test warning
-        with self.assertLogs(level = "WARNING"):
+        with self.assertLogs(level="WARNING"):
             reader = amep.reader.ContinuumReader(
                 FIELDDIR,
                 FIELDDIR,
-                trajfile = 'field.h5amep',
-                deleteold = False,
-                dumps = 'field_*.txt',
-                gridfile = 'grid.txt',
-                delimiter = '\t',
-                timestep = None
+                trajfile='traj.h5amep',
+                deleteold=False,
+                dumps='field_*.txt',
+                gridfile='grid.txt',
+                delimiter=' ',
+                timestep=None
             )
         # test value
         reader = amep.reader.ContinuumReader(
             FIELDDIR,
             FIELDDIR,
-            trajfile = 'field.h5amep',
-            deleteold = False,
-            dumps = 'field_*.txt',
-            gridfile = 'grid.txt',
-            delimiter = '\t',
-            timestep = 0.5
+            trajfile='traj.h5amep',
+            deleteold=False,
+            dumps='field_*.txt',
+            gridfile='grid.txt',
+            delimiter=' ',
+            timestep=0.5
         )
         self.assertEqual(
             reader.dt,
@@ -515,81 +454,69 @@ class TestContinuumReader(unittest.TestCase):
 
 
 class TestLammpsReader(unittest.TestCase):
-    
-    @classmethod
-    def setUpClass(self):
-        """
-        Basic setup. Generating test data.
 
-        Returns
-        -------
-        None.
-
-        """
-        create_lammps_data()
-        
     def test_savedir(self):
         _ = amep.reader.LammpsReader(
             LAMMPSDIR,
             SAVEDIR,
-            trajfile = 'lammps.h5amep',
-            deleteold = False,
-            dumps = 'dump*.txt',
+            trajfile='traj.h5amep',
+            deleteold=False,
+            dumps='dump*.txt',
         )
         self.assertTrue(
-            os.path.exists(os.path.join(SAVEDIR, 'lammps.h5amep')),
-            f'''Savedir error: {os.path.join(SAVEDIR, 'lammps.h5amep')}
+            os.path.exists(os.path.join(SAVEDIR, 'traj.h5amep')),
+            f'''Savedir error: {os.path.join(SAVEDIR, 'traj.h5amep')}
             does not exist.'''
         )
-        
+
     def test_dumps(self):
         with self.assertRaises(
                 Exception,
-                msg = f'''No exception raised for empty directory {EMPTYDIR}.'''
+                msg=f'''No exception raised for empty directory {EMPTYDIR}.'''
         ):
             _ = amep.reader.LammpsReader(
                 EMPTYDIR,
                 EMPTYDIR,
-                trajfile = 'lammps.h5amep',
-                deleteold = False,
-                dumps = 'dump*.txt'
+                trajfile='traj.h5amep',
+                deleteold=False,
+                dumps='dump*.txt'
             )
         self.assertFalse(
-            os.path.exists(os.path.join(EMPTYDIR, 'lammps.h5amep')),
-            f'''Trajectory file {os.path.join(EMPTYDIR, 'lammps.h5amep')}
+            os.path.exists(os.path.join(EMPTYDIR, 'traj.h5amep')),
+            f'''Trajectory file {os.path.join(EMPTYDIR, 'traj.h5amep')}
             has been created although there is no data in {EMPTYDIR}.'''
         )
-        
+
     def test_trajfile(self):
         _ = amep.reader.LammpsReader(
             LAMMPSDIR,
             LAMMPSDIR,
-            trajfile = 'lammps.h5amep',
-            deleteold = False,
-            dumps = 'dump*.txt'
+            trajfile='traj.h5amep',
+            deleteold=False,
+            dumps='dump*.txt'
         )
         self.assertTrue(
-            os.path.exists(os.path.join(LAMMPSDIR, 'lammps.h5amep')),
-            f'''trajfile error: {os.path.join(LAMMPSDIR, 'lammps.h5amep')}
+            os.path.exists(os.path.join(LAMMPSDIR, 'traj.h5amep')),
+            f'''trajfile error: {os.path.join(LAMMPSDIR, 'traj.h5amep')}
             does not exist.'''
         )
-    
+
     def test_deleteold(self):
         # create trajfile
         _ = amep.reader.LammpsReader(
             LAMMPSDIR,
             SAVEDIR,
-            trajfile = 'lammps2.h5amep',
-            deleteold = False,
-            dumps = 'dump*.txt'
+            trajfile='lammps2.h5amep',
+            deleteold=False,
+            dumps='dump*.txt'
         )
         # recreate trajfile and create backup
         _ = amep.reader.LammpsReader(
             LAMMPSDIR,
             SAVEDIR,
-            trajfile = 'lammps2.h5amep',
-            deleteold = False,
-            dumps = 'dump*.txt'
+            trajfile='lammps2.h5amep',
+            deleteold=False,
+            dumps='dump*.txt'
         )
         self.assertTrue(
             os.path.exists(os.path.join(SAVEDIR, '#lammps2.h5amep')),
@@ -600,20 +527,25 @@ class TestLammpsReader(unittest.TestCase):
         _ = amep.reader.LammpsReader(
             LAMMPSDIR,
             SAVEDIR,
-            trajfile = 'lammps2.h5amep',
-            deleteold = True,
-            dumps = 'dump*.txt'
+            trajfile='lammps2.h5amep',
+            deleteold=True,
+            dumps='dump*.txt'
         )
         self.assertFalse(
             os.path.exists(os.path.join(SAVEDIR, '#lammps2.h5amep')),
             f'''Backup error: backup file 
             {os.path.join(SAVEDIR, 'lammps2.h5amep')} has not been deleted.'''
         )
-    
+
+
 class TestH5amepReader(unittest.TestCase):
-    
+    """Testcase for the standard reader.
+
+    TO BE IMPLEMENTED.
+    """
+
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
         """
         Basic setup. Generating test data.
 
@@ -623,22 +555,22 @@ class TestH5amepReader(unittest.TestCase):
 
         """
         pass
-    
+
+
 class TestGromacsReader(unittest.TestCase):
-    
+    """Testcase for GROMACS data.
+
+    TO BE IMPLEMENTED.
+    """
     @classmethod
     def setUpClass(self):
         """
         Basic setup. Generating test data.
 
+        TO BE IMPLEMENTED.
         Returns
         -------
         None.
 
         """
         pass
-    
-    
-if __name__ == '__main__':
-    unittest.main()
-    
