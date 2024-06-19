@@ -45,3 +45,5 @@ test/.coverage
 test/coverage.xml
 examples/data/continuum/traj.h5amep
 examples/data/continuum/#traj.h5amep
+examples/data/lammps/traj.h5amep
+examples/data/lammps/#traj.h5amep
