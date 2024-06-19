@@ -48,7 +48,7 @@ class TestLoad(unittest.TestCase):
         traj = amep.load.traj(
             PARTICLE_DIR,
             mode='lammps',
-            dumps='dump*.txt',
+            dumps='dump*.txt'
         )
         # test fields
         traj = amep.load.traj(
