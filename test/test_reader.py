@@ -556,6 +556,9 @@ class TestH5amepReader(unittest.TestCase):
         """
         pass
 
+    def test_trajfile(self):
+        pass
+
 
 class TestGromacsReader(unittest.TestCase):
     """Testcase for GROMACS data.
@@ -573,4 +576,7 @@ class TestGromacsReader(unittest.TestCase):
         None.
 
         """
+        pass
+
+    def test_trajfile(self):
         pass

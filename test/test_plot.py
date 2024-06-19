@@ -58,7 +58,7 @@ class TestPlotMethods(unittest.TestCase):
         """Plot and save test"""
         fig, _ = plot.new()
         fig.savefig(PLOT_DIR/"test.pdf")
-        fig.close()
+        close(fig)
 
     def test_set_locators(self):
         """New Plot, set locators, save away"""
@@ -127,7 +127,7 @@ class TestPlotMethods(unittest.TestCase):
         p_trajectory = choice([traj for traj in self.trajs
                                if isinstance(traj, ParticleTrajectory)])
         out_particles = PLOT_DIR/"particle_vid.gif"
-        plot.animate_trajectory(f_trajectory, out_field)
+        plot.animate_trajectory(f_trajectory, out_field, ftype="c")
         plot.animate_trajectory(p_trajectory, out_particles)
 
     def test_ll_video(self):
