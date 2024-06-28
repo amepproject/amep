@@ -28,12 +28,13 @@ from requests import get
 import numpy as np
 from matplotlib import use
 from amep.load import traj
-from amep.evaluate import ClusterGrowth, ClusterSizeDist
+from amep.evaluate import ClusterGrowth, ClusterSizeDist, Function, SpatialVelCor, RDF, PCF2d, PCFangle, SF2d
 use("Agg")
 DATA_DIR = Path("../examples/data/")
 
 FIELD_DIR: Path = DATA_DIR/"continuum"
 PARTICLE_DIR: Path = DATA_DIR/"lammps"
+RESULT_DIR: Path = DATA_DIR/"results"
 PLOT_DIR: Path = DATA_DIR/"plots"
 
 
@@ -42,6 +43,7 @@ class TestEvaluateMethods(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """Set up needed data"""
+        RESULT_DIR.mkdir(exist_ok=True)
         cls.field_traj = traj(DATA_DIR/"continuum.h5amep")
         cls.particle_traj = traj(DATA_DIR/"lammps.h5amep")
 
@@ -74,7 +76,32 @@ class TestEvaluateMethods(unittest.TestCase):
         """Test arbitray function evaluation.
         TO BE IMPLEMENTED
         """
-        pass
+        traj = self.particle_traj
+        ftraj = self.field_traj
+        def msd(frame, start=None):
+            vec = start.unwrapped_coords() - frame.unwrapped_coords()
+            return (vec ** 2).sum(axis=1).mean()
+        msd_eval = Function(
+            self.particle_traj, msd,
+            nav=self.particle_traj.nframes,
+            start=self.particle_traj[0]
+            )
+        msd_eval.name = "msd"
+        msd_eval.save(RESULT_DIR/"msd_eval.h5")
+        pcf2d = PCF2d(traj,
+                      nav=2, nxbins=2000, nybins=2000,
+                      njobs=4, skip=0.9
+                      )
+        pcf2d.save(RESULT_DIR/"pcf2d.h5")
+        pcfangle = PCFangle(
+            traj, nav=2, ndbins=1000, nabins=1000,
+            njobs=4, rmax=8.0, skip=0.9
+            )
+        pcfangle.save(RESULT_DIR/"pcfangle.h5")
+        psf2d = SF2d(traj, skip=0.9, nav=2)
+        psf2d.save(RESULT_DIR/"sf2d_eval.h5", database=True, name="particles")
+        fsf2d = SF2d(ftraj, skip=0.9, nav=2, ftype="c")
+        fsf2d.save(RESULT_DIR/"sf2d_eval.h5", database=True, name="field")
 
     def test_order_evaluations(self):
         """Test order parameter evaluation.
@@ -86,7 +113,14 @@ class TestEvaluateMethods(unittest.TestCase):
         """Test order parameter evaluation.
         TO BE IMPLEMENTED
         """
-        pass
+        svc = SpatialVelCor(self.particle_traj, skip=0.9, nav=5, njobs=4)
+
+        svc.save(RESULT_DIR/"svc.h5")
+        rdfcalc = RDF(
+                self.particle_traj,
+                nav=2, nbins=1000,
+                skip=0.9, njobs=4)
+        rdfcalc.save(RESULT_DIR/'rdf.h5')
 
     def test_transforms(self):
         """Test order parameter evaluation.

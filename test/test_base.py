@@ -871,3 +871,22 @@ class TestBaseFunction(unittest.TestCase):
             f"""Invalid type for property results. Got {type(function.results)}
             instead of dict."""
         )
+
+
+# =============================================================================
+# UTILS TESTS
+# =============================================================================
+class TestHelperFunctions(unittest.TestCase):
+    """Test generation and base utilities of the Function object."""
+    def test_check_path(self):
+        """"""
+        self.assertRaises(ValueError, amep.base.check_path,
+                          "file.txt", ".csv")
+        self.assertRaises(FileNotFoundError, amep.base.check_path,
+                          "not_there/file.txt", ".txt")
+        self.assertEqual(amep.base.check_path("../test", ""),
+                         ("..", "test"))
+        self.assertEqual(amep.base.check_path("../test", ".csv"),
+                         ("../test", ""))
+        self.assertEqual(amep.base.check_path("test.csv", ".csv"),
+                         (os.getcwd(), "test.csv"))

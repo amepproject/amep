@@ -205,15 +205,17 @@ class TestContinuumReader(unittest.TestCase):
     def test_init(self):
         """Test constructor method."""
         # read data
+        (FIELDDIR/"#temp#traj.h5amep").touch()
         _ = amep.reader.ContinuumReader(
             FIELDDIR,
             FIELDDIR,
-            trajfile='traj.h5amep',
+            trajfile='#temp#traj.h5amep',
             deleteold=False,
             dumps='field_*.txt',
             gridfile='grid.txt',
             delimiter=' ',
-            timestep=1.0
+            timestep=1.0,
+            nth=None
         )
         # test exceptions for invalid/corrupted data
         with self.assertRaises(
