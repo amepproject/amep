@@ -24,8 +24,6 @@ Test units for the amep.load module.
 # IMPORT MODULES
 # =============================================================================
 import unittest
-from zipfile import ZipFile
-from requests import get
 from pathlib import Path
 import amep
 

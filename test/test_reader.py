@@ -36,7 +36,7 @@ DATADIR = Path('../examples/data/')
 LAMMPSDIR = DATADIR/'lammps'
 FIELDDIR = DATADIR/'continuum'
 EMPTYDIR = DATADIR/'empty'
-SAVEDIR = './data/trajs'
+SAVEDIR = DATADIR/'trajs'
 INVALIDFIELDDIR = DATADIR/'invalid'
 
 RNG = np.random.default_rng(1234)
@@ -199,6 +199,7 @@ class TestContinuumReader(unittest.TestCase):
 
         """
         INVALIDFIELDDIR.mkdir(exist_ok=True)
+        SAVEDIR.mkdir(exist_ok=True)
         EMPTYDIR.mkdir(exist_ok=True)
         create_invalid_field_data()
 

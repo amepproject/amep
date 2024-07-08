@@ -21,11 +21,7 @@
 
 Including it's main class, readers and methods."""
 import unittest
-from zipfile import ZipFile
 from pathlib import Path
-from random import random
-from requests import get
-import numpy as np
 from matplotlib import use
 from amep.load import traj
 from amep.evaluate import ClusterGrowth, ClusterSizeDist, Function, SpatialVelCor, RDF, PCF2d, PCFangle, SF2d

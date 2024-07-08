@@ -21,10 +21,7 @@
 
 Including it's main class, readers and methods."""
 import unittest
-from zipfile import ZipFile
 from pathlib import Path
-from random import random
-from requests import get
 from matplotlib import use
 from amep.load import traj
 from amep import plot
