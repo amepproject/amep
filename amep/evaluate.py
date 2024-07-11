@@ -2518,8 +2518,8 @@ class Psi6dist(BaseEvaluation):
     """
 
     def __init__(
-            self, traj, skip=0.0, nav=10, nbins=None, ptype=None,
-            other=None, **kwargs) -> None:
+            self, traj, skip: float = 0.0, nav: int = 10, nbins: int = 50,
+            ptype: int | None = None, other=None, **kwargs) -> None:
         r'''
         Calculate the distribution of the :math:`\Psi_6`.
 
@@ -2568,7 +2568,7 @@ class Psi6dist(BaseEvaluation):
         nav : int, optional
             Number of frames to use for the average. The default is 10.
         nbins : int, optional
-            Number of bins. The default is None.
+            Number of bins. The default is 50.
         ptype : float, optional
             Particle type. If None, all particles are used.
             The default is None.
@@ -2613,9 +2613,6 @@ class Psi6dist(BaseEvaluation):
         self.__ptype = ptype
         self.__other = other
         self.__kwargs = kwargs
-        
-        if self.__nbins is None:
-            self.__nbins = int(self.__traj[0].n(ptype=self.__ptype)/100)
         
         self.__frames, res, self.__indices = average_func(
             self.__compute, np.arange(self.__traj.nframes), skip=self.__skip,
@@ -2735,8 +2732,10 @@ class VelDist(BaseEvaluation):
     """
     
     def __init__(
-            self, traj, skip=0.0, nav=10, nbins=None, ptype=None, vmin=None,
-            vmax=None, v2min=None):
+            self, traj, skip: float = 0.0, nav: int = 10,
+            nbins: int = 50, ptype: int | None = None,
+            vmin: float | None = None, vmax: float | None = None,
+            v2min: float | None = None) -> None:
         r'''
         Calculate the distribution of velocities.
 
@@ -2755,9 +2754,18 @@ class VelDist(BaseEvaluation):
         nav : int, optional
             Number of frames to use for the average. The default is 10.
         nbins : int, optional
-            Number of bins. The default is None.
+            Number of bins. The default is 50.
         ptype : float, optional
             Particle type. The default is None.
+        vmin : float | None, optional
+            Minimum value for the histogram. If None, then the
+            minimum value of the last frame will be used
+        vmax : float | None, optional
+            Maximum value for the histogram. If None, then the
+            maximum value of the last frame will be used
+        v2max : float | None, optional
+            Maximum value for the velocity-squared histogram.
+            If None, then the maximum value of the last frame will be used.
 
         Returns
         -------
@@ -2793,9 +2801,6 @@ class VelDist(BaseEvaluation):
         self.__vmax  = vmax
         self.__v2min = v2min
         
-        if self.__nbins is None:
-            self.__nbins = int(self.__traj[0].n(ptype=self.__ptype)/100)
-            
         if self.__vmin is None:
             self.__vmin = np.min(self.__traj[-1].velocities(ptype=self.__ptype))
             
