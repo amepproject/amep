@@ -2744,6 +2744,14 @@ class VelDist(BaseEvaluation):
         and its square :math:`v^2`. It also
         takes an average over several frames (= time average).
 
+        For the :math:`v^2` distribution, logarithmic
+        bins are used. Therefore `v2min`:math:`\ge 0`
+        needs to be ensured. For the maximum value,
+        `vmax` is used as :math:`3v_{max}^2`.
+        Analogously for the maximum of :math:'v',
+        where :math:`\sqrt{3v_{max}}` is used. For the minimum
+        of :math:'v', the square root of `v2min` is used.
+
         Parameters
         ----------
         traj : Traj
@@ -2758,14 +2766,18 @@ class VelDist(BaseEvaluation):
         ptype : float, optional
             Particle type. The default is None.
         vmin : float | None, optional
-            Minimum value for the histogram. If None, then the
-            minimum value of the last frame will be used
+            Minimum value for the histogram in each spatial dimension
+            :math:`v_x, v_y, v_z`.
+            If None, then the minimum value of the last frame will be used
         vmax : float | None, optional
-            Maximum value for the histogram. If None, then the
-            maximum value of the last frame will be used
-        v2max : float | None, optional
-            Maximum value for the velocity-squared histogram.
-            If None, then the maximum value of the last frame will be used.
+            Maximum value for the histogram in each spatial dimension
+            :math:`v_x, v_y, v_z`.
+            If None, then the maximum value of the last frame will be used
+        v2min : float | None, optional
+            Minimum value for the velocity-squared histogram.
+            This value has to be :math:`\ge 0` due to the use of
+            logarithmic bins for the :math:`v^2` distribution.
+            If None, then the minimum value of the last frame will be used.
 
         Returns
         -------
@@ -2857,12 +2869,22 @@ class VelDist(BaseEvaluation):
         
         v2 = np.sum(vel**2, axis=1)
         
+        
         v2hist, v2bins = distribution(
             v2, nbins=self.__nbins, logbins=True, xmin=self.__v2min,
-            xmax=(3*self.__vmin**2+3*self.__vmax**2)/2)
+            xmax=3*self.__vmax**2)
         vhist, vbins = distribution(
-            np.sqrt(v2), nbins=self.__nbins, xmin=0,
-            xmax=np.sqrt((3*self.__vmin**2+3*self.__vmax**2)/2))
+            np.sqrt(v2), nbins=self.__nbins, xmin=np.sqrt(self.__v2min),
+            xmax=np.sqrt(3*self.__vmax**2))
+
+
+# (KD, 2024.07.16) was:
+        # v2hist, v2bins = distribution(
+        #     v2, nbins=self.__nbins, logbins=True, xmin=self.__v2min,
+        #     xmax=(3*self.__vmin**2+3*self.__vmax**2)/2)
+        # vhist, vbins = distribution(
+        #     np.sqrt(v2), nbins=self.__nbins, xmin=0,
+        #     xmax=np.sqrt((3*self.__vmin**2+3*self.__vmax**2)/2))
         
         return xhist, xbins, yhist, ybins, zhist, zbins, vhist, vbins, v2hist,\
                v2bins 
