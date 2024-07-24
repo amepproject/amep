@@ -1269,9 +1269,20 @@ class BaseTrajectory:
 
     def __getitem__(self, item: int | slice | Iterable[int]
                     ) -> BaseFrame | BaseField | list[BaseField | BaseFrame]:
-        """Get the individual frame or field of a simulation.
+        """Get an individual frame or field of a simulation.
 
         Supports slicing as well as iterables of valid integer indices.
+        The return type depends on the type of the trajectory.
+        Also it depends if only one frame or a collection of frames is requested.
+        If a collection of frames is requested a list of frames is returned.
+
+        Parameters
+        ----------
+        item : int | slice | Iterable[int]
+
+        Returns
+        -------
+        BaseFrame | BaseField | list[BaseField | BaseFrame] 
         """
         if isinstance(item, slice):
             sli = range(*item.indices(len(self.__reader.steps)))
@@ -1294,6 +1305,7 @@ class BaseTrajectory:
                        )
 
     def __iter__(self):
+        """Iterate over all frames of the trajectory."""
         for i, _ in enumerate(self.__reader.steps):
             yield self[i]
 
@@ -1738,7 +1750,16 @@ class BaseTrajectory:
         if type(x) == float:
             self.__reader.dt = x
     @property
-    def dim(self):
+    def dim(self) -> int:
+        '''
+        Spatial dimension of the simnulation.
+
+        Returns
+        -------
+        x : int
+            Spatial dimension.
+
+        '''
         return self.__reader.d
     @property
     def savedir(self):
@@ -1790,8 +1811,12 @@ class BaseEvaluation:
     def __getitem__(self, key: str):
         return getattr(self, key)
 
-    def keys(self):
-        return [name for (name, value) in inspect.getmembers(
+    def keys(self) -> list[str]:
+        """The keys to the evaluation object.
+        
+        Used so Evaluation-objects can be used as dictionaries.
+        """
+        return [name for (name, _) in inspect.getmembers(
             type(self), lambda x: isinstance(x, property)
         )]
 
