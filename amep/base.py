@@ -36,7 +36,7 @@ import warnings
 import inspect
 import logging
 
-from typing import Collection
+from typing import Collection, Iterable
 from  io import StringIO
 from contextlib import redirect_stdout
 from tqdm import TqdmExperimentalWarning
@@ -1266,42 +1266,43 @@ class BaseTrajectory:
 
         '''
         self.__reader = reader
-    def __getitem__(self,item):
+
+    def __getitem__(self, item: int | slice | Iterable[int]
+                    ) -> BaseFrame | BaseField | list[BaseField | BaseFrame]:
+        """Get the individual frame or field of a simulation.
+
+        Supports slicing as well as iterables of valid integer indices.
+        """
         if isinstance(item, slice):
-            sli=range(*item.indices(len(self.__reader.steps)))
-            if self.type=="field":
-                out = [BaseField(self.__reader,index) for index in sli]
-            elif self.type=="particle":
-                out = [BaseFrame(self.__reader,index) for index in sli]
-            else:
-                out = [BaseFrame(self.__reader,index) for index in sli]
-            return out
-        elif isinstance(item, list) or isinstance(item, np.ndarray):
-            if self.type=="field":
-                out = [BaseField(self.__reader,index) for index in item]
-            elif self.type=="particle":
-                out = [BaseFrame(self.__reader,index) for index in item]
-            else:
-                out = [BaseFrame(self.__reader,index) for index in item]
-            return out
-        elif isinstance(item, int) or isinstance(item, np.integer):
-            if self.type=="field":
+            sli = range(*item.indices(len(self.__reader.steps)))
+            if self.type == "field":
+                return [BaseField(self.__reader, index) for index in sli]
+            # Any of these returns defaults to particle Frames.
+            # If we get more types of trejaectories we have to add them here
+            # with an if statement as above.
+            return [BaseFrame(self.__reader, index) for index in sli]
+        if isinstance(item, Iterable):
+            if self.type == "field":
+                return [BaseField(self.__reader, index) for index in item]
+            return [BaseFrame(self.__reader, index) for index in item]
+        if isinstance(item, (int, np.integer)):
+            if self.type == "field":
                 return BaseField(self.__reader, item)
-            elif self.type=="particle":
-                return BaseFrame(self.__reader, item)
             return BaseFrame(self.__reader, item)
-        else:
-            raise KeyError(
-                '''BaseTrajectory: Invalid key. Only integer values, 1D lists
-                and arrays, and slices are allowed.'''
-            )
+        raise KeyError('''BaseTrajectory: Invalid key. Only integer values,
+        1D lists and arrays, and slices are allowed.'''
+                       )
+
     def __iter__(self):
-        for i in range(len(self.__reader.steps)):
+        for i, _ in enumerate(self.__reader.steps):
             yield self[i]
+
     def __next__(self):
         pass
+
     def __len__(self):
         return len(self.__reader.steps)
+
     def add_author_info(
             self, author: str, key: str, value: int | float | str) -> None:
         '''
@@ -1329,6 +1330,7 @@ class BaseTrajectory:
             if author not in root['info']['authors'].keys():
                 root['info']['authors'].create_group(author)
             root['info']['authors'][author].attrs[key] = value
+
     def get_author_info(self, author: str) -> dict:
         r'''
         Returns all information for the given author.
@@ -1352,6 +1354,7 @@ class BaseTrajectory:
                 p = dict(a for a in root['info']['authors'][author].attrs.items())
                 return p
             return {}
+
     def delete_author_info(self, author: str, key: str | None = None) -> None:
         r'''
         Deletes all information (key=None) or specific information given by
@@ -1377,6 +1380,7 @@ class BaseTrajectory:
                 del root['info']['authors'][author]
             elif type(key)==str:
                 root['info']['authors'][author].attrs.__delitem__(key)
+
     @property
     def authors(self) -> list[str]:
         r'''
@@ -1396,6 +1400,7 @@ class BaseTrajectory:
                 keys = list(root['info']['authors'].keys())
                 return keys
             return []
+
     def add_software_info(self, key: str, value: str | int | float) -> None:
         r'''
         Add software information to the hdf5 trajectory file.
@@ -1418,6 +1423,7 @@ class BaseTrajectory:
             if 'software' not in root['info'].keys():
                 root['info'].create_group('software')
             root['info']['software'].attrs[key] = value
+
     def delete_software_info(self, key: str | None = None) -> None:
         r'''
         Deletes all software information (key=None) or specific information
@@ -1442,6 +1448,7 @@ class BaseTrajectory:
                     root['info']['software'].attrs.__delitem__(key)
             else:
                 root['info']['software'].attrs.__delitem__(key)
+
     @property
     def software(self) -> dict:
         r'''
