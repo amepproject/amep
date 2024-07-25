@@ -27,7 +27,7 @@ The AMEP module :mod:`amep.trajectory` contains all trajectory classes. These
 are containers for a time series of simulation data (particle-based data or 
 continuum fields). The following classes are included:
 
-    ParticleTracetory :
+    ParticleTrajetory :
         Time-series of per-particle data such as coordinates, velocities,
         forces, etc.
     FieldTrajectory :
@@ -58,6 +58,8 @@ class ParticleTrajectory(BaseTrajectory):
         r"""
         Creates a trajectory object containing data frames for multiple
         time steps.
+
+        Can be viewed as a Sequence of :class:`.BaseFrame`.
 
         Parameters
         ----------
@@ -319,6 +321,8 @@ class FieldTrajectory(BaseTrajectory):
         r'''
         Creates a trajectory object containing data frames for multiple
         time steps.
+
+        Can be viewed as a Sequence of :class:`.BaseField`.
 
         Parameters
         ----------
