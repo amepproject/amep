@@ -36,7 +36,7 @@ import warnings
 import inspect
 import logging
 
-from typing import Collection, Iterable
+from typing import Collection, Iterable, Sequence
 from  io import StringIO
 from contextlib import redirect_stdout
 from tqdm import TqdmExperimentalWarning
@@ -899,7 +899,7 @@ class BaseFrame:
 
     def __read_data(
             self, key: str, ptype: int | list | None = None,
-            pid: int | list | None = None) -> np.ndarray:
+            pid: int | Sequence | None = None) -> np.ndarray:
         r'''
         Reads a dataset from the HDF5 file either for all particles
         or for all particles of a specific particle type.
@@ -929,12 +929,10 @@ class BaseFrame:
 
             if pid:
                 data_ids = root['frames'][str(self.__step)]['id'][:]
-                if type(pid) != list:
+                if not isinstance(pid, Sequence):
                     pid = [pid]
-                id_list = []
-                for id in pid:
-                    index_id = int(np.where(data_ids==id)[0])
-                    id_list.append(index_id)
+                id_list = [int(np.where(data_ids == part_id)[0])
+                           for part_id in pid]
                 if key in root['frames'][str(self.__step)].keys():
                     data = root['frames'][str(self.__step)][key][id_list]
                     return data
@@ -944,28 +942,28 @@ class BaseFrame:
             # check if a dataset with the given key exists and read the data
             if key in root['frames'][str(self.__step)].keys():
                 data = root['frames'][str(self.__step)][key][:]
-
-                # Transform ptype so it is a list of all ptypes
+                # If no ptype is provided return all data
                 if not ptype:
                     return data
-                if type(ptype) == int:
+                # Transform ptype so it is a list of all ptypes
+                if not isinstance(ptype, Sequence):
                     ptype = [ptype]
                 mask = np.zeros(data.shape[0],)
                 # check particle type
-                for single_ptype in ptype:
-                    if single_ptype in self.ptypes:
-                        mask += types==single_ptype
-                    else:
-                        warnings.warn(
-                            f"The specified particle type {single_ptype} "\
-                            "does not exist. Returning data without type "\
-                            f"{single_ptype}."
-                        )
+                mask += sum(types == single_ptype for single_ptype
+                            in ptype if single_ptype in self.ptypes)
+                if any(single_ptype not in self.ptypes for
+                       single_ptype in ptype):
+                    for single_ptype in ptype:
+                        if single_ptype not in self.ptypes:
+                            warnings.warn(
+                                f"The specified particle type {single_ptype} "
+                                "does not exist. Returning data without type "
+                                f"{single_ptype}."
+                            )
                 return data[mask.astype(bool)]
-
-            else:
-                raise KeyError(
-                    f"The key {key} does not exist in the frame. "\
+            raise KeyError(
+                    f"The key {key} does not exist in the frame. "
                     "Returning no data!"
                 )
 

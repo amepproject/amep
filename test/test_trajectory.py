@@ -82,9 +82,14 @@ class TestParticleTrajectory(unittest.TestCase):
         cls.traj.add_particle_info(1, 'name', 'atom A')
         cls.traj.add_particle_info(1, 'type', 'carbon')
 
-    def test_nojump(self):
-        pass
-    
+    def test_key_access(self):
+        self.assertIn(self.traj[0].coords(ptype=self.traj[0].ptypes[0]),
+                      self.traj[0].coords(ptype=self.traj[0].ptypes),
+                      "Something went wrong acessing data."
+                      )
+        self.assertWarns(UserWarning, self.traj[0].coords, ptype=2)
+        self.assertWarns(UserWarning, self.traj[0].coords, ptype="a")
+
     def test_add_particle_info(self):
         # add particle info
         self.traj.add_particle_info(1, 'test', 10)
@@ -115,7 +120,7 @@ class TestParticleTrajectory(unittest.TestCase):
         self.traj.add_particle_info(1, "key", "value")
         self.traj.add_particle_info("asdf", "key2", "value2")
         self.assertTrue(
-            isinstance(self.traj.get_particle_info(), dict),
+            isinstance(self.traj.get_particle_info(1), dict),
             f'''Invalid type. Got {type(self.traj.get_particle_info(1))}
             instead of dict.'''
         )
