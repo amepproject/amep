@@ -182,7 +182,7 @@ class ParticleTrajectory(BaseTrajectory):
         Returns
         -------
         None.
-        
+
         Examples
         --------
         >>> import amep
@@ -192,7 +192,7 @@ class ParticleTrajectory(BaseTrajectory):
         >>> print(traj.get_particle_info())
         {1: {'name': 'active'}, 2: {'name': 'passive'}}
         >>> traj.delete_particle_info(None)
-        >>> 
+        >>>
 
         '''
         with h5py.File(os.path.join(self.reader.savedir, self.reader.filename), 'a') as root:
@@ -215,7 +215,7 @@ class ParticleTrajectory(BaseTrajectory):
         -------
         p : dict
             Parameters.
-        
+
         Examples
         --------
         >>> import amep
@@ -225,14 +225,14 @@ class ParticleTrajectory(BaseTrajectory):
         >>> print(traj.get_particle_info())
         {1: {'name': 'active'}, 2: {'name': 'passive'}}
         >>> traj.delete_particle_info(None)
-        >>> 
+        >>>
 
         '''
         with h5py.File(os.path.join(self.reader.savedir, self.reader.filename), 'r') as root:
             if ptype is None:
                 p = {}
                 for t in list(root['particles'].keys()):
-                    p[int(t)] = dict(a for a in root['particles'][t].attrs.items())
+                    p[t] = dict(a for a in root['particles'][t].attrs.items())
             elif str(ptype) in list(root['particles'].keys()):
                 p = dict(a for a in root['particles'][str(ptype)].attrs.items())
             else:
