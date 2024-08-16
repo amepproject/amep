@@ -1233,75 +1233,69 @@ class GSDReader(BaseReader):
                     else:
                         frame['center'][:] = center
 
-                    print(center)
-                    continue
-
-                    # extract the data
-                    data = np.zeros((N, nparams), dtype=DTYPE)
-                    # ignore other lines (N+9 and larger)
-                    # (LAMMPS sometimes adds an empty line at the end
-                    #  which would cause problems)
-                    for l, line in enumerate(lines[9:N+9]):
-                        data[l] = np.fromstring(line, sep=' ')
 
                     # add data to hdf5 file
-                    coords       = np.zeros((N, 3), dtype=DTYPE)
-                    uwcoords     = np.zeros((N, 3), dtype=DTYPE)  # unwrapped
-                    velocities   = np.zeros((N, 3), dtype=DTYPE)
-                    forces       = np.zeros((N, 3), dtype=DTYPE)
-                    orientations = np.zeros((N, 3), dtype=DTYPE)
-                    omegas       = np.zeros((N, 3), dtype=DTYPE)
-                    torque       = np.zeros((N, 3), dtype=DTYPE)
-                    angmom       = np.zeros((N, 3), dtype=DTYPE)
+                    forces       = np.zeros((N, 3), dtype=DTYPE) # gsd stores no forces
+                    torque       = np.zeros((N, 3), dtype=DTYPE) # gsd stores no forces
 
-                    # sort data by id if available
-                    if "id" in keys:
-                        sorting = np.argsort(data[:, keys.index("id")])
-                        data = data[sorting, :]
-                    else:
-                        # Warn user if data could not be sorted.
-                        idwarning = True
-                        # side-note from the documentation:
-                        # """Repetitions of a particular warning for the same
-                        # source location are typically suppressed."""
+                    uwcoords     = np.zeros((N, 3), dtype=DTYPE) # unwrapped
+                    orientations = np.zeros((N, 3), dtype=DTYPE)
+                    angmom       = np.zeros((N, 3), dtype=DTYPE)
+                    omegas       = np.zeros((N, 3), dtype=DTYPE)
+                    
+                    # coordinates
+                    coords       = np.array(gsd_frame.particles.position)
+
+                    # velocities
+                    velocities   = np.array(gsd_frame.particles.velocity)
+
+                    # type ids of the particles
+                    type_ids    = np.array(gsd_frame.particles.typeid)
+
+                    # type names of the particles
+                    # TODO: save in h5amep file. handle strings!
+                    type_names = np.array(gsd_frame.particles.types)[np.array(gsd_frame.particles.typeid)]
+
+                    # dimensions of the simulation
+                    d = gsd_frame.configuration.dimensions
+
+                    # unwrapped coordinates/particle image
+                    gsd_image=gsd_frame.particles.image
+                    x=coords[:,0]+gsd_image[:,0]*gsd_box[0]+gsd_box[3]*gsd_image[:,1]*gsd_box[1]+gsd_box[4]*gsd_image[:,2]*gsd_box[2]
+                    y=coords[:,1]+gsd_image[:,1]*gsd_box[1]+gsd_box[5]*gsd_image[:,2]*gsd_box[2]
+                    z=coords[:,2]+gsd_image[:,2]*gsd_box[2]
+                    uwcoords = np.stack([x,y,z]).T
+
+                    # print(gsd_frame.particles.moment_inertia)
+                    # print(gsd_frame.particles.mass)
+                    # print(gsd_frame.particles.charge)
+                    print(gsd_frame.particles.diameter)
+                    continue
+# ParticleData
+
+    #     ParticleData.types
+    #     ParticleData.position
+#     ParticleData.orientation
+    #     ParticleData.typeid
+#     ParticleData.mass
+#     ParticleData.charge
+#     ParticleData.diameter
+#     ParticleData.body
+#     ParticleData.moment_inertia
+    #     ParticleData.velocity
+#     ParticleData.angmom
+    #     ParticleData.image
+#     ParticleData.type_shapes
+
+
+
+                    # particle ids not needed since gsd is sorted format
+
 
                     unwrapped_available = False
-                    d = 0
                     for i, key in enumerate(keys):
-                        if key == 'x':
-                            coords[:, 0] = data[:, i]
-                            if not np.all((data[:, i] == 0.0)):
-                                d += 1
-                        elif key == 'y':
-                            coords[:, 1] = data[:, i]
-                            if not np.all((data[:, i] == 0.0)):
-                                d += 1
-                        elif key == 'z':
-                            coords[:, 2] = data[:, i]
-                            if not np.all((data[:, i] == 0.0)):
-                                d += 1
-                        elif key == 'xu':
-                            uwcoords[:, 0] = data[:, i]
-                            unwrapped_available = True
-                        elif key == 'yu':
-                            uwcoords[:, 1] = data[:, i]
-                            unwrapped_available = True
-                        elif key == 'zu':
-                            uwcoords[:, 2] = data[:, i]
-                            unwrapped_available = True
-                        elif key == 'vx':
-                            velocities[:, 0] = data[:, i]
-                        elif key == 'vy':
-                            velocities[:, 1] = data[:, i]
-                        elif key == 'vz':
-                            velocities[:, 2] = data[:, i]
-                        elif key == 'fx':
-                            forces[:, 0] = data[:, i]
-                        elif key == 'fy':
-                            forces[:, 1] = data[:, i]
-                        elif key == 'fz':
-                            forces[:, 2] = data[:, i]
-                        elif key == 'mux':
+
+                        if key == 'mux':
                             orientations[:, 0] = data[:, i]
                         elif key == 'muy':
                             orientations[:, 1] = data[:, i]
@@ -1313,40 +1307,12 @@ class GSDReader(BaseReader):
                             omegas[:, 1] = data[:, i]
                         elif key == 'omegaz':
                             omegas[:, 2] = data[:, i]
-                        elif key == 'tqx':
-                            torque[:, 0] = data[:, i]
-                        elif key == 'tqy':
-                            torque[:, 1] = data[:, i]
-                        elif key == 'tqz':
-                            torque[:, 2] = data[:, i]
                         elif key == 'angmomx':
                             angmom[:, 0] = data[:, i]
                         elif key == 'angmomy':
                             angmom[:, 1] = data[:, i]
                         elif key == 'angmomz':
                             angmom[:, 2] = data[:, i]
-                        elif key == 'type':
-                            if key not in frame.keys():
-                                frame.create_dataset(key,
-                                                     (N,),
-                                                     data=data[:, i],
-                                                     dtype=int,
-                                                     compression=COMPRESSION,
-                                                     shuffle=SHUFFLE,
-                                                     fletcher32=FLETCHER)
-                            else:
-                                frame[key][:] = data[:, i]
-                        elif key == 'id':
-                            if key not in frame.keys():
-                                frame.create_dataset(key,
-                                                     (N,),
-                                                     data=data[:, i],
-                                                     dtype=int,
-                                                     compression=COMPRESSION,
-                                                     shuffle=SHUFFLE,
-                                                     fletcher32=FLETCHER)
-                            else:
-                                frame[key][:] = data[:, i]
                         else:
                             if key not in frame.keys():
                                 frame.create_dataset(key,
@@ -1359,6 +1325,17 @@ class GSDReader(BaseReader):
                             else:
                                 frame[key][:] = data[:, i]
 
+                    if "type" not in frame.keys():
+                        frame.create_dataset("type",
+                                             (N,),
+                                             data=type_ids,
+                                             dtype=int,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame["type"][:] = data[:, i]
+
                     if 'coords' not in frame.keys():
                         frame.create_dataset('coords',
                                              (N, 3),
@@ -1370,7 +1347,7 @@ class GSDReader(BaseReader):
                     else:
                         frame['coords'][:] = coords
 
-                    if 'uwcoords' not in frame.keys() and unwrapped_available:
+                    if 'uwcoords' not in frame.keys():
                         frame.create_dataset('uwcoords',
                                              (N, 3),
                                              data=uwcoords,
@@ -1378,7 +1355,7 @@ class GSDReader(BaseReader):
                                              compression=COMPRESSION,
                                              shuffle=SHUFFLE,
                                              fletcher32=FLETCHER)
-                    elif 'uwcoords' in frame.keys() and unwrapped_available:
+                    elif 'uwcoords' in frame.keys():
                         frame['uwcoords'][:] = uwcoords
 
                     if 'velocities' not in frame.keys():
@@ -1436,29 +1413,21 @@ class GSDReader(BaseReader):
                     else:
                         frame['torque'][:] = torque
 
+                    # if "type_name??" not in frame.keys():
+                    #     frame.create_dataset("type_name??",
+                    #                          (N,),
+                    #                          data=type_names,
+                    #                          dtype=int,
+                    #                          compression=COMPRESSION,
+                    #                          shuffle=SHUFFLE,
+                    #                          fletcher32=FLETCHER)
+                    # else:
+                    #     frame["type_name??"][:] = data[:, i]
+
                     # spatial dimension
                     frame.attrs['d'] = d
 
-                    # add type if not specified
-                    if 'type' not in frame.keys():
-                        frame.create_dataset('type',
-                                             (N,),
-                                             data=np.ones(N),
-                                             dtype=int,
-                                             compression=COMPRESSION,
-                                             shuffle=SHUFFLE,
-                                             fletcher32=FLETCHER)
-
                     steps[n] = step
-
-                    del lines
-
-                if idwarning:
-                    # Warn user if data could not be sorted.
-                    self.__log.warning(
-                        "No IDs specified. Data may be unsorted between "\
-                        "individual frames."
-                    )
 
             self.steps = steps
             # get time step from log file (this also sets self.times)
@@ -1466,12 +1435,6 @@ class GSDReader(BaseReader):
             self.d = d
         except Exception as e:
             os.remove(os.path.join(savedir, "#temp#"+trajfile))
-            # print("LammpsReader: loading dump files failed.")
-            if "LammpsReader: no dump files in this directory." in e.args[0]:
-                # print(e)
-                # we should not raise an error in this case.
-                pass
-            # print(f"LammpsReader: error while loading dump files. {e}")
             raise
         else:
             # if no exception. rename #temp#<trajfile> and delete #<trajfile>.
