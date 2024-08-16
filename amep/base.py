@@ -36,7 +36,7 @@ import warnings
 import inspect
 import logging
 
-from typing import Collection
+from typing import Collection, Iterable, Sequence
 from  io import StringIO
 from contextlib import redirect_stdout
 from tqdm import TqdmExperimentalWarning
@@ -168,7 +168,8 @@ GRIDKEYS = [
 LOADMODES = [
     'lammps',
     'h5amep',
-    'field'
+    'field',
+    'gsd'
 ]
 # maximum RAM usage in GB per CPU (used for parallelized methods)
 MAXMEM = 1
@@ -899,7 +900,7 @@ class BaseFrame:
 
     def __read_data(
             self, key: str, ptype: int | list | None = None,
-            pid: int | list | None = None) -> np.ndarray:
+            pid: int | Sequence | None = None) -> np.ndarray:
         r'''
         Reads a dataset from the HDF5 file either for all particles
         or for all particles of a specific particle type.
@@ -929,12 +930,10 @@ class BaseFrame:
 
             if pid:
                 data_ids = root['frames'][str(self.__step)]['id'][:]
-                if type(pid) != list:
+                if not isinstance(pid, Sequence):
                     pid = [pid]
-                id_list = []
-                for id in pid:
-                    index_id = int(np.where(data_ids==id)[0])
-                    id_list.append(index_id)
+                id_list = [int(np.where(data_ids == part_id)[0])
+                           for part_id in pid]
                 if key in root['frames'][str(self.__step)].keys():
                     data = root['frames'][str(self.__step)][key][id_list]
                     return data
@@ -944,28 +943,28 @@ class BaseFrame:
             # check if a dataset with the given key exists and read the data
             if key in root['frames'][str(self.__step)].keys():
                 data = root['frames'][str(self.__step)][key][:]
-
-                # Transform ptype so it is a list of all ptypes
+                # If no ptype is provided return all data
                 if not ptype:
                     return data
-                if type(ptype) == int:
+                # Transform ptype so it is a list of all ptypes
+                if not isinstance(ptype, Sequence):
                     ptype = [ptype]
                 mask = np.zeros(data.shape[0],)
                 # check particle type
-                for single_ptype in ptype:
-                    if single_ptype in self.ptypes:
-                        mask += types==single_ptype
-                    else:
-                        warnings.warn(
-                            f"The specified particle type {single_ptype} "\
-                            "does not exist. Returning data without type "\
-                            f"{single_ptype}."
-                        )
+                mask += sum(types == single_ptype for single_ptype
+                            in ptype if single_ptype in self.ptypes)
+                if any(single_ptype not in self.ptypes for
+                       single_ptype in ptype):
+                    for single_ptype in ptype:
+                        if single_ptype not in self.ptypes:
+                            warnings.warn(
+                                f"The specified particle type {single_ptype} "
+                                "does not exist. Returning data without type "
+                                f"{single_ptype}."
+                            )
                 return data[mask.astype(bool)]
-
-            else:
-                raise KeyError(
-                    f"The key {key} does not exist in the frame. "\
+            raise KeyError(
+                    f"The key {key} does not exist in the frame. "
                     "Returning no data!"
                 )
 
@@ -1266,42 +1265,55 @@ class BaseTrajectory:
 
         '''
         self.__reader = reader
-    def __getitem__(self,item):
+
+    def __getitem__(self, item: int | slice | Iterable[int]
+                    ) -> BaseFrame | BaseField | list[BaseField | BaseFrame]:
+        """Get an individual frame or field of a simulation.
+
+        Supports slicing as well as iterables of valid integer indices.
+        The return type depends on the type of the trajectory.
+        Also it depends if only one frame or a collection of frames is requested.
+        If a collection of frames is requested a list of frames is returned.
+
+        Parameters
+        ----------
+        item : int | slice | Iterable[int]
+
+        Returns
+        -------
+        BaseFrame | BaseField | list[BaseField | BaseFrame] 
+        """
         if isinstance(item, slice):
-            sli=range(*item.indices(len(self.__reader.steps)))
-            if self.type=="field":
-                out = [BaseField(self.__reader,index) for index in sli]
-            elif self.type=="particle":
-                out = [BaseFrame(self.__reader,index) for index in sli]
-            else:
-                out = [BaseFrame(self.__reader,index) for index in sli]
-            return out
-        elif isinstance(item, list) or isinstance(item, np.ndarray):
-            if self.type=="field":
-                out = [BaseField(self.__reader,index) for index in item]
-            elif self.type=="particle":
-                out = [BaseFrame(self.__reader,index) for index in item]
-            else:
-                out = [BaseFrame(self.__reader,index) for index in item]
-            return out
-        elif isinstance(item, int) or isinstance(item, np.integer):
-            if self.type=="field":
+            sli = range(*item.indices(len(self.__reader.steps)))
+            if self.type == "field":
+                return [BaseField(self.__reader, index) for index in sli]
+            # Any of these returns defaults to particle Frames.
+            # If we get more types of trejaectories we have to add them here
+            # with an if statement as above.
+            return [BaseFrame(self.__reader, index) for index in sli]
+        if isinstance(item, Iterable):
+            if self.type == "field":
+                return [BaseField(self.__reader, index) for index in item]
+            return [BaseFrame(self.__reader, index) for index in item]
+        if isinstance(item, (int, np.integer)):
+            if self.type == "field":
                 return BaseField(self.__reader, item)
-            elif self.type=="particle":
-                return BaseFrame(self.__reader, item)
             return BaseFrame(self.__reader, item)
-        else:
-            raise KeyError(
-                '''BaseTrajectory: Invalid key. Only integer values, 1D lists
-                and arrays, and slices are allowed.'''
-            )
+        raise KeyError('''BaseTrajectory: Invalid key. Only integer values,
+        1D lists and arrays, and slices are allowed.'''
+                       )
+
     def __iter__(self):
-        for i in range(len(self.__reader.steps)):
+        """Iterate over all frames of the trajectory."""
+        for i, _ in enumerate(self.__reader.steps):
             yield self[i]
+
     def __next__(self):
         pass
+
     def __len__(self):
         return len(self.__reader.steps)
+
     def add_author_info(
             self, author: str, key: str, value: int | float | str) -> None:
         '''
@@ -1329,6 +1341,7 @@ class BaseTrajectory:
             if author not in root['info']['authors'].keys():
                 root['info']['authors'].create_group(author)
             root['info']['authors'][author].attrs[key] = value
+
     def get_author_info(self, author: str) -> dict:
         r'''
         Returns all information for the given author.
@@ -1352,6 +1365,7 @@ class BaseTrajectory:
                 p = dict(a for a in root['info']['authors'][author].attrs.items())
                 return p
             return {}
+
     def delete_author_info(self, author: str, key: str | None = None) -> None:
         r'''
         Deletes all information (key=None) or specific information given by
@@ -1377,6 +1391,7 @@ class BaseTrajectory:
                 del root['info']['authors'][author]
             elif type(key)==str:
                 root['info']['authors'][author].attrs.__delitem__(key)
+
     @property
     def authors(self) -> list[str]:
         r'''
@@ -1396,6 +1411,7 @@ class BaseTrajectory:
                 keys = list(root['info']['authors'].keys())
                 return keys
             return []
+
     def add_software_info(self, key: str, value: str | int | float) -> None:
         r'''
         Add software information to the hdf5 trajectory file.
@@ -1418,6 +1434,7 @@ class BaseTrajectory:
             if 'software' not in root['info'].keys():
                 root['info'].create_group('software')
             root['info']['software'].attrs[key] = value
+
     def delete_software_info(self, key: str | None = None) -> None:
         r'''
         Deletes all software information (key=None) or specific information
@@ -1442,6 +1459,7 @@ class BaseTrajectory:
                     root['info']['software'].attrs.__delitem__(key)
             else:
                 root['info']['software'].attrs.__delitem__(key)
+
     @property
     def software(self) -> dict:
         r'''
@@ -1731,7 +1749,16 @@ class BaseTrajectory:
         if type(x) == float:
             self.__reader.dt = x
     @property
-    def dim(self):
+    def dim(self) -> int:
+        '''
+        Spatial dimension of the simnulation.
+
+        Returns
+        -------
+        x : int
+            Spatial dimension.
+
+        '''
         return self.__reader.d
     @property
     def savedir(self):
@@ -1783,8 +1810,12 @@ class BaseEvaluation:
     def __getitem__(self, key: str):
         return getattr(self, key)
 
-    def keys(self):
-        return [name for (name, value) in inspect.getmembers(
+    def keys(self) -> list[str]:
+        """The keys to the evaluation object.
+        
+        Used so Evaluation-objects can be used as dictionaries.
+        """
+        return [name for (name, _) in inspect.getmembers(
             type(self), lambda x: isinstance(x, property)
         )]
 

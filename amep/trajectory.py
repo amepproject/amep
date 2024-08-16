@@ -27,7 +27,7 @@ The AMEP module :mod:`amep.trajectory` contains all trajectory classes. These
 are containers for a time series of simulation data (particle-based data or 
 continuum fields). The following classes are included:
 
-    ParticleTracetory :
+    ParticleTrajetory :
         Time-series of per-particle data such as coordinates, velocities,
         forces, etc.
     FieldTrajectory :
@@ -58,6 +58,8 @@ class ParticleTrajectory(BaseTrajectory):
         r"""
         Creates a trajectory object containing data frames for multiple
         time steps.
+
+        Can be viewed as a Sequence of :class:`.BaseFrame`.
 
         Parameters
         ----------
@@ -180,7 +182,7 @@ class ParticleTrajectory(BaseTrajectory):
         Returns
         -------
         None.
-        
+
         Examples
         --------
         >>> import amep
@@ -190,7 +192,7 @@ class ParticleTrajectory(BaseTrajectory):
         >>> print(traj.get_particle_info())
         {1: {'name': 'active'}, 2: {'name': 'passive'}}
         >>> traj.delete_particle_info(None)
-        >>> 
+        >>>
 
         '''
         with h5py.File(os.path.join(self.reader.savedir, self.reader.filename), 'a') as root:
@@ -213,7 +215,7 @@ class ParticleTrajectory(BaseTrajectory):
         -------
         p : dict
             Parameters.
-        
+
         Examples
         --------
         >>> import amep
@@ -223,14 +225,14 @@ class ParticleTrajectory(BaseTrajectory):
         >>> print(traj.get_particle_info())
         {1: {'name': 'active'}, 2: {'name': 'passive'}}
         >>> traj.delete_particle_info(None)
-        >>> 
+        >>>
 
         '''
         with h5py.File(os.path.join(self.reader.savedir, self.reader.filename), 'r') as root:
             if ptype is None:
                 p = {}
                 for t in list(root['particles'].keys()):
-                    p[int(t)] = dict(a for a in root['particles'][t].attrs.items())
+                    p[t] = dict(a for a in root['particles'][t].attrs.items())
             elif str(ptype) in list(root['particles'].keys()):
                 p = dict(a for a in root['particles'][str(ptype)].attrs.items())
             else:
@@ -319,6 +321,8 @@ class FieldTrajectory(BaseTrajectory):
         r'''
         Creates a trajectory object containing data frames for multiple
         time steps.
+
+        Can be viewed as a Sequence of :class:`.BaseField`.
 
         Parameters
         ----------
