@@ -31,6 +31,7 @@ The AMEP module :mod:`amep.utils` is a collection of various utility methods.
 # =============================================================================
 import os
 import time
+from packaging.version import Version
 
 import numpy as np
 
@@ -1188,10 +1189,14 @@ def sq_from_gr(
     '''
     if twod:
         ydata = ((gr - 1) * r).reshape(-1, 1) * special.jv(0, r.reshape(-1, 1) * q.reshape(1, -1))
-        return np.trapz(x=r, y=ydata, axis=0) * (2 * np.pi * rho) + 1
+        if Version(np.__version__) < Version("2.0.0"):
+            return np.trapz(x=r, y=ydata, axis=0) * (2 * np.pi * rho) + 1
+        return np.trapezoid(x=r, y=ydata, axis=0) * (2 * np.pi * rho) + 1
     else:
         ydata = ((gr - 1) * r).reshape(-1, 1) * np.sin(r.reshape(-1, 1) * q.reshape(1, -1))
-        return np.trapz(x=r, y=ydata, axis=0) * (4 * np.pi * rho / q) + 1    
+        if Version(np.__version__) < Version("2.0.0"):
+            return np.trapz(x=r, y=ydata, axis=0) * (4 * np.pi * rho / q) + 1
+        return np.trapezoid(x=r, y=ydata, axis=0) * (4 * np.pi * rho / q) + 1
     
 
 def sq_from_sf2d(
@@ -1273,7 +1278,10 @@ def msd_from_vacf(vacf, times):
         Time values as 1D array.
 
     '''
-    msd = 2*np.array([np.trapz((times[i]-times[:i+1])*vacf[:i+1], x=times[:i+1]) for i in range(len(times))])
+    if Version(np.__version__) < Version("2.0.0"):
+        msd = 2*np.array([np.trapz((times[i]-times[:i+1])*vacf[:i+1], x=times[:i+1]) for i in range(len(times))])
+    else:
+        msd = 2*np.array([np.trapezoid((times[i]-times[:i+1])*vacf[:i+1], x=times[:i+1]) for i in range(len(times))])
     return msd, times
 
 
@@ -1385,7 +1393,9 @@ def domain_length(
         s_fac = s_fac[q<=qmax]
         q = q[q<=qmax]
     
-    return 2*np.pi*(np.trapz(s_fac, x=q)/np.trapz(s_fac*q, x=q))
+    if Version(np.__version__) < Version("2.0.0"):
+        return 2*np.pi*(np.trapz(s_fac, x=q)/np.trapz(s_fac*q, x=q))
+    return 2*np.pi*(np.trapezoid(s_fac, x=q)/np.trapezoid(s_fac*q, x=q))
 
 
 # =============================================================================
