@@ -37,7 +37,7 @@ import csv
 import warnings
 import h5py
 import string
-
+from gsd import hoomd
 import numpy as np
 
 from tqdm.autonotebook import tqdm
@@ -1085,3 +1085,470 @@ class ContinuumReader(BaseReader):
         if delimiter == []:
             return None
         return delimiter
+
+
+class GSDReader(BaseReader):
+    '''Reads GSD files and writes the containing data to an hdf5 file.
+    '''
+
+    def __init__(
+            self, directory: str, savedir: str, start: float = 0.0,
+            stop: float = 1.0, nth: int = 1, filename: str = 'trajectory.gsd',
+            trajfile: str = TRAJFILENAME, deleteold: bool = False,
+            verbose: bool = False) -> None:
+        r'''
+        Reader for simulation data in the gsd file format (hoomd-blue).
+
+        TODO in progress
+        - real-time not in gsd file
+
+        Parameters
+        ----------
+        directory : str
+            Simulation directory.
+        savedir : str
+            Directory in which the trajectory file will be stored.
+        start : float, optional
+            Start reading data from this fraction of the whole trajectory.
+            The default is None.
+        stop : float, optional
+            Stop reading data from this fraction of the whole trajectory.
+            The default is None.
+        nth : int, optional
+            Read each nth dump file. The default is None.
+        filename : str, optional
+            File name of the gsd trajectory file. The default is 'trajectory.gsd'.
+        trajfile : str, optional
+            Name of the hdf5 trajectory file that is created when an object of
+            this class is initialized. The default is TRAJFILENAME.
+        deleteold : bool, optional
+            If True, an existing old h5amep trajectory file #<trajfile>
+            will be removed. The default is False.
+        verbose : bool, optional
+            If True, runtime information is printed. The default is False.
+
+        Returns
+        -------
+        None.
+
+        '''
+        # init class logger
+        self.__log = get_class_logger(__name__, self.__class__.__name__)
+        
+        # back up trajectory file
+        if os.path.exists(os.path.join(savedir, trajfile)):
+            # rename trajectory to backup filename "#+<trajfile>"
+            if os.path.exists(os.path.join(savedir, "#"+trajfile)):
+                if verbose:
+                    self.__log.info(
+                        f"Existing old file #{trajfile} will be replaced."
+                    )
+                os.remove(os.path.join(savedir, "#"+trajfile))
+            os.rename(
+                os.path.join(savedir, trajfile),
+                os.path.join(savedir, "#"+trajfile)
+            )
+            if verbose:
+                self.__log.info(
+                    f"Renamed {trajfile} to #{trajfile}."
+                )
+        # super(LammpsReader, self).__init__(directory, start, stop, nth, "#temp#"+trajfile)
+        super().__init__(os.path.abspath(savedir), start, stop, nth, "#temp#"+trajfile)
+        self.directory = directory
+
+        try:
+            # self.__filename = filename # important: self.filename ≠ self.__filename
+
+            # load gsd file
+            gsd_file = hoomd.open(os.path.join(directory,filename))
+
+            first = int(self.start*len(gsd_file))  # first frame index
+            last  = int(self.stop*len(gsd_file))   # last frame index
+            
+            # select part of gsd.hoomd.HOOMDTrajectory ( = gsd.hoomd._HOOMDTrajectoryView )
+            gsd_file = gsd_file[first:last:self.nth]
+
+            # total number of files
+            self.__nframes = len(gsd_file)
+
+            # array of number of time steps
+            steps = np.zeros(self.__nframes, dtype=int)
+
+            # load data from dump files
+            with h5py.File(os.path.join(self.savedir, "#temp#"+trajfile), 'a') as root:
+                # Set type of h5amep file to particle
+                root.attrs["type"] = "particle"
+
+                # If no ID is specified only one warning is issued to the user.
+                # Trigger idwarning is set to false:
+                idwarning=False
+
+                # loop through all dump files
+                for n, gsd_frame in enumerate(tqdm(gsd_file)):
+
+                    # get number of time steps
+                    step = gsd_frame.configuration.step
+
+                    # get total number of atoms
+                    N = gsd_frame.particles.N
+
+                    # create new group for the given step in the 'frames' group
+                    if str(step) not in root['frames'].keys():
+                        frame = root['frames'].create_group(str(step))
+                    else:
+                        frame = root['frames'][str(step)]
+
+                    # get boundaries of the simulation box
+                    gsd_box = gsd_frame.configuration.box
+                    if np.any(gsd_box[3:] != 0):
+                        raise Exception(f"GSDReader: box tilt factors {gsd_box[3:]} must be 0.")
+                    box=np.zeros((3,2))
+                    box[:,0]=-gsd_box[:3]/2
+                    box[:,1]=gsd_box[:3]/2 # hoomd-gsd box always centered around 0
+
+                    # add box to hdf5 file
+                    if 'box' not in frame.keys():
+                        frame.create_dataset('box',
+                                             (3, 2),
+                                             data=box,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['box'][:] = box
+
+                    # get center of the simulation box
+                    center = (box[:, 1]+box[:, 0])/2
+
+                    # add center to hdf5 file
+                    if 'center' not in frame.keys():
+                        frame.create_dataset('center',
+                                             (3,),
+                                             data=center,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['center'][:] = center
+
+                    print(center)
+                    continue
+
+                    # extract the data
+                    data = np.zeros((N, nparams), dtype=DTYPE)
+                    # ignore other lines (N+9 and larger)
+                    # (LAMMPS sometimes adds an empty line at the end
+                    #  which would cause problems)
+                    for l, line in enumerate(lines[9:N+9]):
+                        data[l] = np.fromstring(line, sep=' ')
+
+                    # add data to hdf5 file
+                    coords       = np.zeros((N, 3), dtype=DTYPE)
+                    uwcoords     = np.zeros((N, 3), dtype=DTYPE)  # unwrapped
+                    velocities   = np.zeros((N, 3), dtype=DTYPE)
+                    forces       = np.zeros((N, 3), dtype=DTYPE)
+                    orientations = np.zeros((N, 3), dtype=DTYPE)
+                    omegas       = np.zeros((N, 3), dtype=DTYPE)
+                    torque       = np.zeros((N, 3), dtype=DTYPE)
+                    angmom       = np.zeros((N, 3), dtype=DTYPE)
+
+                    # sort data by id if available
+                    if "id" in keys:
+                        sorting = np.argsort(data[:, keys.index("id")])
+                        data = data[sorting, :]
+                    else:
+                        # Warn user if data could not be sorted.
+                        idwarning = True
+                        # side-note from the documentation:
+                        # """Repetitions of a particular warning for the same
+                        # source location are typically suppressed."""
+
+                    unwrapped_available = False
+                    d = 0
+                    for i, key in enumerate(keys):
+                        if key == 'x':
+                            coords[:, 0] = data[:, i]
+                            if not np.all((data[:, i] == 0.0)):
+                                d += 1
+                        elif key == 'y':
+                            coords[:, 1] = data[:, i]
+                            if not np.all((data[:, i] == 0.0)):
+                                d += 1
+                        elif key == 'z':
+                            coords[:, 2] = data[:, i]
+                            if not np.all((data[:, i] == 0.0)):
+                                d += 1
+                        elif key == 'xu':
+                            uwcoords[:, 0] = data[:, i]
+                            unwrapped_available = True
+                        elif key == 'yu':
+                            uwcoords[:, 1] = data[:, i]
+                            unwrapped_available = True
+                        elif key == 'zu':
+                            uwcoords[:, 2] = data[:, i]
+                            unwrapped_available = True
+                        elif key == 'vx':
+                            velocities[:, 0] = data[:, i]
+                        elif key == 'vy':
+                            velocities[:, 1] = data[:, i]
+                        elif key == 'vz':
+                            velocities[:, 2] = data[:, i]
+                        elif key == 'fx':
+                            forces[:, 0] = data[:, i]
+                        elif key == 'fy':
+                            forces[:, 1] = data[:, i]
+                        elif key == 'fz':
+                            forces[:, 2] = data[:, i]
+                        elif key == 'mux':
+                            orientations[:, 0] = data[:, i]
+                        elif key == 'muy':
+                            orientations[:, 1] = data[:, i]
+                        elif key == 'muz':
+                            orientations[:, 2] = data[:, i]
+                        elif key == 'omegax':
+                            omegas[:, 0] = data[:, i]
+                        elif key == 'omegay':
+                            omegas[:, 1] = data[:, i]
+                        elif key == 'omegaz':
+                            omegas[:, 2] = data[:, i]
+                        elif key == 'tqx':
+                            torque[:, 0] = data[:, i]
+                        elif key == 'tqy':
+                            torque[:, 1] = data[:, i]
+                        elif key == 'tqz':
+                            torque[:, 2] = data[:, i]
+                        elif key == 'angmomx':
+                            angmom[:, 0] = data[:, i]
+                        elif key == 'angmomy':
+                            angmom[:, 1] = data[:, i]
+                        elif key == 'angmomz':
+                            angmom[:, 2] = data[:, i]
+                        elif key == 'type':
+                            if key not in frame.keys():
+                                frame.create_dataset(key,
+                                                     (N,),
+                                                     data=data[:, i],
+                                                     dtype=int,
+                                                     compression=COMPRESSION,
+                                                     shuffle=SHUFFLE,
+                                                     fletcher32=FLETCHER)
+                            else:
+                                frame[key][:] = data[:, i]
+                        elif key == 'id':
+                            if key not in frame.keys():
+                                frame.create_dataset(key,
+                                                     (N,),
+                                                     data=data[:, i],
+                                                     dtype=int,
+                                                     compression=COMPRESSION,
+                                                     shuffle=SHUFFLE,
+                                                     fletcher32=FLETCHER)
+                            else:
+                                frame[key][:] = data[:, i]
+                        else:
+                            if key not in frame.keys():
+                                frame.create_dataset(key,
+                                                     (N,),
+                                                     data=data[:, i],
+                                                     dtype=DTYPE,
+                                                     compression=COMPRESSION,
+                                                     shuffle=SHUFFLE,
+                                                     fletcher32=FLETCHER)
+                            else:
+                                frame[key][:] = data[:, i]
+
+                    if 'coords' not in frame.keys():
+                        frame.create_dataset('coords',
+                                             (N, 3),
+                                             data=coords,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['coords'][:] = coords
+
+                    if 'uwcoords' not in frame.keys() and unwrapped_available:
+                        frame.create_dataset('uwcoords',
+                                             (N, 3),
+                                             data=uwcoords,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    elif 'uwcoords' in frame.keys() and unwrapped_available:
+                        frame['uwcoords'][:] = uwcoords
+
+                    if 'velocities' not in frame.keys():
+                        frame.create_dataset('velocities',
+                                             (N, 3),
+                                             data=velocities,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['velocities'][:] = velocities
+
+                    if 'forces' not in frame.keys():
+                        frame.create_dataset('forces',
+                                             (N, 3),
+                                             data=forces,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['forces'][:] = forces
+
+                    if 'orientations' not in frame.keys():
+                        frame.create_dataset('orientations',
+                                             (N, 3),
+                                             data=orientations,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['orientations'][:] = orientations
+
+                    if 'omegas' not in frame.keys():
+                        frame.create_dataset('omegas',
+                                             (N, 3),
+                                             data=omegas,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['omegas'][:] = omegas
+
+                    if 'torque' not in frame.keys():
+                        frame.create_dataset('torque',
+                                             (N, 3),
+                                             data=torque,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['torque'][:] = torque
+
+                    # spatial dimension
+                    frame.attrs['d'] = d
+
+                    # add type if not specified
+                    if 'type' not in frame.keys():
+                        frame.create_dataset('type',
+                                             (N,),
+                                             data=np.ones(N),
+                                             dtype=int,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+
+                    steps[n] = step
+
+                    del lines
+
+                if idwarning:
+                    # Warn user if data could not be sorted.
+                    self.__log.warning(
+                        "No IDs specified. Data may be unsorted between "\
+                        "individual frames."
+                    )
+
+            self.steps = steps
+            # get time step from log file (this also sets self.times)
+            self.dt = self.__get_timestep_from_logfile()
+            self.d = d
+        except Exception as e:
+            os.remove(os.path.join(savedir, "#temp#"+trajfile))
+            # print("LammpsReader: loading dump files failed.")
+            if "LammpsReader: no dump files in this directory." in e.args[0]:
+                # print(e)
+                # we should not raise an error in this case.
+                pass
+            # print(f"LammpsReader: error while loading dump files. {e}")
+            raise
+        else:
+            # if no exception. rename #temp#<trajfile> and delete #<trajfile>.
+            if os.path.exists(os.path.join(savedir, trajfile)) and verbose:
+                # This case should not occur if AMEP is used properly.
+                # Possible scenario:
+                # two instances of AMEP reading and writing in the same directory.
+                self.__log.info(
+                    f"File {trajfile} already exists. "\
+                    "Overwriting existing file."
+                )
+            os.rename(os.path.join(savedir, "#temp#"+trajfile), os.path.join(savedir, trajfile))
+            self.filename = trajfile
+
+            # delete old trajectory file #<trajfile> if specified by user.
+            if deleteold and os.path.exists(os.path.join(savedir, "#"+trajfile)):
+                os.remove(os.path.join(savedir, "#"+trajfile))
+                if verbose:
+                    self.__log.info(
+                        f"Deleted old trajectory file #{trajfile}"
+                    )
+        finally:
+            pass
+
+
+    def __sorter(self, item):
+        r'''
+        Returns the time step of a dump file that is given
+        in the filename of the dump file.
+
+        INPUT:
+            item: dump-file name (str)
+
+        OUTPUT:
+            time step (float)
+        '''
+        key = self.__dumps.split('*')[0]
+        basedir, basename = os.path.split(item)
+        if key=='':
+            return float(basename.split('.')[0])
+        return float(basename.split(key)[1].split('.')[0])
+
+
+    def __get_timestep_from_logfile(self):
+        r'''
+        Reads the time step from the log.lammps file.
+
+        Returns
+        -------
+        dt : float
+            Time step.
+        '''
+        if os.path.exists(os.path.join(self.directory, 'log.lammps')):
+            with open(os.path.join(
+                    self.directory, 'log.lammps'
+                ), encoding="utf-8") as f:
+                lines = f.readlines()
+                relevant = [line for line in lines if line.startswith('timestep')]
+                if len(relevant)>=1:
+                    dt = float(relevant[-1].split('timestep')[-1])
+                else:
+                    dt = 1
+                    self.__log.warning(
+                        "No timestep mentioned in logfile. Using dt=1. "\
+                        "The timestep can be set manually by traj.dt=<dt>."
+                    )
+                if len(relevant)>1:
+                    self.__log.warning(
+                        "More than one timestep found. Using last mention, "\
+                        f"dt={dt}. "\
+                        "The timestep can be set manually by traj.dt=<dt>."
+                    )
+        else:
+            self.__log.warning(
+                "No log file found. Using dt=1. "\
+                "The timestep can be set manually by traj.dt=<dt>."
+            )
+            dt = 1
+
+        return dt
