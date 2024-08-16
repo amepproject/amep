@@ -35,6 +35,7 @@ import amep
 DATADIR = Path("../examples/data")
 FIELDDIR = DATADIR/'continuum'
 LAMMPSDIR = DATADIR/'lammps'
+HOOMDDIR = DATADIR/'hoomd'
 
 RNG = np.random.default_rng(1234)
 
@@ -211,3 +212,15 @@ class TestFieldTrajectory(unittest.TestCase):
         # add deleted field information again
         self.traj.add_field_info('c', 'name', 'chemicals')
         self.traj.add_field_info('rho', 'name', 'bacterial density')
+
+
+class TestHOOMDReader(unittest.TestCase):
+    """Testcase for HOOMD data.
+
+    TO BE IMPLEMENTED.
+    """
+
+    def test_trajfile(self):
+        hoomd_traj = amep.load.traj(directory=HOOMDDIR,
+                                    filename="simulated.gsd",
+                                    mode="gsd", start=.9)
