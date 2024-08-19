@@ -1205,8 +1205,6 @@ class GSDReader(BaseReader):
                     box=np.zeros((3,2))
                     box[:,0]=-gsd_box[:3]/2
                     box[:,1]=gsd_box[:3]/2 # hoomd-gsd box always centered around 0
-
-                    # add box to hdf5 file
                     if 'box' not in frame.keys():
                         frame.create_dataset('box',
                                              (3, 2),
@@ -1220,8 +1218,6 @@ class GSDReader(BaseReader):
 
                     # get center of the simulation box
                     center = (box[:, 1]+box[:, 0])/2
-
-                    # add center to hdf5 file
                     if 'center' not in frame.keys():
                         frame.create_dataset('center',
                                              (3,),
@@ -1233,31 +1229,92 @@ class GSDReader(BaseReader):
                     else:
                         frame['center'][:] = center
 
-
                     # add data to hdf5 file
                     forces       = np.zeros((N, 3), dtype=DTYPE) # gsd stores no forces
-                    torque       = np.zeros((N, 3), dtype=DTYPE) # gsd stores no forces
+                    if 'forces' not in frame.keys():
+                        frame.create_dataset('forces',
+                                             (N, 3),
+                                             data=forces,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['forces'][:] = forces
 
-                    uwcoords     = np.zeros((N, 3), dtype=DTYPE) # unwrapped
-                    orientations = np.zeros((N, 3), dtype=DTYPE)
-                    angmom       = np.zeros((N, 3), dtype=DTYPE)
-                    omegas       = np.zeros((N, 3), dtype=DTYPE)
-                    
+                    torque       = np.zeros((N, 3), dtype=DTYPE) # gsd stores no forces
+                    if 'torque' not in frame.keys():
+                        frame.create_dataset('torque',
+                                             (N, 3),
+                                             data=torque,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['torque'][:] = torque
+
                     # coordinates
                     coords       = np.array(gsd_frame.particles.position)
+                    if 'coords' not in frame.keys():
+                        frame.create_dataset('coords',
+                                             (N, 3),
+                                             data=coords,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['coords'][:] = coords
 
                     # velocities
                     velocities   = np.array(gsd_frame.particles.velocity)
+                    if 'velocities' not in frame.keys():
+                        frame.create_dataset('velocities',
+                                             (N, 3),
+                                             data=velocities,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['velocities'][:] = velocities
 
                     # type ids of the particles
                     type_ids     = np.array(gsd_frame.particles.typeid)
+                    if "type" not in frame.keys():
+                        frame.create_dataset("type",
+                                             (N,),
+                                             data=type_ids,
+                                             dtype=int,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame["type"][:] = data[:, i]
 
                     # type names of the particles
                     type_names = np.array(gsd_frame.particles.types)[np.array(gsd_frame.particles.typeid)]
                     type_names = [str(a) for a in type_names]
+                    # type_names[0]="adsfafdafdsafdsöääöasdfasdf"
+                    # delete first if exists. length of string might have to be updated!
+                    if "type_name" in frame.keys():
+                        del frame["type_name"]
+                    # print(len(max(type_names, key=len)))
+                    if "type_name" not in frame.keys():
+                        frame.create_dataset("type_name",
+                                             (N,),
+                                             data=type_names,
+                                             dtype=h5py.string_dtype('utf-8', len(max(type_names, key=len))),
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    # else:
+                    #     frame["type_name"][:] = type_names
 
                     # dimensions of the simulation
                     d = gsd_frame.configuration.dimensions
+                    frame.attrs['d'] = d
 
                     # unwrapped coordinates/particle image
                     gsd_image=gsd_frame.particles.image
@@ -1265,58 +1322,132 @@ class GSDReader(BaseReader):
                     y=coords[:,1]+gsd_image[:,1]*gsd_box[1]+gsd_box[5]*gsd_image[:,2]*gsd_box[2]
                     z=coords[:,2]+gsd_image[:,2]*gsd_box[2]
                     uwcoords = np.stack([x,y,z]).T
+                    if 'uwcoords' not in frame.keys():
+                        frame.create_dataset('uwcoords',
+                                             (N, 3),
+                                             data=uwcoords,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    elif 'uwcoords' in frame.keys():
+                        frame['uwcoords'][:] = uwcoords
 
                     # orientations and orientation angle quat_theta from orientation-quaternions
                     quat_orientations   = np.array(gsd_frame.particles.orientation)
-                    print(quat_orientations[0,:])
                     orientations        = quat_orientations[:,1:]/np.linalg.norm(quat_orientations[:,1:], axis=1)[:, None]
+                    if 'orientations' not in frame.keys():
+                        frame.create_dataset('orientations',
+                                             (N, 3),
+                                             data=orientations,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['orientations'][:] = orientations
+
                     quat_thetas         = 2*np.arctan2(np.linalg.norm(quat_orientations[:,1:], axis=1), quat_orientations[:,0])
-                    # 4d -> 3d
+                    if 'quat_theta' not in frame.keys():
+                        frame.create_dataset('quat_theta',
+                                             (N,),
+                                             data=quat_thetas,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['quat_theta'][:] = quat_thetas
 
                     # moment of inertia of the particles
                     moment_inertias = np.array(gsd_frame.particles.moment_inertia)
+                    if 'moment_inertia' not in frame.keys():
+                        frame.create_dataset('moment_inertia',
+                                             (N, 3),
+                                             data=moment_inertias,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['moment_inertia'][:] = moment_inertias
 
                     # angular momentum of the particles from quaternions
                     # todo!!
+                    angmom       = np.zeros((N, 3), dtype=DTYPE)
+                    omegas       = np.zeros((N, 3), dtype=DTYPE)
+                    
                     quat_angmoms    = np.array(gsd_frame.particles.angmom)
-                    print(quat_angmoms[0,:])
                     angmoms         = quat_angmoms[:,1:]
-                    omegas     = 2*np.arctan2(np.linalg.norm(quat_orientations[:,1:], axis=1), quat_orientations[:,0])
+                    # omegas          = 2*np.arctan2(np.linalg.norm(quat_orientations[:,1:], axis=1), quat_orientations[:,0])
+                    # print(np.shape(omegas))
                         # -> angmom
                         # -> omegas
+                    if 'omegas' not in frame.keys():
+                        frame.create_dataset('omegas',
+                                             (N, 3),
+                                             data=omegas,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['omegas'][:] = omegas
 
                     # diameters of the particles
                     diameters       = np.array(gsd_frame.particles.diameter)
+                    if 'diameter' not in frame.keys():
+                        frame.create_dataset('diameter',
+                                             (N,),
+                                             data=diameters,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['diameter'][:] = diameters
 
                     # masses of the particles
                     masses          = np.array(gsd_frame.particles.mass)
+                    if 'mass' not in frame.keys():
+                        frame.create_dataset('mass',
+                                             (N,),
+                                             data=masses,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['mass'][:] = masses
 
                     # masses of the particles
                     charges         = np.array(gsd_frame.particles.charge)
+                    if 'charge' not in frame.keys():
+                        frame.create_dataset('charge',
+                                             (N,),
+                                             data=charges,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['charge'][:] = charges
 
                     # masses of the particles
                     bodies          = np.array(gsd_frame.particles.body)
+                    if 'body' not in frame.keys():
+                        frame.create_dataset('body',
+                                             (N,),
+                                             data=bodies,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['body'][:] = bodies
 
                     # do not save:
                     # print("type_shapes", gsd_frame.particles.type_shapes) # too complicated to save?
-                    # continue
-# ParticleData
-
-    #     ParticleData.types
-    #     ParticleData.position
-    #     ParticleData.orientation
-    #     ParticleData.typeid
-    #     ParticleData.mass
-    #     ParticleData.charge
-    #     ParticleData.diameter
-    #     ParticleData.body
-    #     ParticleData.moment_inertia
-    #     ParticleData.velocity
-#     ParticleData.angmom
-    #     ParticleData.image
-    #     ParticleData.type_shapes
-
-
 
                     # for i, key in enumerate(keys):
 
@@ -1343,178 +1474,6 @@ class GSDReader(BaseReader):
                     #                                  fletcher32=FLETCHER)
                     #         else:
                     #             frame[key][:] = data[:, i]
-
-                    if "type" not in frame.keys():
-                        frame.create_dataset("type",
-                                             (N,),
-                                             data=type_ids,
-                                             dtype=int,
-                                             compression=COMPRESSION,
-                                             shuffle=SHUFFLE,
-                                             fletcher32=FLETCHER)
-                    else:
-                        frame["type"][:] = data[:, i]
-
-                    if 'coords' not in frame.keys():
-                        frame.create_dataset('coords',
-                                             (N, 3),
-                                             data=coords,
-                                             dtype=DTYPE,
-                                             compression=COMPRESSION,
-                                             shuffle=SHUFFLE,
-                                             fletcher32=FLETCHER)
-                    else:
-                        frame['coords'][:] = coords
-
-                    if 'uwcoords' not in frame.keys():
-                        frame.create_dataset('uwcoords',
-                                             (N, 3),
-                                             data=uwcoords,
-                                             dtype=DTYPE,
-                                             compression=COMPRESSION,
-                                             shuffle=SHUFFLE,
-                                             fletcher32=FLETCHER)
-                    elif 'uwcoords' in frame.keys():
-                        frame['uwcoords'][:] = uwcoords
-
-                    if 'velocities' not in frame.keys():
-                        frame.create_dataset('velocities',
-                                             (N, 3),
-                                             data=velocities,
-                                             dtype=DTYPE,
-                                             compression=COMPRESSION,
-                                             shuffle=SHUFFLE,
-                                             fletcher32=FLETCHER)
-                    else:
-                        frame['velocities'][:] = velocities
-
-                    if 'forces' not in frame.keys():
-                        frame.create_dataset('forces',
-                                             (N, 3),
-                                             data=forces,
-                                             dtype=DTYPE,
-                                             compression=COMPRESSION,
-                                             shuffle=SHUFFLE,
-                                             fletcher32=FLETCHER)
-                    else:
-                        frame['forces'][:] = forces
-
-                    if 'orientations' not in frame.keys():
-                        frame.create_dataset('orientations',
-                                             (N, 3),
-                                             data=orientations,
-                                             dtype=DTYPE,
-                                             compression=COMPRESSION,
-                                             shuffle=SHUFFLE,
-                                             fletcher32=FLETCHER)
-                    else:
-                        frame['orientations'][:] = orientations
-
-                    if 'quat_theta' not in frame.keys():
-                        frame.create_dataset('quat_theta',
-                                             (N,),
-                                             data=quat_thetas,
-                                             dtype=DTYPE,
-                                             compression=COMPRESSION,
-                                             shuffle=SHUFFLE,
-                                             fletcher32=FLETCHER)
-                    else:
-                        frame['quat_theta'][:] = quat_thetas
-
-                    if 'omegas' not in frame.keys():
-                        frame.create_dataset('omegas',
-                                             (N, 3),
-                                             data=omegas,
-                                             dtype=DTYPE,
-                                             compression=COMPRESSION,
-                                             shuffle=SHUFFLE,
-                                             fletcher32=FLETCHER)
-                    else:
-                        frame['omegas'][:] = omegas
-
-                    if 'torque' not in frame.keys():
-                        frame.create_dataset('torque',
-                                             (N, 3),
-                                             data=torque,
-                                             dtype=DTYPE,
-                                             compression=COMPRESSION,
-                                             shuffle=SHUFFLE,
-                                             fletcher32=FLETCHER)
-                    else:
-                        frame['torque'][:] = torque
-
-
-                    # delete first if exists. length of string might have to be updated!
-                    if "type_name" in frame.keys():
-                        del frame["type_name"]
-                    if "type_name" not in frame.keys():
-                        frame.create_dataset("type_name",
-                                             (N,),
-                                             data=type_names,
-                                             # dtype=h5py.string_dtype('utf-8', 30),
-                                             compression=COMPRESSION,
-                                             shuffle=SHUFFLE,
-                                             fletcher32=FLETCHER)
-                    # else:
-                    #     frame["type_name"][:] = type_names
-
-                    if 'diameter' not in frame.keys():
-                        frame.create_dataset('diameter',
-                                             (N,),
-                                             data=diameters,
-                                             dtype=DTYPE,
-                                             compression=COMPRESSION,
-                                             shuffle=SHUFFLE,
-                                             fletcher32=FLETCHER)
-                    else:
-                        frame['diameter'][:] = diameters
-
-                    if 'mass' not in frame.keys():
-                        frame.create_dataset('mass',
-                                             (N,),
-                                             data=masses,
-                                             dtype=DTYPE,
-                                             compression=COMPRESSION,
-                                             shuffle=SHUFFLE,
-                                             fletcher32=FLETCHER)
-                    else:
-                        frame['mass'][:] = masses
-
-                    if 'charge' not in frame.keys():
-                        frame.create_dataset('charge',
-                                             (N,),
-                                             data=charges,
-                                             dtype=DTYPE,
-                                             compression=COMPRESSION,
-                                             shuffle=SHUFFLE,
-                                             fletcher32=FLETCHER)
-                    else:
-                        frame['charge'][:] = charges
-
-                    if 'body' not in frame.keys():
-                        frame.create_dataset('body',
-                                             (N,),
-                                             data=bodies,
-                                             dtype=DTYPE,
-                                             compression=COMPRESSION,
-                                             shuffle=SHUFFLE,
-                                             fletcher32=FLETCHER)
-                    else:
-                        frame['body'][:] = bodies
-
-                    if 'moment_inertia' not in frame.keys():
-                        frame.create_dataset('moment_inertia',
-                                             (N, 3),
-                                             data=moment_inertias,
-                                             dtype=DTYPE,
-                                             compression=COMPRESSION,
-                                             shuffle=SHUFFLE,
-                                             fletcher32=FLETCHER)
-                    else:
-                        frame['moment_inertia'][:] = moment_inertias
-
-                    # spatial dimension
-                    frame.attrs['d'] = d
 
                     steps[n] = step
 
