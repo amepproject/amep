@@ -10,8 +10,7 @@
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
+# GNU General Public License for more details.  #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
@@ -43,27 +42,35 @@ def gaussian(
         x: np.ndarray, mu: float = 0.0, sig: float = 1.0, offset: float = 0.0,
         A: float = 1.0, normalized: bool = False) -> np.ndarray:
     r'''
-    1D Gaussian.
+    Gaussian Bell curve.
+
+    Equivalent to the probability density function of a normal distribution.
+    By the central limit theorem this is a good guess for most peak shapes
+    that arise from many random processes.
+    The function is given by
+
+    .. math::
+        g(x)=A\exp\left(-\frac{\left(x-\mu\right)^2}{\sigma^2}\right)+b
 
     Parameters
     ----------
     x : np.ndarray
-        x values.
+        :math:`x` values.
     mu : float
-        Mean value.
+        Mean value :math:`\mu`.
     sig : float
-        Standard deviation.
+        Standard deviation :math:`\sigma`.
     offset : float, optional
-        Shifts the Gaussian in y direction. The default is 0.0.
+        Shifts the Gaussian by :math:`b` in y direction. The default is 0.0.
     A : float, optional
-        Amplitude. The default is 1.0.
+        Amplitude :math:`A`. The default is 1.0.
     normalized : bool, optional
         If True, the Gaussian is normalized to unit area. The default is False.
 
     Returns
     -------
     np.ndarray
-        g(x).
+        g(x)
 
     Examples
     --------
@@ -84,7 +91,7 @@ def gaussian(
     '''
     if normalized:
         A = 1.0/(np.sqrt(2*np.pi) * sig)
-    
+
     return A*np.exp(-((x-mu)**2)/2/sig**2) + offset
 
 
@@ -93,34 +100,54 @@ def gaussian2d(
         muy: float, sigx: float, sigy: float, theta: float, offset: float
         ) -> np.ndarray:
     r'''
-    2D Gaussian.
-    
+    2D Gaussian Bell curve.
+
+
+    Equivalent to the probability density function of a normal distribution
+    in two dimensions.
+    By the central limit theorem this is a good guess for most peak shapes
+    that arise from many random processes.
+    This can even include correlations via the angle variable :math:`\theta`.
+    The function is given by
+
+    .. math::
+        g(x)= A\exp\left(-\left(\vec{x}-\vec{\mu}\right)^T
+                R(\Theta)^{-1}\sigma^{-2}R(\Theta)
+                \left(\vec{x}-\vec{\mu}\right)
+        \right)+b
+
+    where :math:`\vec{x}` is the vector composed the x and y coordinates,
+    :math:`\vec{\mu}` is the mean vector composed
+    of :math:`\mu_x` and :math:`\mu_y`,
+    :math:`\sigma^{-2}` is the diagonal matrix with the inverse
+    variances as entries.
+
     Parameters
     ----------
     data : tuple
         tuple (x,y) of x and y values where x and y
-        are 1D np.ndarrays
+        are 1D np.ndarrays.
     A : float
-        amplitude (float)
+        amplitude.
     mux : float
-        mean in x direction (float)
+        mean in x direction.
     muy : float
-        mean in y direction (float)
+        mean in y direction.
     sigx : float
-        sqrt(variance) in x direction (float)
+        sqrt(variance) in x direction.
     sigy : float
-        sqrt(variance) in y direction (float)
+        sqrt(variance) in y direction.
     theta : float
-        orientation angle of the polar axis (float)
+        Orientation angle of the polar axis.
     offset : float
-        offset (float)
-        
+        offset :math:`b`. Shifts the output value linearly.
+
     Returns
     -------
-    np.ndarray
+    g(x): np.ndarray
         1D array of floats (flattended 2D array!)
-        
-        
+
+
     Examples
     --------
     >>> import amep
@@ -142,14 +169,15 @@ def gaussian2d(
       :align: center
 
     '''
-    (x,y) = data_tuple
+    (x, y) = data_tuple
     mux = float(mux)
-    muy = float(muy)    
+    muy = float(muy)
     a = (np.cos(theta)**2)/(2*sigx**2) + (np.sin(theta)**2)/(2*sigy**2)
     b = -(np.sin(2*theta))/(4*sigx**2) + (np.sin(2*theta))/(4*sigy**2)
     c = (np.sin(theta)**2)/(2*sigx**2) + (np.cos(theta)**2)/(2*sigy**2)
-    g = offset + A*np.exp( - (a*((x-mux)**2) + 2*b*(x-mux)*(y-muy) 
-                            + c*((y-muy)**2)))
+    g = offset + A*np.exp(a*((x-mux)**2)
+                          + 2*b*(x-mux)*(y-muy)
+                          + c*((y-muy)**2))
     return g.ravel()
 
 
@@ -317,8 +345,8 @@ class NormalizedGaussian(BaseFunction):
         '''
         A = 1.0 / (np.sqrt(2*np.pi) * p[1])
         return A * np.exp(-((x-p[0])**2) / 2 / p[1]**2)
-    
-    
+
+
 class ExGaussian(BaseFunction):
     """Exponentially modified Gaussian.
     """
@@ -330,22 +358,23 @@ class ExGaussian(BaseFunction):
         -----
         The exponentially modified Gaussian function has three parameters
         :math:`\lambda, \mu`, and :math:`\sigma`, and it is defined as
-        
-        .. math..:
-            
-            g_{\rm ex}(x) = \frac{\lambda}{2} e^{\frac{\lambda}{2} (2 \mu + \lambda \sigma^2 - 2 x)}
-             {\rm erfc} \left(\frac{\mu + \lambda \sigma^2 - x}{ \sqrt{2} \sigma}\right),
-            
-        where :math:`{\rm erfc}` is the complementary error function [1]_. The 
+
+        .. math::
+
+            g_{\rm ex}(x) = \frac{\lambda}{2} e^{\frac{\lambda}{2}
+             (2 \mu + \lambda \sigma^2 - 2 x)}{\rm erfc}
+             \left(\frac{\mu + \lambda \sigma^2 - x}{ \sqrt{2} \sigma}\right),
+
+        where :math:`{\rm erfc}` is the complementary error function [1]_. The
         parameters are ordered as follows:
-        
+
             p[0] : :math:`\lambda`
-            
+
             p[1] : :math:`\mu`
-            
+
             p[2] : :math:`\sigma`
-            
-        The mean value of the distribution is given by :math:`\mu+1/\lambda` 
+
+        The mean value of the distribution is given by :math:`\mu+1/\lambda`
         and the standard deviation by :math:`\sqrt{\sigma^2 + 1/\lambda^2}`.
 
         References
@@ -393,11 +422,11 @@ class ExGaussian(BaseFunction):
           :align: center
 
         '''
-        super(ExGaussian, self).__init__(3)
-        
+        super().__init__(3)
+
         self.name = 'Exponentially modified Gaussian'
         self.keys = ['lambda', 'mu', 'sigma']
-        
+
     def f(
             self, p: list | np.ndarray,
             x: float | np.ndarray) -> float | np.ndarray:
@@ -429,11 +458,11 @@ class ExGaussian(BaseFunction):
     @property
     def mean(self) -> float:
         return self.params[1] + 1.0/self.params[0]
-    
+
     @property
     def std(self) -> float:
         return np.sqrt(self.params[2]**2 + 1.0/self.params[0]**2)
-    
+
 
 class SkewGaussian(BaseFunction):
     """Skewed Gaussian distribution.
@@ -548,8 +577,8 @@ class SkewGaussian(BaseFunction):
     def std(self) -> float:
         delta = self.params[2]/np.sqrt(1+self.params[2]**2)
         return np.sqrt(self.params[1]**2*(1-2*delta**2/np.pi))
-    
-    
+
+
 class MaxwellBoltzmann(BaseFunction):
     """Maxwell-Boltzmann distribution.
     """
@@ -710,7 +739,7 @@ class Gaussian2d(BaseFunction):
     @property
     def std(self):
         pass
-    
+
 
 class Fit(BaseFunction):
     """Fitting a 1d function.
@@ -777,19 +806,23 @@ class Fit(BaseFunction):
         len_diff = len(inspected_object[0]) - len(inspected_object[3])
         fct_call_params_defaults = inspected_object[3]
         fct_def_params = inspected_object[0][len_diff:]
-        # 2: Get user defined function to get all parameters and their default values, then get the parameters from
+        # 2: Get user defined function to get all parameters and
+        # their default values, then get the parameters from
         # the actual function call and categorize parameters
         # - their function call values if they are mentioned
-        # - their default values if they are mentioned as "=None" in the function call
+        # - their default values if they are mentioned as
+        # "=None" in the function call
         # - fit to them if neither of the above is true
 
         # Extract all params from def and call of fct
         self.fct_def_params = fct_def_params
-        fct_call_params = [i for i in kwargs.keys()]
-        fct_call_values = [i for i in kwargs.values()]
-        # Get the length difference between arguments and kwargs, this allows us to match name to value
+        fct_call_params = list(kwargs.keys())
+        fct_call_values = list(kwargs.values())
+        # Get the length difference between arguments and kwargs,
+        # this allows us to match name to value
 
-        # Determine which params have what values in fit and which are to be fitted
+        # Determine which params have what values
+        # in fit and which are to be fitted
         fit_params_input = []
         fit_params_to_determine = []
         for k, param in enumerate(fct_def_params):
@@ -806,7 +839,6 @@ class Fit(BaseFunction):
 
         self.defaults = inspected_object[3]
         self.g = g
-
 
         self.fit_params_input = fit_params_input
         self.keys = fit_params_to_determine
