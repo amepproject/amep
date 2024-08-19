@@ -1277,16 +1277,13 @@ class GSDReader(BaseReader):
                     moment_inertias = np.array(gsd_frame.particles.moment_inertia)
 
                     # angular momentum of the particles from quaternions
+                    # todo!!
                     quat_angmoms    = np.array(gsd_frame.particles.angmom)
                     print(quat_angmoms[0,:])
                     angmoms         = quat_angmoms[:,1:]
                     omegas     = 2*np.arctan2(np.linalg.norm(quat_orientations[:,1:], axis=1), quat_orientations[:,0])
                         # -> angmom
                         # -> omegas
-
-                    # 3d
-
-                    # 1d
 
                     # diameters of the particles
                     diameters       = np.array(gsd_frame.particles.diameter)
@@ -1302,18 +1299,18 @@ class GSDReader(BaseReader):
 
                     # do not save:
                     # print("type_shapes", gsd_frame.particles.type_shapes) # too complicated to save?
-                    continue
+                    # continue
 # ParticleData
 
     #     ParticleData.types
     #     ParticleData.position
-#     ParticleData.orientation
+    #     ParticleData.orientation
     #     ParticleData.typeid
     #     ParticleData.mass
     #     ParticleData.charge
     #     ParticleData.diameter
     #     ParticleData.body
-#     ParticleData.moment_inertia
+    #     ParticleData.moment_inertia
     #     ParticleData.velocity
 #     ParticleData.angmom
     #     ParticleData.image
@@ -1321,35 +1318,31 @@ class GSDReader(BaseReader):
 
 
 
-                    # particle ids not needed since gsd is sorted format
+                    # for i, key in enumerate(keys):
 
-
-                    unwrapped_available = False
-                    for i, key in enumerate(keys):
-
-                        if key == 'omegax':
-                            omegas[:, 0] = data[:, i]
-                        elif key == 'omegay':
-                            omegas[:, 1] = data[:, i]
-                        elif key == 'omegaz':
-                            omegas[:, 2] = data[:, i]
-                        elif key == 'angmomx':
-                            angmom[:, 0] = data[:, i]
-                        elif key == 'angmomy':
-                            angmom[:, 1] = data[:, i]
-                        elif key == 'angmomz':
-                            angmom[:, 2] = data[:, i]
-                        else:
-                            if key not in frame.keys():
-                                frame.create_dataset(key,
-                                                     (N,),
-                                                     data=data[:, i],
-                                                     dtype=DTYPE,
-                                                     compression=COMPRESSION,
-                                                     shuffle=SHUFFLE,
-                                                     fletcher32=FLETCHER)
-                            else:
-                                frame[key][:] = data[:, i]
+                    #     if key == 'omegax':
+                    #         omegas[:, 0] = data[:, i]
+                    #     elif key == 'omegay':
+                    #         omegas[:, 1] = data[:, i]
+                    #     elif key == 'omegaz':
+                    #         omegas[:, 2] = data[:, i]
+                    #     elif key == 'angmomx':
+                    #         angmom[:, 0] = data[:, i]
+                    #     elif key == 'angmomy':
+                    #         angmom[:, 1] = data[:, i]
+                    #     elif key == 'angmomz':
+                    #         angmom[:, 2] = data[:, i]
+                    #     else:
+                    #         if key not in frame.keys():
+                    #             frame.create_dataset(key,
+                    #                                  (N,),
+                    #                                  data=data[:, i],
+                    #                                  dtype=DTYPE,
+                    #                                  compression=COMPRESSION,
+                    #                                  shuffle=SHUFFLE,
+                    #                                  fletcher32=FLETCHER)
+                    #         else:
+                    #             frame[key][:] = data[:, i]
 
                     if "type" not in frame.keys():
                         frame.create_dataset("type",
