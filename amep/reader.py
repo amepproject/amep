@@ -1465,6 +1465,60 @@ class GSDReader(BaseReader):
                     # else:
                     #     frame["type_name"][:] = type_names
 
+                    if 'diameter' not in frame.keys():
+                        frame.create_dataset('diameter',
+                                             (N,),
+                                             data=diameters,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['diameter'][:] = diameters
+
+                    if 'mass' not in frame.keys():
+                        frame.create_dataset('mass',
+                                             (N,),
+                                             data=masses,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['mass'][:] = masses
+
+                    if 'charge' not in frame.keys():
+                        frame.create_dataset('charge',
+                                             (N,),
+                                             data=charges,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['charge'][:] = charges
+
+                    if 'body' not in frame.keys():
+                        frame.create_dataset('body',
+                                             (N,),
+                                             data=bodies,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['body'][:] = bodies
+
+                    if 'moment_inertia' not in frame.keys():
+                        frame.create_dataset('moment_inertia',
+                                             (N, 3),
+                                             data=moment_inertias,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['moment_inertia'][:] = moment_inertias
 
                     # spatial dimension
                     frame.attrs['d'] = d
