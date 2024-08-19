@@ -1250,11 +1250,11 @@ class GSDReader(BaseReader):
                     velocities   = np.array(gsd_frame.particles.velocity)
 
                     # type ids of the particles
-                    type_ids    = np.array(gsd_frame.particles.typeid)
+                    type_ids     = np.array(gsd_frame.particles.typeid)
 
                     # type names of the particles
-                    # TODO: save in h5amep file. handle strings!
                     type_names = np.array(gsd_frame.particles.types)[np.array(gsd_frame.particles.typeid)]
+                    type_names = [str(a) for a in type_names]
 
                     # dimensions of the simulation
                     d = gsd_frame.configuration.dimensions
@@ -1266,10 +1266,42 @@ class GSDReader(BaseReader):
                     z=coords[:,2]+gsd_image[:,2]*gsd_box[2]
                     uwcoords = np.stack([x,y,z]).T
 
-                    # print(gsd_frame.particles.moment_inertia)
-                    # print(gsd_frame.particles.mass)
-                    # print(gsd_frame.particles.charge)
-                    print(gsd_frame.particles.diameter)
+                    # orientations and orientation angle quat_theta from orientation-quaternions
+                    quat_orientations   = np.array(gsd_frame.particles.orientation)
+                    print(quat_orientations[0,:])
+                    orientations        = quat_orientations[:,1:]/np.linalg.norm(quat_orientations[:,1:], axis=1)[:, None]
+                    quat_thetas         = 2*np.arctan2(np.linalg.norm(quat_orientations[:,1:], axis=1), quat_orientations[:,0])
+                    # 4d -> 3d
+
+                    # moment of inertia of the particles
+                    moment_inertias = np.array(gsd_frame.particles.moment_inertia)
+
+                    # angular momentum of the particles from quaternions
+                    quat_angmoms    = np.array(gsd_frame.particles.angmom)
+                    print(quat_angmoms[0,:])
+                    angmoms         = quat_angmoms[:,1:]
+                    omegas     = 2*np.arctan2(np.linalg.norm(quat_orientations[:,1:], axis=1), quat_orientations[:,0])
+                        # -> angmom
+                        # -> omegas
+
+                    # 3d
+
+                    # 1d
+
+                    # diameters of the particles
+                    diameters       = np.array(gsd_frame.particles.diameter)
+
+                    # masses of the particles
+                    masses          = np.array(gsd_frame.particles.mass)
+
+                    # masses of the particles
+                    charges         = np.array(gsd_frame.particles.charge)
+
+                    # masses of the particles
+                    bodies          = np.array(gsd_frame.particles.body)
+
+                    # do not save:
+                    # print("type_shapes", gsd_frame.particles.type_shapes) # too complicated to save?
                     continue
 # ParticleData
 
@@ -1277,15 +1309,15 @@ class GSDReader(BaseReader):
     #     ParticleData.position
 #     ParticleData.orientation
     #     ParticleData.typeid
-#     ParticleData.mass
-#     ParticleData.charge
-#     ParticleData.diameter
-#     ParticleData.body
+    #     ParticleData.mass
+    #     ParticleData.charge
+    #     ParticleData.diameter
+    #     ParticleData.body
 #     ParticleData.moment_inertia
     #     ParticleData.velocity
 #     ParticleData.angmom
     #     ParticleData.image
-#     ParticleData.type_shapes
+    #     ParticleData.type_shapes
 
 
 
@@ -1295,13 +1327,7 @@ class GSDReader(BaseReader):
                     unwrapped_available = False
                     for i, key in enumerate(keys):
 
-                        if key == 'mux':
-                            orientations[:, 0] = data[:, i]
-                        elif key == 'muy':
-                            orientations[:, 1] = data[:, i]
-                        elif key == 'muz':
-                            orientations[:, 2] = data[:, i]
-                        elif key == 'omegax':
+                        if key == 'omegax':
                             omegas[:, 0] = data[:, i]
                         elif key == 'omegay':
                             omegas[:, 1] = data[:, i]
@@ -1391,6 +1417,17 @@ class GSDReader(BaseReader):
                     else:
                         frame['orientations'][:] = orientations
 
+                    if 'quat_theta' not in frame.keys():
+                        frame.create_dataset('quat_theta',
+                                             (N,),
+                                             data=quat_thetas,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['quat_theta'][:] = quat_thetas
+
                     if 'omegas' not in frame.keys():
                         frame.create_dataset('omegas',
                                              (N, 3),
@@ -1413,16 +1450,21 @@ class GSDReader(BaseReader):
                     else:
                         frame['torque'][:] = torque
 
-                    # if "type_name??" not in frame.keys():
-                    #     frame.create_dataset("type_name??",
-                    #                          (N,),
-                    #                          data=type_names,
-                    #                          dtype=int,
-                    #                          compression=COMPRESSION,
-                    #                          shuffle=SHUFFLE,
-                    #                          fletcher32=FLETCHER)
+
+                    # delete first if exists. length of string might have to be updated!
+                    if "type_name" in frame.keys():
+                        del frame["type_name"]
+                    if "type_name" not in frame.keys():
+                        frame.create_dataset("type_name",
+                                             (N,),
+                                             data=type_names,
+                                             # dtype=h5py.string_dtype('utf-8', 30),
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
                     # else:
-                    #     frame["type_name??"][:] = data[:, i]
+                    #     frame["type_name"][:] = type_names
+
 
                     # spatial dimension
                     frame.attrs['d'] = d
