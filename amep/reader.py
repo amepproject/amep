@@ -1296,7 +1296,6 @@ class GSDReader(BaseReader):
                     # type names of the particles
                     type_names = np.array(gsd_frame.particles.types)[np.array(gsd_frame.particles.typeid)]
                     type_names = [str(a) for a in type_names]
-                    # type_names[0]="adsfafdafdsafdsöääöasdfasdf"
                     # delete first if exists. length of string might have to be updated!
                     if "type_name" in frame.keys():
                         del frame["type_name"]
@@ -1346,7 +1345,6 @@ class GSDReader(BaseReader):
                                              fletcher32=FLETCHER)
                     else:
                         frame['orientations'][:] = orientations
-
                     quat_thetas         = 2*np.arctan2(np.linalg.norm(quat_orientations[:,1:], axis=1), quat_orientations[:,0])
                     if 'quat_theta' not in frame.keys():
                         frame.create_dataset('quat_theta',
@@ -1374,15 +1372,23 @@ class GSDReader(BaseReader):
 
                     # angular momentum of the particles from quaternions
                     # todo!!
-                    angmom       = np.zeros((N, 3), dtype=DTYPE)
-                    omegas       = np.zeros((N, 3), dtype=DTYPE)
-                    
                     quat_angmoms    = np.array(gsd_frame.particles.angmom)
                     angmoms         = quat_angmoms[:,1:]
+                    if 'angmom' not in frame.keys():
+                        frame.create_dataset('angmom',
+                                             (N, 3),
+                                             data=angmoms,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['angmom'][:] = angmoms
                     # omegas          = 2*np.arctan2(np.linalg.norm(quat_orientations[:,1:], axis=1), quat_orientations[:,0])
                     # print(np.shape(omegas))
                         # -> angmom
                         # -> omegas
+                    omegas       = angmoms / moment_inertias
                     if 'omegas' not in frame.keys():
                         frame.create_dataset('omegas',
                                              (N, 3),
