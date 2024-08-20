@@ -22,15 +22,17 @@ Functions and Fitting
 
 .. module:: amep.functions
 
-The AMEP module :mod:`amep.functions` contains regularly used functions to fit 
+The AMEP module :mod:`amep.functions` contains regularly used functions to fit
 to data as well as fitting methods.
+The naming covention is that the fit classes are named in CamelCase while the
+mathematical functions that can be fitted are name all lowercase.
 
 """
 # =============================================================================
 # IMPORT MODULES
 # =============================================================================
-import numpy as np
 import inspect
+import numpy as np
 
 from scipy.special import erf, erfc
 from .base import BaseFunction
@@ -50,7 +52,7 @@ def gaussian(
     The function is given by
 
     .. math::
-        g(x)=A\exp\left(-\frac{\left(x-\mu\right)^2}{\sigma^2}\right)+b
+        g(x)=A\exp\left(-\frac{\left(x-\mu\right)^2}{\sigma^2}\right)+b.
 
     Parameters
     ----------
@@ -107,7 +109,8 @@ def gaussian2d(
     in two dimensions.
     By the central limit theorem this is a good guess for most peak shapes
     that arise from many random processes.
-    This can even include correlations via the angle variable :math:`\theta`.
+    This parametrization can include correlations
+    via the angle variable :math:`\theta`.
     The function is given by
 
     .. math::
@@ -118,9 +121,9 @@ def gaussian2d(
 
     where :math:`\vec{x}` is the vector composed the x and y coordinates,
     :math:`\vec{\mu}` is the mean vector composed
-    of :math:`\mu_x` and :math:`\mu_y`,
+    of :math:`\mu_x` and :math:`\mu_y` and
     :math:`\sigma^{-2}` is the diagonal matrix with the inverse
-    variances as entries.
+    variances :math:`\sigma_x^{-2}` and :math:`\sigma_y^{-2}` as entries.
 
     Parameters
     ----------
@@ -130,15 +133,15 @@ def gaussian2d(
     A : float
         amplitude.
     mux : float
-        mean in x direction.
+        mean :math:`\mu_x` in x direction.
     muy : float
-        mean in y direction.
+        mean :math:`\mu_y` in y direction.
     sigx : float
-        sqrt(variance) in x direction.
+        standard deviation :math:`\sigma_x` in x direction.
     sigy : float
-        sqrt(variance) in y direction.
+        standard deviation :math:`\sigma_y`  in y direction.
     theta : float
-        Orientation angle of the polar axis.
+        Orientation angle :math:`\Theta` of the polar axis.
     offset : float
         offset :math:`b`. Shifts the output value linearly.
 
@@ -232,25 +235,26 @@ class Gaussian(BaseFunction):
           :align: center
 
         '''
-        super(Gaussian, self).__init__(3)
-        
+        super().__init__(3)
+
         self.name = 'Gaussian'
         self.keys = ['mu', 'sig', 'a']
-        
+
     def f(
             self, p: list | np.ndarray,
             x: float | np.ndarray) -> float | np.ndarray:
         r'''
         Non-normalized Gaussian function in 1d of the form
-        
+
         .. math::
-            
+
             g(x) = a\exp\left\lbrace\frac{(x-\mu)^2}{2\sigma^2}\right\rbrace.
 
         Parameters
         ----------
         p : list or np.ndarray
-            Parameters $\mu$, $\sigma$, and $a$ of the Gaussian function.
+            Parameters :math:`\mu`, :math:`\sigma`,
+            and :math:`a` of the Gaussian function.
         x : float or np.ndarray
             Value(s) at which the function is evaluated.
 
@@ -436,8 +440,11 @@ class ExGaussian(BaseFunction):
 
         .. math..:
 
-            g_{\rm ex}(x) = \frac{\lambda}{2} e^{\frac{\lambda}{2} (2 \mu + \lambda \sigma^2 - 2 x)}
-             {\rm erfc} \left(\frac{\mu + \lambda \sigma^2 - x}{ \sqrt{2} \sigma}\right)
+            g_{\rm ex}(x) = \frac{\lambda}{2} e^{\frac{\lambda}{2}
+                                (2 \mu + \lambda \sigma^2 - 2 x)}
+                                {\rm erfc} \left(
+                                \frac{\mu + \lambda \sigma^2 - x}{
+                                \sqrt{2} \sigma}\right)
 
         Parameters
         ----------
@@ -665,15 +672,36 @@ class MaxwellBoltzmann(BaseFunction):
 class Gaussian2d(BaseFunction):
     """Two-dimensional Gaussian.
     """
-    
+
     def __init__(self):
         r'''
-        Two-dimensional Gaussian function.
+        Initializes a function object of Two-dimensional Gaussian function.
+
+        Equivalent to the probability density function of a normal distribution
+        in two dimensions.
+        By the central limit theorem this is a good guess for most peak shapes
+        that arise from many random processes.
+        This parametrization can include correlations
+        via the angle variable :math:`\theta`.
+        The function is given by
+
+        .. math::
+            g(x)= A\exp\left(-\left(\vec{x}-\vec{\mu}\right)^T
+                    R(\Theta)^{-1}\sigma^{-2}R(\Theta)
+                    \left(\vec{x}-\vec{\mu}\right)
+            \right)+b
+
+        where :math:`\vec{x}` is the vector composed the x and y coordinates,
+        :math:`\vec{\mu}` is the mean vector composed
+        of :math:`\mu_x` and :math:`\mu_y` and
+        :math:`\sigma^{-2}` is the diagonal matrix with the inverse
+        variances :math:`\sigma_x^{-2}` and :math:`\sigma_y^{-2}` as entries.
+
 
         Returns
         -------
         None.
-        
+
         Examples
         --------
         >>> import amep
@@ -695,47 +723,60 @@ class Gaussian2d(BaseFunction):
         .. image:: /_static/images/functions/functions-Gaussian2d.png
           :width: 400
           :align: center
-        
+
         '''
-        super(Gaussian2d, self).__init__(6)
-    
+        super().__init__(6)
+
         self.name = 'Two-dimensional Gaussian'
         self.keys = ['a', 'mux', 'muy', 'sigx', 'sigy', 'theta']
-        
+
     def f(self, p, x):
         r'''
         2D Gaussian.
-        
+        The function is given by
+
+        .. math::
+            g(x)= A\exp\left(-\left(\vec{x}-\vec{\mu}\right)^T
+                    R(\Theta)^{-1}\sigma^{-2}R(\Theta)
+                    \left(\vec{x}-\vec{\mu}\right)
+            \right)+b
+
+        where :math:`\vec{x}` is the vector composed the x and y coordinates,
+        :math:`\vec{\mu}` is the mean vector composed
+        of :math:`\mu_x` and :math:`\mu_y` and
+        :math:`\sigma^{-2}` is the diagonal matrix with the inverse
+        variances :math:`\sigma_x^{-2}` and :math:`\sigma_y^{-2}` as entries.
+
         Parameters
         ----------
         p: list
-            Parameters.
+            Parameters :math:`(A,\mu_x,\mu_y,\sigma_x,\sigma_y,\Theta)`.
         x: np.ndarray
             x-values as 2d array of shape (N,2).
-            
+
         Returns
         -------
         np.ndarray
             1D array of shape (N,).
-            
-            
+
+
         Examples
         --------
         >>> 
         '''
-        X = x[:,0]
-        Y = x[:,1]
+        X = x[:, 0]
+        Y = x[:, 1]
         a = (np.cos(p[5])**2)/(2*p[3]**2) + (np.sin(p[5])**2)/(2*p[4]**2)
         b = -(np.sin(2*p[5]))/(4*p[3]**2) + (np.sin(2*p[5]))/(4*p[4]**2)
         c = (np.sin(p[5])**2)/(2*p[3]**2) + (np.cos(p[5])**2)/(2*p[4]**2)
-        g = p[0]*np.exp( - (a*((X-p[1])**2) + 2*b*(X-p[1])*(Y-p[2]) 
-                                + c*((Y-p[2])**2)))
+        g = p[0]*np.exp(- (a*((X-p[1])**2) + 2*b*(X-p[1])*(Y-p[2])
+                           + c*((Y-p[2])**2)))
         return g
-    
+
     @property
     def mean(self):
         pass
-    
+
     @property
     def std(self):
         pass
