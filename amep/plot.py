@@ -539,7 +539,7 @@ def new(figsize: tuple[float, float] = None,
         **kwargs
         ) -> tuple[plt.Figure, mpl.axes.Axes | np.ndarray]:
     r'''
-    Create a new matplotlib.pyplot figure.
+    Create a new matplotlib.pyplot figure (uses matplotlib.pyplot.subplots).
 
     Parameters
     ----------
@@ -578,6 +578,14 @@ def new(figsize: tuple[float, float] = None,
         matplotlib.pyplot figure object.
     axes : AxesSubplot
         matplotlib.pyplot axes objects..
+
+    Examples
+    --------
+    >>> import amep
+    >>> import numpy as np
+    >>> fig, axs = amep.plot.new()
+    >>> x = np.linspace(0,10,1000)
+    >>> axs.plot(x, np.sin(x))
 
     '''
     gridspec = {}

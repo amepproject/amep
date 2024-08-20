@@ -502,6 +502,17 @@ class LammpsReader(BaseReader):
                         else:
                             frame['torque'][:] = torque
 
+                        if 'angmom' not in frame.keys():
+                            frame.create_dataset('angmom',
+                                                 (N, 3),
+                                                 data=angmom,
+                                                 dtype=DTYPE,
+                                                 compression=COMPRESSION,
+                                                 shuffle=SHUFFLE,
+                                                 fletcher32=FLETCHER)
+                        else:
+                            frame['angmom'][:] = angmom
+
                         # spatial dimension
                         frame.attrs['d'] = d
 
