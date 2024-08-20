@@ -34,7 +34,7 @@ mathematical functions that can be fitted are name all lowercase.
 import inspect
 import numpy as np
 
-from scipy.special import erf, erfc
+from scipy.special import erf, erfc, gamma
 from .base import BaseFunction
 
 # =============================================================================
@@ -268,7 +268,14 @@ class Gaussian(BaseFunction):
 
 
 class NormalizedGaussian(BaseFunction):
-    """Normalized one-dimensional Gaussian.
+    r"""Normalized one-dimensional Gaussian.
+
+    Has the mathematical form
+
+        .. math::
+
+            g(x) = \frac{1}{\sqrt{2\pi}\sigma}
+                \exp\left\lbrace\frac{(x-\mu)^2}{2\sigma^2}\right\rbrace.
     """
     def __init__(self) -> None:
         r'''
@@ -319,25 +326,27 @@ class NormalizedGaussian(BaseFunction):
           :align: center
 
         '''     
-        super(NormalizedGaussian, self).__init__(2)
-        
+        super().__init__(2)
+
         self.name = 'NormalizedGaussian'
-        self.keys = ['mu','sig']
-        
+        self.keys = ['mu', 'sig']
+
     def f(
           self, p: list | np.ndarray,
           x: float | np.ndarray) -> float | np.ndarray:
         r'''
         Normalized one-dimensional Gaussian function of the form
 
-        .. math..:
+        .. math::
 
-            g(x) = \frac{1}{\sqrt{2\pi}\sigma}\exp\left\lbrace\right\frac{(x-\mu)^2}{2\sigma^2}\rbrace.
+            g(x) = \frac{1}{\sqrt{2\pi}\sigma}
+                \exp\left\lbrace\frac{(x-\mu)^2}{2\sigma^2}\right\rbrace.
 
         Parameters
         ----------
         p : list or np.ndarray
-            Parameters $\mu$ and $\sigma$ of the normalized Gaussian function.
+            Parameters :math:`\mu` and :math:`\sigma`
+            of the normalized Gaussian function.
         x : float | np.ndarray
             Value(s) at which the function is evaluated.
 
@@ -541,11 +550,11 @@ class SkewGaussian(BaseFunction):
           :align: center
 
         '''
-        super(SkewGaussian, self).__init__(3)
-        
+        super().__init__(3)
+
         self.name = 'Skew Normal Distribution'
         self.keys = ['mu', 'sigma', 'alpha']
-        
+
     def f(
             self, p: list | np.ndarray,
             x: float | np.ndarray) -> float | np.ndarray:
@@ -574,12 +583,12 @@ class SkewGaussian(BaseFunction):
         '''
         return 1.0/np.sqrt(2*np.pi)/p[1] * np.exp(-(x-p[0])**2/2/p[1]**2) *\
             (1 + erf(p[2]*(x-p[0])/np.sqrt(2)/p[1]))
-    
+
     @property
     def mean(self) -> float:
         delta = self.params[2]/np.sqrt(1+self.params[2]**2)
         return self.params[0] + self.params[1]*delta*np.sqrt(2/np.pi)
-    
+
     @property
     def std(self) -> float:
         delta = self.params[2]/np.sqrt(1+self.params[2]**2)
@@ -590,8 +599,28 @@ class MaxwellBoltzmann(BaseFunction):
     """Maxwell-Boltzmann distribution.
     """
 
-    def __init__(self, d=1, m=None):
+    def __init__(self,
+                 d: int = 1,
+                 m: float = 1.):
         r'''Maxwell-Boltzmann velocity distribution.
+
+        Initializes a function object of a Maxwell-Boltzmann distribution.
+        This distribution describes velocities of free particles in
+        thermal equilibrium.
+        It is usually derived in three dimensions where it is
+
+        .. math::
+
+            f(v) = {\left[\frac{m}{2\pi{}k_bT}\right]}^\frac{3}{2}4\pi{}
+            v^2\exp\left(-\frac{mv^2}{k_bT}\right)
+
+        in arbitrary spatial dimensions :math:`d` it is given by
+
+        .. math::
+
+            f(v) =  \frac{2}{\Gamma\left(\frac{d}{2}\right)}
+                    {\left[\frac{m}{k_bT}\right]}^\frac{d}{2}
+                    v^{d-1}\exp\left(-\frac{mv^2}{k_bT}\right)
 
         Parameters
         ----------
@@ -629,36 +658,47 @@ class MaxwellBoltzmann(BaseFunction):
           :align: center
 
         '''
-        super(MaxwellBoltzmann, self).__init__(1)
+        super().__init__(1)
 
         self.__d = d
         self.__m = m
 
-        if self.__m is None:
-            self.__m = 1
-
         self.name = 'Maxwell-Boltzmann Distribution'
         self.keys = ['kbT']
 
-    def f(self, p, x):
+    def f(self,
+          p: list[float] | np.ndarray,
+          x: float | np.ndarray
+          ) -> float | np.ndarray:
         r"""Calculate the value of the Maxwell-Boltzmann distribution.
+
+        This distribution describes velocities of free particles in
+        thermal equilibrium.
+        It is usually derived in three dimensions where it is
+
+        .. math::
+
+            f(v) = {\left[\frac{m}{2\pi{}k_bT}\right]}^\frac{3}{2}4\pi{}
+            v^2\exp\left(-\frac{mv^2}{k_bT}\right)
+
+        in arbitrary spatial dimensions :math:`d` it is given by
+
+        .. math::
+
+            f(v) =  \frac{2}{\Gamma\left(\frac{d}{2}\right)}
+                    {\left[\frac{m}{k_bT}\right]}^\frac{d}{2}
+                    v^{d-1}\exp\left(-\frac{mv^2}{k_bT}\right)
 
         Parameters
         ----------
         p: list | np.ndarray
             Parameters :math:`k_{\rm B}T`.
         x: float | np.ndarray
-            Value(s) at which the function is evaluated.
+            Velocities(s) :math:`v` at which the function is evaluated.
 
         """
-        if self.__d == 1:
-            return (self.__m/(2*np.pi*p[0]))**(1./2.) * np.exp(
-                    -self.__m*x**2/(2*p[0]))
-        elif self.__d == 2:
-            return (self.__m/p[0]) * x * np.exp(-self.__m*x**2/(2*p[0]))
-        elif self.__d == 3:
-            return (self.__m/(2*np.pi*p[0]))**(3./2.) * 4*np.pi*x**2 * np.exp(
-                    -self.__m*x**2/(2*p[0]))
+        return ((self.__m/(2*p[0]))**(self.__d/2)/gamma(self.__d/2)*2 *
+                np.exp(-self.__m*x**2/(2*p[0]))*x**(self.__d-1))
 
     @property
     def mean(self):
