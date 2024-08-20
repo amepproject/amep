@@ -503,6 +503,17 @@ class LammpsReader(BaseReader):
                         else:
                             frame['torque'][:] = torque
 
+                        if 'angmom' not in frame.keys():
+                            frame.create_dataset('angmom',
+                                                 (N, 3),
+                                                 data=angmom,
+                                                 dtype=DTYPE,
+                                                 compression=COMPRESSION,
+                                                 shuffle=SHUFFLE,
+                                                 fletcher32=FLETCHER)
+                        else:
+                            frame['angmom'][:] = angmom
+
                         # spatial dimension
                         frame.attrs['d'] = d
 
@@ -1454,32 +1465,6 @@ class GSDReader(BaseReader):
 
                     # do not save:
                     # print("type_shapes", gsd_frame.particles.type_shapes) # too complicated to save?
-
-                    # for i, key in enumerate(keys):
-
-                    #     if key == 'omegax':
-                    #         omegas[:, 0] = data[:, i]
-                    #     elif key == 'omegay':
-                    #         omegas[:, 1] = data[:, i]
-                    #     elif key == 'omegaz':
-                    #         omegas[:, 2] = data[:, i]
-                    #     elif key == 'angmomx':
-                    #         angmom[:, 0] = data[:, i]
-                    #     elif key == 'angmomy':
-                    #         angmom[:, 1] = data[:, i]
-                    #     elif key == 'angmomz':
-                    #         angmom[:, 2] = data[:, i]
-                    #     else:
-                    #         if key not in frame.keys():
-                    #             frame.create_dataset(key,
-                    #                                  (N,),
-                    #                                  data=data[:, i],
-                    #                                  dtype=DTYPE,
-                    #                                  compression=COMPRESSION,
-                    #                                  shuffle=SHUFFLE,
-                    #                                  fletcher32=FLETCHER)
-                    #         else:
-                    #             frame[key][:] = data[:, i]
 
                     steps[n] = step
 
