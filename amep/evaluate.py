@@ -31,6 +31,7 @@ observables from simulation data of particle-based and continuum simulations.
 # =============================================================================
 # IMPORT MODULES
 # =============================================================================
+from packaging.version import Version
 import warnings
 import numpy as np
 
@@ -1840,16 +1841,22 @@ class PosOrderCor(BaseEvaluation):
                                               (self.__k0[i][0]*np.cos(self.__theta) +\
                                               self.__k0[i][1]*np.sin(self.__theta)))
 
-            ck += np.trapz(integrand, x=self.__theta, axis=1)
-        
+            if Version(np.__version__) < Version("2.0.0"):
+                ck += np.trapz(integrand, x=self.__theta, axis=1)
+            else:
+                ck += np.trapezoid(integrand, x=self.__theta, axis=1)
+
         ck = np.abs(ck/len(self.__k0))
 
         # normalization
-        norm = np.trapz(self.__grt, x=self.__theta, axis=1)
+        if Version(np.__version__) < Version("2.0.0"):
+            norm = np.trapz(self.__grt, x=self.__theta, axis=1)
+        else:
+            norm = np.trapezoid(self.__grt, x=self.__theta, axis=1)
 
         return ck/norm
-    
-    
+
+
     def __getk(self):
         r'''
         Calculates the k vectors corresponding to the first peaks of 
@@ -3191,15 +3198,26 @@ class ClusterSizeDist(BaseEvaluation):
             if self.__xmax is None:
                 if self.__use_density:
                     # integrated density
-                    val_total_x = np.trapz(
-                        self.__traj[-1].data(self.__ftype),
-                        x = self.__traj[-1].grid[0],
-                        axis=1
-                    )
-                    val_total = np.trapz(
-                        val_total_x,
-                        x = self.__traj[-1].grid[1][:, 0]
-                    )
+                    if Version(np.__version) < Version("2.0.0"):
+                        val_total_x = np.trapz(
+                            self.__traj[-1].data(self.__ftype),
+                            x=self.__traj[-1].grid[0],
+                            axis=1
+                        )
+                        val_total = np.trapz(
+                            val_total_x,
+                            x=self.__traj[-1].grid[1][:, 0]
+                        )
+                    else:
+                        val_total_x = np.trapezoid(
+                            self.__traj[-1].data(self.__ftype),
+                            x=self.__traj[-1].grid[0],
+                            axis=1
+                        )
+                        val_total = np.trapezoid(
+                            val_total_x,
+                            x=self.__traj[-1].grid[1][:, 0]
+                        )
                     self.__xmax = val_total
                 else:
                     # total number of grid points

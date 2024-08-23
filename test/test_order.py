@@ -23,17 +23,19 @@ Test units for the amep.order module.
 # =============================================================================
 # IMPORT MODULES
 # =============================================================================
-import numpy as np
 import unittest
+import numpy as np
 import amep
+
 
 # =============================================================================
 # MAIN PBC TEST
 # =============================================================================
 class TestOrder(unittest.TestCase):
+    '''A test case for the calculation of order parameters.'''
 
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
         """
         Basic setup. Generating test data.
 
@@ -42,9 +44,10 @@ class TestOrder(unittest.TestCase):
         None.
 
         """
-        self.coords = np.array([[0,0,0],[1,0,0],[0,1,0],[-1,0,0],[0,-2,0]])
-        self.box = np.array([[-4,4],[-4,4],[-0.5,0.5]])
-        self.center = np.array([0,0,0])
+        cls.coords = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0],
+                               [-1, 0, 0], [0, -2, 0]])
+        cls.box = np.array([[-4, 4], [-4, 4], [-0.5, 0.5]])
+        cls.center = np.array([0, 0, 0])
 
     def test_local_number_density(self):
         """
@@ -57,7 +60,7 @@ class TestOrder(unittest.TestCase):
         """
         # calculate local number density with fixed particle radius
         ld = amep.order.local_number_density(
-            self.coords, self.box, 0.5, rmax = 2.0, pbc = False, enforce_nd = 2
+            self.coords, self.box, 0.5, rmax=2.0, pbc=False, enforce_nd=2
         )
         # expected results for the given coords
         expected = np.array(
@@ -68,26 +71,26 @@ class TestOrder(unittest.TestCase):
         # check result
         self.assertTrue(
             compare.all(),
-            'Incorrect local number density for calculation with fixed '\
+            'Incorrect local number density for calculation with fixed '
             f'particle radius. Got {ld} instead of {expected}.'
         )
-        
+
         # calculate local number density with different particle radii
-        radius = np.array([0.5,0.5,0.5,0.5,1.5])
+        radius = np.array([0.5, 0.5, 0.5, 0.5, 1.5])
         ld = amep.order.local_number_density(
             self.coords, self.box, radius,
-            rmax = 2.0, pbc = False, enforce_nd = 2
+            rmax=2.0, pbc=False, enforce_nd=2
         )
         # expected results for the given coords
         expected = np.array(
-            [0.35809862, 0.31204799, 0.3315728 , 0.31204799, 0.16137229]
+            [0.35809862, 0.31204799, 0.3315728, 0.31204799, 0.16137229]
         )
         # comparison
         compare = ld.round(3) == expected.round(3)
         # check result
         self.assertTrue(
             compare.all(),
-            'Incorrect local number density for calculation with different '\
+            'Incorrect local number density for calculation with different '
             f'particle radii. Got {ld} instead of {expected}.'
         )
 
@@ -103,11 +106,11 @@ class TestOrder(unittest.TestCase):
         # calculate local mass density with fixed mass
         ld1 = amep.order.local_mass_density(
             self.coords, self.box, 0.5, 1.0,
-            rmax = 2.0, pbc = False, enforce_nd = 2
+            rmax=2.0, pbc=False, enforce_nd=2
         )
         ld2 = amep.order.local_mass_density(
             self.coords, self.box, 0.5, 2.0,
-            rmax = 2.0, pbc = False, enforce_nd = 2
+            rmax=2.0, pbc=False, enforce_nd=2
         )
         # expected results for the given coords
         expected = np.array(
@@ -118,7 +121,7 @@ class TestOrder(unittest.TestCase):
         # check result
         self.assertTrue(
             compare.all(),
-            'Incorrect local mass density for calculation with fixed '\
+            'Incorrect local mass density for calculation with fixed '
             f'mass. Got {ld1} instead of {expected}.'
         )
         # check if twice the mass leads to twice the mass density
@@ -126,29 +129,29 @@ class TestOrder(unittest.TestCase):
         # check result
         self.assertTrue(
             compare.all(),
-            'Doubling the mass does not lead to twice the local mass density.'\
+            'Doubling the mass does not lead to twice the local mass density.'
             f' Got {ld2} instead of {2*ld1}.'
         )
         # calculate local number density with different masses
-        mass = np.array([5.0,1.5,0.5,0.5,1.5])
-        radius = np.array([1.0,0.5,0.5,0.5,1.5])
+        mass = np.array([5.0, 1.5, 0.5, 0.5, 1.5])
+        radius = np.array([1.0, 0.5, 0.5, 0.5, 1.5])
         ld = amep.order.local_mass_density(
             self.coords, self.box, radius, mass,
-            rmax = 2.0, pbc = False, enforce_nd = 2
+            rmax=2.0, pbc=False, enforce_nd=2
         )
         # expected results for the given coords
         expected = np.array(
-            [0.65651414, 0.62722693, 0.6167254 , 0.58743819, 0.36031597]
+            [0.65651414, 0.62722693, 0.6167254, 0.58743819, 0.36031597]
         )
         # comparison
         compare = ld.round(3) == expected.round(3)
         # check result
         self.assertTrue(
             compare.all(),
-            'Incorrect local mass density for calculation with different '\
+            'Incorrect local mass density for calculation with different '
             f'particle radii and masses. Got {ld} instead of {expected}.'
         )
-            
+
     def test_local_packing_fraction(self):
         """
         Tests the `local_packing_fraction` function of `amep.order`.
@@ -160,7 +163,7 @@ class TestOrder(unittest.TestCase):
         """
         # calculate local packing fraction with fixed particle radius
         ld = amep.order.local_packing_fraction(
-            self.coords, self.box, 0.5, rmax = 2.0, pbc = False, enforce_nd = 2
+            self.coords, self.box, 0.5, rmax=2.0, pbc=False, enforce_nd=2
         )
         # expected results for the given coords
         expected = np.array(
@@ -171,24 +174,24 @@ class TestOrder(unittest.TestCase):
         # check result
         self.assertTrue(
             compare.all(),
-            'Incorrect local packing fraction for calculation with fixed '\
+            'Incorrect local packing fraction for calculation with fixed '
             f'particle radius. Got {ld} instead of {expected}.'
         )
         # result should be pi/4 times local number density
         lnd = amep.order.local_number_density(
-            self.coords, self.box, 0.5, rmax = 2.0, pbc = False, enforce_nd = 2
+            self.coords, self.box, 0.5, rmax=2.0, pbc=False, enforce_nd=2
         )
         compare = ld.round(3) == (lnd*np.pi/4).round(3)
         self.assertTrue(
             compare.all(),
-            'Local packing fraction and pi/4 times local number density do '\
+            'Local packing fraction and pi/4 times local number density do '
             f'not match. Got phi={ld} instead of rho*pi/4={lnd*np.pi/4}.'
         )
         # calculate local packing fraction with different particle radii
-        radius = np.array([0.5,0.5,0.5,0.5,1.0])
+        radius = np.array([0.5, 0.5, 0.5, 0.5, 1.0])
         ld = amep.order.local_packing_fraction(
             self.coords, self.box, radius,
-            rmax = 2.0, pbc = False, enforce_nd = 2
+            rmax=2.0, pbc=False, enforce_nd=2
         )
         # expected results for the given coords
         expected = np.array(
@@ -199,10 +202,6 @@ class TestOrder(unittest.TestCase):
         # check result
         self.assertTrue(
             compare.all(),
-            'Incorrect local packing fraction for calculation with different '\
+            'Incorrect local packing fraction for calculation with different '
             f'particle radii. Got {ld} instead of {expected}.'
         )
-
-
-if __name__ == '__main__':
-    unittest.main()

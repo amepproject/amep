@@ -32,6 +32,7 @@ estimators.
 # =============================================================================
 # IMPORT MODULES
 # =============================================================================
+from packaging.version import Version
 import numpy as np
 import scipy.fft as fft
 
@@ -782,8 +783,12 @@ def cluster_properties(
         # set all grid points outside the cluster to zero
         y[labels != i] = 0
         # integral
-        N = np.trapz(y, x=X, axis=1)
-        N = np.trapz(N, x=Y[:, 0])
+        if Version(np.__version__)<Version("2.0.0"):
+            N = np.trapz(y, x=X, axis=1)
+            N = np.trapz(N, x=Y[:, 0])
+        else:
+            N = np.trapezoid(y, x=X, axis=1)
+            N = np.trapezoid(N, x=Y[:, 0])
         sizes.append(N)
 
     # calculate the radius of gyration and linear extension

@@ -23,9 +23,10 @@ Test units for the amep.pbc module.
 # =============================================================================
 # IMPORT MODULES
 # =============================================================================
-import numpy as np
 import unittest
+import numpy as np
 import amep
+
 
 # =============================================================================
 # MAIN PBC TEST
@@ -33,7 +34,7 @@ import amep
 class TestPbc(unittest.TestCase):
 
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
         """
         Basic setup. Generating test data.
 
@@ -42,7 +43,7 @@ class TestPbc(unittest.TestCase):
         None.
 
         """
-        self.coords = np.array([
+        cls.coords = np.array([
             [2.0, 2.0, 0.0],
             [-1.0, 1.0, 0.0],
             [2.5, 3.0, 0.0],
@@ -50,7 +51,7 @@ class TestPbc(unittest.TestCase):
             [0.0, 6.0, 0.0],
             [0.7, 0.7, 0.0]
         ])
-        self.box = np.array([[-5, 5], [-5, 5], [-0.5, 0.5]])
+        cls.box = np.array([[-5, 5], [-5, 5], [-0.5, 0.5]])
 
     def test_fold(self):
         """
@@ -303,22 +304,16 @@ class TestPbc(unittest.TestCase):
             [-8.0, -13.0, -1.25]
         ])
         # comparison
-        failed2d = []
-        for mc in amep.pbc.mirror_points(coords2d, box, enforce_nd=2):
-            found = False
-            for c in mirror_coords2d:
-                if (mc.round(3)==c.round(3)).all():
-                    found = True
-            if not found:
-                failed2d.append(mc)
-        failed3d = []
-        for mc in amep.pbc.mirror_points(coords3d, box):
-            found = False
-            for c in mirror_coords3d:
-                if (mc.round(3)==c.round(3)).all():
-                    found = True
-            if not found:
-                failed3d.append(mc)
+        failed2d = [mc for mc in amep.pbc.mirror_points(coords2d,
+                                                        box,
+                                                        enforce_nd=2)
+                    if not any((mc.round(3) == c.round(3)).all()
+                               for c in mirror_coords2d)
+                    ]
+        failed3d = [mc for mc in amep.pbc.mirror_points(coords3d, box)
+                    if not any((mc.round(3) == c.round(3)).all()
+                               for c in mirror_coords3d)
+                    ]
         # check 2d data indentification
         shape = amep.pbc.mirror_points(coords2d, box, enforce_nd=2).shape
         self.assertEqual(
@@ -397,7 +392,7 @@ class TestPbc(unittest.TestCase):
             f'''thickness=5.0, width=0.1 failure. width should be preferred
                 before thickness. Expected shape (1,3). Got {shape}.'''
         )
-        
+
     def test_pbc_diff(self):
         # generate test data
         coords1 = np.array([
@@ -444,7 +439,7 @@ class TestPbc(unittest.TestCase):
                 result={pbcdiff_to_test},\n
                 box={box}.'''
         )
-    
+
     def test_pbc_diff_rect(self):
         # generate test data
         coords1 = np.array([
@@ -475,19 +470,15 @@ class TestPbc(unittest.TestCase):
                 result={pbcdiff_to_test},\n
                 box={box}.'''
         )
-        
+
     def test_kdtree(self):
         pass
-    
+
     def test_find_pairs(self):
         pass
-    
+
     def test_distance_matrix(self):
         pass
-    
+
     def test_distances(self):
         pass       
-
-
-if __name__ == '__main__':
-    unittest.main()
