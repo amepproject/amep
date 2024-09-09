@@ -1105,6 +1105,7 @@ class GSDReader(BaseReader):
     def __init__(
             self, directory: str, savedir: str, start: float = 0.0,
             stop: float = 1.0, nth: int = 1, filename: str = 'trajectory.gsd',
+            dt: float = 1.0,
             trajfile: str = TRAJFILENAME, deleteold: bool = False,
             verbose: bool = False) -> None:
         r'''
@@ -1129,6 +1130,10 @@ class GSDReader(BaseReader):
             Read each nth dump file. The default is None.
         filename : str, optional
             File name of the gsd trajectory file. The default is 'trajectory.gsd'.
+        dt : float, optional
+            Timestep of the simulation. The GSD file format does only save
+            the simulation step number but not the (physical) time.
+            The default is 1.
         trajfile : str, optional
             Name of the hdf5 trajectory file that is created when an object of
             this class is initialized. The default is TRAJFILENAME.
@@ -1145,6 +1150,8 @@ class GSDReader(BaseReader):
         '''
         # init class logger
         self.__log = get_class_logger(__name__, self.__class__.__name__)
+        
+        warnings.warn("GSDReader: angular momentum and omega are experimental features!")
         
         # back up trajectory file
         if os.path.exists(os.path.join(savedir, trajfile)):
@@ -1381,9 +1388,13 @@ class GSDReader(BaseReader):
                     else:
                         frame['moment_inertia'][:] = moment_inertias
 
+
+
+
                     # angular momentum of the particles from quaternions
                     # todo!!
                     quat_angmoms    = np.array(gsd_frame.particles.angmom)
+                    quat_angmoms    = np.zeros(np.shape(np.array(gsd_frame.particles.angmom)))
                     angmoms         = quat_angmoms[:,1:]
                     if 'angmom' not in frame.keys():
                         frame.create_dataset('angmom',
@@ -1395,13 +1406,25 @@ class GSDReader(BaseReader):
                                              fletcher32=FLETCHER)
                     else:
                         frame['angmom'][:] = angmoms
+                    angmom_thetas   = quat_angmoms[:,0]
+                    if 'angmom_theta' not in frame.keys():
+                        frame.create_dataset('angmom_theta',
+                                             (N, ),
+                                             data=angmom_thetas,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['angmom_theta'][:] = angmom_thetas
                     # omegas          = 2*np.arctan2(np.linalg.norm(quat_orientations[:,1:], axis=1), quat_orientations[:,0])
                     # print(np.shape(omegas))
                         # -> angmom
                         # -> omegas
+                        # np.arcsin(quat_angmoms)[:,0]/np.asarray(quat_orientations)[:,:]/moment_inertias[:,:]/2
                     omegas       = angmoms / moment_inertias
-                    if 'omegas' not in frame.keys():
-                        frame.create_dataset('omegas',
+                    if 'omega' not in frame.keys():
+                        frame.create_dataset('omega',
                                              (N, 3),
                                              data=omegas,
                                              dtype=DTYPE,
@@ -1409,7 +1432,10 @@ class GSDReader(BaseReader):
                                              shuffle=SHUFFLE,
                                              fletcher32=FLETCHER)
                     else:
-                        frame['omegas'][:] = omegas
+                        frame['omega'][:] = omegas
+
+
+
 
                     # diameters of the particles
                     diameters       = np.array(gsd_frame.particles.diameter)
@@ -1469,8 +1495,7 @@ class GSDReader(BaseReader):
                     steps[n] = step
 
             self.steps = steps
-            # get time step from log file (this also sets self.times)
-            self.dt = self.__get_timestep_from_logfile()
+            self.dt = dt
             self.d = d
         except Exception as e:
             os.remove(os.path.join(savedir, "#temp#"+trajfile))
@@ -1515,42 +1540,3 @@ class GSDReader(BaseReader):
         if key=='':
             return float(basename.split('.')[0])
         return float(basename.split(key)[1].split('.')[0])
-
-
-    def __get_timestep_from_logfile(self):
-        r'''
-        Reads the time step from the log.lammps file.
-
-        Returns
-        -------
-        dt : float
-            Time step.
-        '''
-        if os.path.exists(os.path.join(self.directory, 'log.lammps')):
-            with open(os.path.join(
-                    self.directory, 'log.lammps'
-                ), encoding="utf-8") as f:
-                lines = f.readlines()
-                relevant = [line for line in lines if line.startswith('timestep')]
-                if len(relevant)>=1:
-                    dt = float(relevant[-1].split('timestep')[-1])
-                else:
-                    dt = 1
-                    self.__log.warning(
-                        "No timestep mentioned in logfile. Using dt=1. "\
-                        "The timestep can be set manually by traj.dt=<dt>."
-                    )
-                if len(relevant)>1:
-                    self.__log.warning(
-                        "More than one timestep found. Using last mention, "\
-                        f"dt={dt}. "\
-                        "The timestep can be set manually by traj.dt=<dt>."
-                    )
-        else:
-            self.__log.warning(
-                "No log file found. Using dt=1. "\
-                "The timestep can be set manually by traj.dt=<dt>."
-            )
-            dt = 1
-
-        return dt
