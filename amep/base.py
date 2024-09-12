@@ -23,7 +23,7 @@ Base Classes
 
 .. module:: amep.base
 
-The AMEP module :mod:`amep.base` contains all basic classes used in the 
+The AMEP module :mod:`amep.base` contains all basic classes used in the
 backend of AMEP.
 
 """
@@ -37,7 +37,7 @@ import inspect
 import logging
 
 from typing import Collection, Iterable, Sequence
-from  io import StringIO
+from io import StringIO
 from contextlib import redirect_stdout
 from tqdm import TqdmExperimentalWarning
 
@@ -51,13 +51,16 @@ from ._version import __version__
 
 warnings.simplefilter('always', UserWarning)
 warnings.filterwarnings("ignore", category=TqdmExperimentalWarning)
+
+
 # =============================================================================
 # UTILITIES
 # =============================================================================
 def check_path(path: str, extension: str) -> tuple[str, str]:
     r"""
-    Checks if the directory of a given path exists and separates between
-    directory and file name.
+    Check if the directory of a given path exists.
+
+    Also separates between directory and file name.
 
     Parameters
     ----------
@@ -83,10 +86,10 @@ def check_path(path: str, extension: str) -> tuple[str, str]:
     """
     # normalize path
     path = os.path.normpath(path)
-    
+
     # get extension
     _, file_extension = os.path.splitext(path)
-    
+
     # check extension
     if file_extension == extension:
         # split into directory and filename
@@ -96,7 +99,7 @@ def check_path(path: str, extension: str) -> tuple[str, str]:
             directory = os.getcwd()
     elif file_extension == '':
         directory = os.path.normpath(path)
-        filename  = ''
+        filename = ''
     else:
         raise ValueError(
             f'''Incorrect file extension. Got {file_extension} instead
@@ -134,28 +137,28 @@ KEYS = {
     'velocities': ['vx', 'vy', 'vz'],
     'angmom': ['angmomx', 'angmomy', 'angmomz']
 }
-KEYASSIGN    = {            # ['key',Index]
-    'x' : ['coords',0],
-    'y' : ['coords',1],
-    'z' : ['coords',2],
-    'xu' : ['uwcoords',0],
-    'yu' : ['uwcoords',1],
-    'zu' : ['uwcoords',2],
-    'njx' : ['njcoords',0],
-    'njy' : ['njcoords',1],
-    'njz' : ['njcoords',2],
-    'fx' : ['forces',0],
-    'fy' : ['forces',1],
-    'fz' : ['forces',2],
-    'omegax' : ['omegas',0],
-    'omegay' : ['omegas',1],
-    'omegaz' : ['omegas',2],
-    'mux' : ['orientations',0],
-    'muy' : ['orientations',1],
-    'muz' : ['orientations',2],
-    'vx' : ['velocities',0],
-    'vy' : ['velocities',1],
-    'vz' : ['velocities',2],
+KEYASSIGN = {            # ['key',Index]
+    'x': ['coords', 0],
+    'y': ['coords', 1],
+    'z': ['coords', 2],
+    'xu': ['uwcoords', 0],
+    'yu': ['uwcoords', 1],
+    'zu': ['uwcoords', 2],
+    'njx': ['njcoords', 0],
+    'njy': ['njcoords', 1],
+    'njz': ['njcoords', 2],
+    'fx': ['forces', 0],
+    'fy': ['forces', 1],
+    'fz': ['forces', 2],
+    'omegax': ['omegas', 0],
+    'omegay': ['omegas', 1],
+    'omegaz': ['omegas', 2],
+    'mux': ['orientations', 0],
+    'muy': ['orientations', 1],
+    'muz': ['orientations', 2],
+    'vx': ['velocities', 0],
+    'vy': ['velocities', 1],
+    'vz': ['velocities', 2],
     'angmomx': ['angmom', 0],
     'angmomy': ['angmom', 1],
     'angmomz': ['angmom', 2]
@@ -185,9 +188,10 @@ LOGGINGLEVEL = "INFO"
 # set default format
 logging.basicConfig(format=LOGGERFORMAT)
 
-def get_module_logger(mod_name):
+
+def get_module_logger(mod_name: str) -> logging.Logger:
     r"""
-    Creates a module logger.
+    Create a module logger.
 
     Parameters
     ----------
@@ -209,9 +213,9 @@ def get_module_logger(mod_name):
     return logger
 
 
-def get_class_logger(mod_name, class_name):
+def get_class_logger(mod_name: str, class_name: str) -> logging.Logger:
     r"""
-    Creates a class logger.
+    Create a class logger.
 
     Parameters
     ----------
@@ -247,7 +251,7 @@ class BaseReader:
             self, savedir: str, start: float, stop: float,
             nth: int, filename: str) -> None:
         r"""
-        Initializes a BaseReader object.
+        Initialize a BaseReader object.
 
         Parameters
         ----------
@@ -257,7 +261,7 @@ class BaseReader:
             Start reading the trajectory data from this fraction of the
             trajectory.
         stop : int
-            Stop reading the trajectory data from this fraction of the 
+            Stop reading the trajectory data from this fraction of the
             trajectory.
         nth : int
             Read each nth frame.
@@ -309,7 +313,7 @@ class BaseReader:
         return x
 
     @start.setter
-    def start(self,x):
+    def start(self, x):
         with h5py.File(os.path.join(self.savedir, self.filename), 'a') as root:
             root['params'].attrs['start'] = x
 
@@ -318,8 +322,9 @@ class BaseReader:
         with h5py.File(os.path.join(self.savedir, self.filename), 'a') as root:
             x = root['params'].attrs['stop']
         return x
+
     @stop.setter
-    def stop(self,x):
+    def stop(self, x):
         with h5py.File(os.path.join(self.savedir, self.filename), 'a') as root:
             root['params'].attrs['stop'] = x
 
@@ -328,16 +333,18 @@ class BaseReader:
         with h5py.File(os.path.join(self.savedir, self.filename), 'a') as root:
             x = root['params'].attrs['nth']
         return x
+
     @nth.setter
-    def nth(self,x):
+    def nth(self, x):
         with h5py.File(os.path.join(self.savedir, self.filename), 'a') as root:
             root['params'].attrs['nth'] = x
 
     @property
     def savedir(self):
         return self.__savedir
+
     @savedir.setter
-    def savedir(self,x):
+    def savedir(self, x):
         self.__savedir = x
 
     @property
@@ -345,8 +352,9 @@ class BaseReader:
         with h5py.File(os.path.join(self.savedir, self.filename), 'a') as root:
             x = root['params'].attrs['dt']
         return x
+
     @dt.setter
-    def dt(self,x):
+    def dt(self, x):
         with h5py.File(os.path.join(self.savedir, self.filename), 'a') as root:
             root['params'].attrs['dt'] = x
         self.times = self.steps*x
@@ -356,8 +364,9 @@ class BaseReader:
         with h5py.File(os.path.join(self.savedir, self.filename), 'a') as root:
             x = root['params'].attrs['d']
         return x
+
     @d.setter
-    def d(self,x):
+    def d(self, x):
         with h5py.File(os.path.join(self.savedir, self.filename), 'a') as root:
             root['params'].attrs['d'] = x
 
@@ -413,13 +422,13 @@ class BaseReader:
                 root['frames']['times'][:] = vals
 
     @property
-    def filename(self) -> Path:
-        """The path to the HDF5-file that contains the writers data."""
+    def filename(self) -> str:
+        """The name of the HDF5-file that contains the writers data."""
         return self.__filename
 
     @filename.setter
     def filename(self, val: Path | str):
-        self.__filename = Path(val)
+        self.__filename = str(val)
 
 
 # =============================================================================
@@ -1124,11 +1133,13 @@ class BaseField:
             dimension = root['params'].attrs['d']
         return dimension
     @property
-    def box(self)->np.ndarray:
+    def box(self) -> np.ndarray:
         '''
         Box boundaries of the simulation.
+
         Returns
         -------
+
         boxe : np.ndarray
             Box boundaries [[<lower bounds>],[<upper bounds>]]
 
@@ -1820,21 +1831,29 @@ class BaseEvaluation:
         )]
 
     def values(self):
+        """The values of the evaluation object-items.
+
+        Used so Evaluation-objects can be used as dictionaries.
+        """
         return [self.__getitem__(key) for key in self.keys()]
 
     def items(self):
-        return [i for i in zip(self.keys(), self.values())]
+        """Key-value pairs for the evaluation object.
+
+        Used so Evaluation-objects can be used as dictionaries.
+        """
+        return list(zip(self.keys(), self.values()))
 
     def save(
-            self, path: str, backup: bool = True,
+            self, path: str | Path, backup: bool = True,
             database: bool = False, name: str | None = None) -> None:
         r"""
-        Stores the evaluation result in an HDF5 file.
-        
+        Store the evaluation result in an HDF5 file.
+
         Parameters
         ----------
-        path : str
-            Path of the `'.h5'` file in which the data should be stored. If 
+        path : str | Path
+            Path of the `'.h5'` file in which the data should be stored. If
             only a directory is given, the filename is chosen as `self.name`.
             Raises an error if the given directory does not exist or if the
             file extension is not `'.h5'`.
@@ -1842,37 +1861,37 @@ class BaseEvaluation:
             If True, an already existing file is backed up and not overwritten.
             This keyword is ignored if `database=True`. The default is True.
         database : bool, optional
-            If True, the results are appended to the given `'.h5'` file if it 
+            If True, the results are appended to the given `'.h5'` file if it
             already exists. If False, a new file is created and the old is
             backed up. If False and the given `'.h5'` file contains multiple
-            evaluation results, an error is raised. In this case, `database` 
+            evaluation results, an error is raised. In this case, `database`
             has to be set to `True`. The default is False.
         name : str or None, optional
-            Name under which the data should be stored in the HDF5 file. If 
+            Name under which the data should be stored in the HDF5 file. If
             None, self.name is used. The default is None.
-            
+
         Returns
         -------
         None.
-        
+
         """
         # check path
-        directory, filename = check_path(path, '.h5')
-        
+        directory, filename = check_path(str(path), '.h5')
+
         # set filename to evaluation name if not given
         if filename == '':
             filename = self.name + '.h5'
-        
+
         # get current path
         current_path = os.path.join(directory, filename)
-        
+
         # check name
         if name is None:
             name = self.name
-        
+
         # create database object
-        db = BaseDatabase(current_path)         
-            
+        db = BaseDatabase(current_path)
+
         if db.keys() == []:
             # just add the evaluation to the database if the database is empty
             db.add(name, self)
@@ -1919,7 +1938,7 @@ class BaseEvaluation:
                     # overwrite the data
                     db.delete(name)
                     db.add(name, self)
-                
+
             else:
                 # just add the evaluation if one with the same name does not
                 # already exists
@@ -1943,17 +1962,15 @@ class BaseEvaluation:
     def name(self, x: str) -> None:
         if type(x) == str:
             self.__name = x
-            
-            
+
+
 
 # =============================================================================
 # EVALUATION-DATA BASE CLASS
 # =============================================================================
 class BaseEvalData:
-    """
-    Evaluation data base class (for loaded evaluation data).
-    """
-    def __init__(self, path: str, group: str | None = None) -> None:
+    "Evaluation data base class (for loaded evaluation data)."
+    def __init__(self, path: str | Path, group: str | None = None) -> None:
         r'''
         Evaluation-data base class for accessing evaluation data from an HDF5
         file.
@@ -1971,12 +1988,12 @@ class BaseEvalData:
         None.
 
         '''
-        self.__path  = path
+        self.__path = str(path)
         self.__group = group
-        
+
         with h5py.File(self.__path, 'r') as root:
             # for backwards compatibility
-            if not 'type' in root.attrs.keys():
+            if 'type' not in root.attrs.keys():
                 self.__datakeys = list(root.keys())
                 self.__attrkeys = list(root.attrs.keys())
                 self.__keys = self.__datakeys.copy()
@@ -1988,7 +2005,7 @@ class BaseEvalData:
                 self.__keys.extend(self.__attrkeys)
             else:
                 raise KeyError(f'Evaluation {self.__group} does not exist.')
-        
+
     def __getattr__(self, item):
         with h5py.File(self.__path, 'r') as root:
             if self.__group is None:
@@ -2005,7 +2022,7 @@ class BaseEvalData:
                     return root[self.__group].attrs[item]
                 else:
                     raise KeyError(f'Invalid key. Choose one of {self.__keys}')
-                
+
     def __getitem__(self, item):
         return self.__getattr__(item)
                 
@@ -2029,27 +2046,30 @@ class BaseEvalData:
     
 # =============================================================================
 # DATABASE BASE CLASS
-# =============================================================================    
+# =============================================================================
 class BaseDatabase:
     """
-    Evaluation database base class for storing and loading multiple evaluation
-    results stored in a single HDF5 file.
+    Evaluation database base class.
+
+    Used for storing and loading multiple evaluation results
+    stored in a single HDF5 file.
     """
-    def __init__(self, path: str) -> None:
+
+    def __init__(self, path: str | Path) -> None:
         r'''
         Loads/creates a database HDF5 file for storing data of multiple
         evaluate objects in a single file.
 
         Parameters
         ----------
-        path : str
+        path : str | Path
             Path of the HDF5 file. Raises an error if the path does not contain
             a filename with file extension `'.h5'`.
 
         Returns
         -------
         None.
-        
+
         Examples
         --------
         >>> import amep
@@ -2068,10 +2088,10 @@ class BaseDatabase:
         ['sf2d']
         >>> print(db.items())
         [('sf2d', <amep.base.BaseEvalData object at 0x0000025B7A0A6E30>)]
-        >>> 
+        >>>
         '''
         # check the given path
-        directory, filename = check_path(path, '.h5')
+        directory, filename = check_path(str(path), '.h5')
         if filename == '':
             raise ValueError(
                 f"""The given path {path} does not contain any filename. Please
@@ -2080,7 +2100,7 @@ class BaseDatabase:
             )
         # set path attribute
         self.__path = path
-        
+
         if not os.path.exists(self.__path):
             # create new empty file
             with h5py.File(self.__path, 'w') as root:
@@ -2088,27 +2108,42 @@ class BaseDatabase:
                 root.attrs['version'] = __version__
                 # add type indicator as attribute
                 root.attrs['type'] = 'database'
-        
+
     def __getitem__(self, item: str):
+        '''Return the item to a valid key.
+
+        Makes this class work like a dictionary.
+        '''
         if item in self.keys():
             return BaseEvalData(self.__path, group=item)
         else:
             raise KeyError(f'Invalid key. Choose one of {self.keys()}')
-    
-    def __getattr__(self, item):
+
+    def __getattr__(self, item: str):
         return self.__getitem__(item)
-        
+
     def keys(self) -> list:
+        """Return the keys for the database.
+
+        Makes this class behave like a dictionary.
+        """
         with h5py.File(self.__path, 'r') as root:
             k = list(root.keys())
         return k
-    
+
     def values(self) -> list:
+        """Return the values for the database objects.
+
+        Makes this class behave like a dictionary."""
         return [self.__getitem__(key) for key in self.keys()]
 
     def items(self) -> list:
-        return [i for i in zip(self.keys(), self.values())]
-        
+        """Key-value-pairs for the database.
+
+        Makes this class behave like a dictionary.
+        """
+        return list(zip(self.keys(), self.values()))
+
     def add(self, name: str, evaluation: BaseEvaluation) -> None:
         r'''
         Adds the data of an evaluate object as a new group to the database
@@ -2136,11 +2171,11 @@ class BaseDatabase:
                         compression=COMPRESSION, shuffle=SHUFFLE,
                         fletcher32=FLETCHER, dtype=DTYPE)
                 else:
-                    if key=='ptype' and evaluation[key] is None:
+                    if key == 'ptype' and evaluation[key] is None:
                         group.attrs[key] = 'None'
                     else:
                         group.attrs[key] = evaluation[key]
-    
+
     def delete(self, name: str) -> None:
         r'''
         Deletes a group/data from the database HDF5 file.
@@ -2163,8 +2198,8 @@ class BaseDatabase:
                 f"The key {name} does not exist. Available keys are "\
                 f"{self.keys()}."
             )
-    
-    
+
+
 # =============================================================================
 # FUNCTION BASE CLASS
 # =============================================================================
