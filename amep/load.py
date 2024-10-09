@@ -33,7 +33,7 @@ simulation data or evaluation results.
 import os
 import h5py
 
-from .reader import LammpsReader, H5amepReader, ContinuumReader, GSDReader
+from .reader import LammpsReader, H5amepReader, ContinuumReader, GSDReader, GROMACSReader
 from .trajectory import ParticleTrajectory,FieldTrajectory
 from .base import TRAJFILENAME, BaseEvalData, BaseDatabase, LOADMODES
 from .base import check_path, get_module_logger
@@ -223,6 +223,16 @@ def traj(
         return FieldTrajectory(reader)
     elif mode == 'gsd':
         reader = GSDReader(
+            directory,
+            savedir,
+            trajfile = trajfile,
+            deleteold = deleteold,
+            verbose = verbose,
+            **kwargs
+        )
+        return ParticleTrajectory(reader)
+    elif mode == 'gromacs':
+        reader = GROMACSReader(
             directory,
             savedir,
             trajfile = trajfile,

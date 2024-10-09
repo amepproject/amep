@@ -37,8 +37,9 @@ import csv
 import warnings
 import h5py
 import string
-from gsd import hoomd
 import numpy as np
+from gsd import hoomd
+from chemfiles import Trajectory
 
 from tqdm.autonotebook import tqdm
 from .base import BaseReader, TRAJFILENAME, COMPRESSION, SHUFFLE, FLETCHER
@@ -148,10 +149,10 @@ class LammpsReader(BaseReader):
             Directory in which the trajectory file will be stored.
         start : float, optional
             Start reading data from this fraction of the whole trajectory.
-            The default is None.
+            The default is 0.
         stop : float, optional
             Stop reading data from this fraction of the whole trajectory.
-            The default is None.
+            The default is 1.
         nth : int, optional
             Read each nth dump file. The default is None.
         dumps : str, optional
@@ -651,10 +652,10 @@ class ContinuumReader(BaseReader):
             Directory in which the trajectory file will be stored.
         start : float, optional
             Start reading data from this fraction of the whole trajectory.
-            The default is None.
+            The default is 0.
         stop : float, optional
             Stop reading data from this fraction of the whole trajectory.
-            The default is None.
+            The default is 1.
         nth : int, optional
             Read each nth dump file. The default is None.
         dumps : str, optional
@@ -1122,10 +1123,10 @@ class GSDReader(BaseReader):
             Directory in which the trajectory file will be stored.
         start : float, optional
             Start reading data from this fraction of the whole trajectory.
-            The default is None.
+            The default is 0.
         stop : float, optional
             Stop reading data from this fraction of the whole trajectory.
-            The default is None.
+            The default is 1.
         nth : int, optional
             Read each nth dump file. The default is None.
         filename : str, optional
@@ -1394,8 +1395,9 @@ class GSDReader(BaseReader):
                     # angular momentum of the particles from quaternions
                     # todo!!
                     quat_angmoms    = np.array(gsd_frame.particles.angmom)
-                    quat_angmoms    = np.zeros(np.shape(np.array(gsd_frame.particles.angmom)))
-                    angmoms         = quat_angmoms[:,1:]
+                    # quat_angmoms    = np.zeros(np.shape(np.array(gsd_frame.particles.angmom)))
+                    # angmoms         = quat_angmoms[:,1:]
+                    angmoms         = 
                     if 'angmom' not in frame.keys():
                         frame.create_dataset('angmom',
                                              (N, 3),
@@ -1497,6 +1499,493 @@ class GSDReader(BaseReader):
             self.steps = steps
             self.dt = dt
             self.d = d
+        except Exception as e:
+            os.remove(os.path.join(savedir, "#temp#"+trajfile))
+            raise
+        else:
+            # if no exception. rename #temp#<trajfile> and delete #<trajfile>.
+            if os.path.exists(os.path.join(savedir, trajfile)) and verbose:
+                # This case should not occur if AMEP is used properly.
+                # Possible scenario:
+                # two instances of AMEP reading and writing in the same directory.
+                self.__log.info(
+                    f"File {trajfile} already exists. "\
+                    "Overwriting existing file."
+                )
+            os.rename(os.path.join(savedir, "#temp#"+trajfile), os.path.join(savedir, trajfile))
+            self.filename = trajfile
+
+            # delete old trajectory file #<trajfile> if specified by user.
+            if deleteold and os.path.exists(os.path.join(savedir, "#"+trajfile)):
+                os.remove(os.path.join(savedir, "#"+trajfile))
+                if verbose:
+                    self.__log.info(
+                        f"Deleted old trajectory file #{trajfile}"
+                    )
+        finally:
+            pass
+
+
+    def __sorter(self, item):
+        r'''
+        Returns the time step of a dump file that is given
+        in the filename of the dump file.
+
+        INPUT:
+            item: dump-file name (str)
+
+        OUTPUT:
+            time step (float)
+        '''
+        key = self.__dumps.split('*')[0]
+        basedir, basename = os.path.split(item)
+        if key=='':
+            return float(basename.split('.')[0])
+        return float(basename.split(key)[1].split('.')[0])
+
+
+
+class GROMACSReader(BaseReader):
+    '''Reads GROMACS files and writes the containing data to an hdf5 file.
+    TODO list necessary files!
+    '''
+
+    def __init__(
+            self, directory: str, savedir: str, start: float = 0.0,
+            stop: float = 1.0, nth: int = 1, filename: str = 'traj.trr',
+            topology: str = 'topol.tpr',
+            dt: float = 1.0,
+            trajfile: str = TRAJFILENAME, deleteold: bool = False,
+            verbose: bool = False) -> None:
+        r'''
+        Reader for simulation data from GROMAACS molecular dynamics simulations.
+
+        TODO in progress
+
+        Parameters
+        ----------
+        directory : str
+            Simulation directory.
+        savedir : str
+            Directory in which the trajectory file will be stored.
+        start : float, optional
+            Start reading data from this fraction of the whole trajectory.
+            Must be in [0,1). The default is 0.
+        stop : float, optional
+            Stop reading data from this fraction of the whole trajectory.
+            Must be in (0,1]. The default is 1.
+        nth : int, optional
+            Read each nth dump file. The default is None.
+        filename : str, optional
+            File name of the GROMACS trajectory file. The default is 'traj.trr'.
+        topology : str, optional
+            File name of the GROMACS topology file. The default is 'topol.tpr'.
+        dt : float, optional
+            Timestep of the simulation. The GSD file format does only save
+            the simulation step number but not the (physical) time.
+            The default is 1.
+        trajfile : str, optional
+            Name of the hdf5 trajectory file that is created when an object of
+            this class is initialized. The default is TRAJFILENAME.
+        deleteold : bool, optional
+            If True, an existing old h5amep trajectory file #<trajfile>
+            will be removed. The default is False.
+        verbose : bool, optional
+            If True, runtime information is printed. The default is False.
+
+        Returns
+        -------
+        None.
+
+        '''
+        # init class logger
+        self.__log = get_class_logger(__name__, self.__class__.__name__)
+        
+        warnings.warn("GROMACSReader: under construction...")
+        warnings.warn("GROMACSReader: molecule_id calculation very slow. Implemented but currently commented out.")
+        warnings.warn("GROMACSReader: error!!! atom.type vs type_names vs atom_names can all be different!!!!!")
+        
+        # back up trajectory file
+        if os.path.exists(os.path.join(savedir, trajfile)):
+            # rename trajectory to backup filename "#+<trajfile>"
+            if os.path.exists(os.path.join(savedir, "#"+trajfile)):
+                if verbose:
+                    self.__log.info(
+                        f"Existing old file #{trajfile} will be replaced."
+                    )
+                os.remove(os.path.join(savedir, "#"+trajfile))
+            os.rename(
+                os.path.join(savedir, trajfile),
+                os.path.join(savedir, "#"+trajfile)
+            )
+            if verbose:
+                self.__log.info(
+                    f"Renamed {trajfile} to #{trajfile}."
+                )
+        # super(LammpsReader, self).__init__(directory, start, stop, nth, "#temp#"+trajfile)
+        super().__init__(os.path.abspath(savedir), start, stop, nth, "#temp#"+trajfile)
+        self.directory = directory
+
+        try:
+            # self.__filename = filename # important: self.filename ≠ self.__filename
+
+            # load gromacs trajectory
+            gromacs_file = Trajectory(os.path.join(directory,filename))
+            gromacs_file.set_topology(os.path.join(directory,topology))
+
+            first = int(self.start*gromacs_file.nsteps)  # first frame index
+            last  = int(self.stop*gromacs_file.nsteps)   # last frame index
+            
+            # indices used for the trajectory:
+            gromacs_indices = np.arange(first,last,nth)
+
+            # total number of files
+            self.__nframes = len(gromacs_indices)
+
+            # array of number of time steps
+            steps = np.zeros(self.__nframes, dtype=int)
+            times = np.zeros(self.__nframes, dtype=int)
+
+            # load data from dump files
+            with h5py.File(os.path.join(self.savedir, "#temp#"+trajfile), 'a') as root:
+                # Set type of h5amep file to particle
+                root.attrs["type"] = "particle"
+
+                # If no ID is specified only one warning is issued to the user.
+                # Trigger idwarning is set to false:
+                idwarning=False
+
+                # loop through all dump files
+                for n, gromacs_index in enumerate(tqdm(gromacs_indices)):
+
+                    gromacs_frame = gromacs_file.read_step(gromacs_index)
+                    
+                    # get time steps
+                    step = gromacs_frame.step
+                    time = gromacs_frame["time"]
+
+                    # get total number of atoms
+                    N = len(gromacs_frame.atoms)
+
+                    # create new group for the given step in the 'frames' group
+                    if str(step) not in root['frames'].keys():
+                        frame = root['frames'].create_group(str(step))
+                    else:
+                        frame = root['frames'][str(step)]
+
+                    # get boundaries of the simulation box
+                    gromacs_box = gromacs_frame.cell
+                    if np.any(np.array(gromacs_box.angles) != 90):
+                        raise Exception(f"GROMACSReader: box angles {np.array(gromacs_box.angles)} must be 90°.")
+                    box=np.zeros((3,2))
+                    box[:,0]=np.array([0,0,0])
+                    box[:,1]=np.array(gromacs_box.lengths) # gromax box always starting at 0
+                    if 'box' not in frame.keys():
+                        frame.create_dataset('box',
+                                             (3, 2),
+                                             data=box,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['box'][:] = box
+
+                    # get center of the simulation box
+                    center = (box[:, 1]+box[:, 0])/2
+                    if 'center' not in frame.keys():
+                        frame.create_dataset('center',
+                                             (3,),
+                                             data=center,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['center'][:] = center
+
+                    # add data to hdf5 file
+                    forces       = np.zeros((N, 3), dtype=DTYPE) # chemfiles reads no forces
+                    if 'forces' not in frame.keys():
+                        frame.create_dataset('forces',
+                                             (N, 3),
+                                             data=forces,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['forces'][:] = forces
+
+                    torque       = np.zeros((N, 3), dtype=DTYPE) # gromacs stores no forces
+                    if 'torque' not in frame.keys():
+                        frame.create_dataset('torque',
+                                             (N, 3),
+                                             data=torque,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['torque'][:] = torque
+
+                    # coordinates
+                    if gromacs_frame["has_positions"]:
+                        coords       = np.array(gromacs_frame.positions)
+                    else:
+                        coords       = np.zeros((N, 3), dtype=DTYPE)
+                    if 'coords' not in frame.keys():
+                        frame.create_dataset('coords',
+                                             (N, 3),
+                                             data=coords,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['coords'][:] = coords
+
+                    # velocities
+                    if gromacs_frame.has_velocities():
+                        velocities   = np.array(gromacs_frame.velocities)
+                    else:
+                        velocities   = np.zeros((N, 3), dtype=DTYPE)
+                    if 'velocities' not in frame.keys():
+                        frame.create_dataset('velocities',
+                                             (N, 3),
+                                             data=velocities,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['velocities'][:] = velocities
+
+                    # type ids of the particles
+                    charges          = np.zeros((N,), dtype=DTYPE)
+                    masses           = np.zeros((N,), dtype=DTYPE)
+                    type_names       = []
+                    atom_names       = []
+                    residue_names    = []
+                    residue_ids      = np.zeros((N,), dtype=int)
+                    molecule_ids     = np.zeros((N,), dtype=int)
+                    frame_topology=gromacs_frame.topology
+                    for i, atom in enumerate(gromacs_frame.atoms):
+                        masses[i] = atom.mass
+                        charges[i] = atom.charge
+                        type_names.append(atom["ff_type"])
+                        atom_names.append(atom.name)
+                        atomresidue=frame_topology.residue_for_atom(i)
+                        residue_names.append(atomresidue.name)
+                        residue_ids[i] = atomresidue.id
+
+                    all_atom_types=np.unique(type_names)
+                    type_ids     = np.array([np.where(all_atom_types==type_name)[0][0] for type_name in type_names])
+                    if "type" not in frame.keys():
+                        frame.create_dataset("type",
+                                             (N,),
+                                             data=type_ids,
+                                             dtype=int,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame["type"][:] = data[:, i]
+
+                    # type names of the particles
+                    # delete first if exists. length of string might have to be updated!
+                    if "type_name" in frame.keys():
+                        del frame["type_name"]
+                    if "type_name" not in frame.keys():
+                        frame.create_dataset("type_name",
+                                             (N,),
+                                             data=type_names,
+                                             dtype=h5py.string_dtype('utf-8', len(max(type_names, key=len))),
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+
+                    if "atom_name" in frame.keys():
+                        del frame["atom_name"]
+                    if "atom_name" not in frame.keys():
+                        frame.create_dataset("atom_name",
+                                             (N,),
+                                             data=atom_names,
+                                             dtype=h5py.string_dtype('utf-8', len(max(type_names, key=len))),
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+
+                    if "residue_name" in frame.keys():
+                        del frame["residue_name"]
+                    if "residue_name" not in frame.keys():
+                        frame.create_dataset("residue_name",
+                                             (N,),
+                                             data=residue_names,
+                                             dtype=h5py.string_dtype('utf-8', len(max(type_names, key=len))),
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+
+                    if 'residue_id' not in frame.keys():
+                        frame.create_dataset('residue_id',
+                                             (N,),
+                                             data=residue_ids,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['residue_id'][:] = residue_ids
+
+                    # # determine molecule ids from bonds
+                    # bonds=gromacs_frame.topology.bonds
+                    # molecules = [list(bonds[0])]
+                    # bonds=np.delete(bonds, 0, axis=0)
+                    # i=0
+                    # while len(bonds)>0:
+                    #     bond = bonds[i]
+                    #     for molecule in molecules:
+                    #         if bond[0] in molecule or bond[1] in molecule:
+                    #             bonds=np.delete(bonds, i, axis=0)
+                    #             i-=1
+                    #             if bond[0] not in molecule:
+                    #                 molecule.append(bond[0])
+                    #             if bond[1] not in molecule:
+                    #                 molecule.append(bond[1])
+                    #     i+=1
+                    #     if i==len(bonds) and i!=0:
+                    #         i=0
+                    #         molecules.append(list(bonds[0]))
+                    #         bonds=np.delete(bonds, i, axis=0)
+                    # # from collections.abc import Iterable
+                    # def flatten(arg):
+                    #     if not isinstance(arg, (list, np.ndarray)): # if not list
+                    # #     if not isinstance(arg, Iterable): # if not list
+                    #         return [arg]
+                    #     return [x for sub in arg for x in flatten(sub)]
+                    # # extend by single-atom molecules
+                    # if N!=len(flatten(molecules)):
+                    #     all_atoms=np.arange(0,N)
+                    #     all_atoms=np.delete(all_atoms, flatten(molecules))
+                    #     for atom in all_atoms:
+                    #         molecules.append([atom])
+                    # for molecule_id, molecule in enumerate(molecules):
+                    #     for atom in molecule:
+                    #         molecule_ids[atom] = molecule_id
+                    # if 'molecule_id' not in frame.keys():
+                    #     frame.create_dataset('molecule_id',
+                    #                          (N,),
+                    #                          data=molecule_ids,
+                    #                          dtype=DTYPE,
+                    #                          compression=COMPRESSION,
+                    #                          shuffle=SHUFFLE,
+                    #                          fletcher32=FLETCHER)
+                    # else:
+                    #     frame['molecule_id'][:] = molecule_ids
+
+                    # unwrapped coordinates/particle image
+                    uwcoords = np.zeros((N, 3), dtype=DTYPE)
+                    if 'uwcoords' not in frame.keys():
+                        frame.create_dataset('uwcoords',
+                                             (N, 3),
+                                             data=uwcoords,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    elif 'uwcoords' in frame.keys():
+                        frame['uwcoords'][:] = uwcoords
+
+                    # orientations and orientation angle quat_theta from orientation-quaternions
+                    orientations        = np.zeros((N, 3), dtype=DTYPE)
+                    if 'orientations' not in frame.keys():
+                        frame.create_dataset('orientations',
+                                             (N, 3),
+                                             data=orientations,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['orientations'][:] = orientations
+
+                    # angular momentum
+                    angmoms   = np.zeros((N, 3), dtype=DTYPE)
+                    if 'angmom' not in frame.keys():
+                        frame.create_dataset('angmom',
+                                             (N, 3),
+                                             data=angmoms,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['angmom'][:] = angmoms
+
+                    # omegas
+                    omegas       = np.zeros((N, 3), dtype=DTYPE)
+                    if 'omega' not in frame.keys():
+                        frame.create_dataset('omega',
+                                             (N, 3),
+                                             data=omegas,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['omega'][:] = omegas
+
+                    # diameters of the particles
+                    diameters       = np.zeros((N,), dtype=DTYPE)
+                    if 'diameter' not in frame.keys():
+                        frame.create_dataset('diameter',
+                                             (N,),
+                                             data=diameters,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['diameter'][:] = diameters
+
+                    # masses of the particles
+                    if 'mass' not in frame.keys():
+                        frame.create_dataset('mass',
+                                             (N,),
+                                             data=masses,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['mass'][:] = masses
+
+                    # charges of the particles
+                    if 'charge' not in frame.keys():
+                        frame.create_dataset('charge',
+                                             (N,),
+                                             data=charges,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['charge'][:] = charges
+
+                    # dimensions of the simulation
+                    d = 3
+                    frame.attrs['d'] = d
+                    steps[n] = step
+                    times[n] = time
+
+            self.steps = steps
+            self.times = times
+            self.dt = dt
+            self.d = d
+
+            # close file
+            gromacs_file.close()
         except Exception as e:
             os.remove(os.path.join(savedir, "#temp#"+trajfile))
             raise
