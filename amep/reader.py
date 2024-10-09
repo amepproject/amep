@@ -1395,9 +1395,9 @@ class GSDReader(BaseReader):
                     # angular momentum of the particles from quaternions
                     # todo!!
                     quat_angmoms    = np.array(gsd_frame.particles.angmom)
-                    # quat_angmoms    = np.zeros(np.shape(np.array(gsd_frame.particles.angmom)))
-                    # angmoms         = quat_angmoms[:,1:]
-                    angmoms         = 
+                    quat_angmoms    = np.zeros(np.shape(np.array(gsd_frame.particles.angmom)))
+                    angmoms         = quat_angmoms[:,1:]
+                    # angmoms         = 
                     if 'angmom' not in frame.keys():
                         frame.create_dataset('angmom',
                                              (N, 3),
