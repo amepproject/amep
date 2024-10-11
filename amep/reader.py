@@ -44,6 +44,7 @@ from chemfiles import Trajectory
 from tqdm.autonotebook import tqdm
 from .base import BaseReader, TRAJFILENAME, COMPRESSION, SHUFFLE, FLETCHER
 from .base import DTYPE, get_class_logger
+from .utils import quaternion_rotate, quaternion_conjugate, quaternion_multiply
 
 warnings.simplefilter('always', UserWarning)
 warnings.simplefilter('always', DeprecationWarning)
@@ -1389,15 +1390,12 @@ class GSDReader(BaseReader):
                     else:
                         frame['moment_inertia'][:] = moment_inertias
 
-
-
-
                     # angular momentum of the particles from quaternions
                     # todo!!
                     quat_angmoms    = np.array(gsd_frame.particles.angmom)
-                    quat_angmoms    = np.zeros(np.shape(np.array(gsd_frame.particles.angmom)))
-                    angmoms         = quat_angmoms[:,1:]
-                    # angmoms         = 
+                    qxP = quaternion_multiply(quaternion_conjugate(quat_orientations), quat_angmoms)
+                    angmoms         = quaternion_rotate(quat_orientations, 0.5*qxP[:,1:])
+                    # angmoms         = quaternion_rotate(-quat_orientations, angmoms) # todo: maybe necessary to rotate from principal frame to box coordinate system?!
                     if 'angmom' not in frame.keys():
                         frame.create_dataset('angmom',
                                              (N, 3),
