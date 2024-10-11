@@ -2006,3 +2006,89 @@ def optimal_chunksize(
     # additionally we add some buffer
     chunksize = int((maxmem-buffer)*8e9/bit_per_element/number_of_elements)
     return chunksize
+
+
+def quaternion_rotate(quat: np.ndarray, vec: np.ndarray):
+    r'''
+    Calculates the 3d vector rotated by the quaternion.
+
+    Notes
+    -----
+    Method from http://people.csail.mit.edu/bkph/articles/Quaternions.pdf
+
+    Parameters
+    ----------
+    quat : np.ndarray
+        4d quaternion the vector `vec` will be rotated with.
+        Shapes (4,) or (N,4,) allowed.
+    vec : np.ndarray
+        3d vector that will be rotated by the quaternion `quat`.
+        Shapes (3,) or (N,3,) allowed.
+
+    Returns
+    -------
+    np.ndarray
+        Rotated 3d vector.
+
+    '''
+    if len(np.shape(quat))==2:
+        return ((quat[:,0] * quat[:,0] - np.sum(quat[:,1:]*quat[:,1:], axis=1))[:,None] * vec 
+            + 2 * quat[:,0,None] * np.cross(quat[:,1:], vec) 
+            + 2 * np.sum(quat[:,1:]*vec, axis=1)[:,None] * quat[:,1:])
+    return ((quat[0] * quat[0] - np.dot(quat[1:], quat[1:])) * vec 
+        + 2 * quat[0] * np.cross(quat[1:], vec) 
+        + 2 * np.dot(quat[1:], vec) * quat[1:])
+
+
+def quaternion_conjugate(quat : np.ndarray):
+    r'''
+    Calculates the conjugated quaternion.
+
+    Parameters
+    ----------
+    quat : np.ndarray
+        4d quaternion that will be conjugated.
+        Shapes (4,) or (N,4,) allowed.
+
+    Returns
+    -------
+    np.ndarray
+        Conjugated quaternion.
+
+    '''
+    return quat*np.array([1,-1,-1,-1])
+
+
+def quaternion_multiply(a : np.ndarray, b : np.ndarray):
+    r'''
+    Calculates the multiplication of two quaternions.
+    Quaternion multiplication is not commutative.
+
+    Parameters
+    ----------
+    a : np.ndarray
+        4d quaternion.
+        Shapes (4,) or (N,4,) allowed.
+    b : np.ndarray
+        4d quaternion.
+        Shapes (4,) or (N,4,) allowed.
+
+    Returns
+    -------
+    np.ndarray
+        Multiplied quaternion.
+        Shapes (4,) or (N,4,) respectively to input.
+
+    '''
+    ab=np.empty(np.shape(a))
+    if len(np.shape(a))==2:
+        ab[:,0]=((a[:,0] * b[:,0]) - np.sum(a[:,1:]*b[:,1:], axis=1))
+        ab[:,1:]=(a[:,0,None] * b[:,1:]
+                + a[:,1:] * b[:,0,None]
+                + np.cross(a[:,1:], b[:,1:]))
+        return ab
+    ab[0]=(a[0] * b[0] - np.dot(a[1:], b[1:]))
+    ab[1:]=(a[0] * b[1:]
+            + a[1:] * b[0]
+            + np.cross(a[1:], b[1:]))
+    return ab
