@@ -1419,14 +1419,9 @@ class GSDReader(BaseReader):
                                              fletcher32=FLETCHER)
                     else:
                         frame['angmom_theta'][:] = angmom_thetas
-                    # omegas          = 2*np.arctan2(np.linalg.norm(quat_orientations[:,1:], axis=1), quat_orientations[:,0])
-                    # print(np.shape(omegas))
-                        # -> angmom
-                        # -> omegas
-                        # np.arcsin(quat_angmoms)[:,0]/np.asarray(quat_orientations)[:,:]/moment_inertias[:,:]/2
                     omegas       = angmoms / moment_inertias
-                    if 'omega' not in frame.keys():
-                        frame.create_dataset('omega',
+                    if 'omegas' not in frame.keys():
+                        frame.create_dataset('omegas',
                                              (N, 3),
                                              data=omegas,
                                              dtype=DTYPE,
@@ -1434,7 +1429,7 @@ class GSDReader(BaseReader):
                                              shuffle=SHUFFLE,
                                              fletcher32=FLETCHER)
                     else:
-                        frame['omega'][:] = omegas
+                        frame['omegas'][:] = omegas
 
 
 
@@ -1925,8 +1920,8 @@ class GROMACSReader(BaseReader):
 
                     # omegas
                     omegas       = np.zeros((N, 3), dtype=DTYPE)
-                    if 'omega' not in frame.keys():
-                        frame.create_dataset('omega',
+                    if 'omegas' not in frame.keys():
+                        frame.create_dataset('omegas',
                                              (N, 3),
                                              data=omegas,
                                              dtype=DTYPE,
@@ -1934,7 +1929,7 @@ class GROMACSReader(BaseReader):
                                              shuffle=SHUFFLE,
                                              fletcher32=FLETCHER)
                     else:
-                        frame['omega'][:] = omegas
+                        frame['omegas'][:] = omegas
 
                     # diameters of the particles
                     diameters       = np.zeros((N,), dtype=DTYPE)
