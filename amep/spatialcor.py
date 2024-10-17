@@ -1392,9 +1392,9 @@ def sfiso(
     ----------
     coords : np.ndarray of shape (N,3)
         Coordinates.
-    np.ndarray of shape (3,2)
+    box_boundary : np.ndarray of shape (3,2)
         Boundary of the simulation box in the form of
-        `np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]])`
+        `np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]])`.
     N : int
         Total number of particles.
     qmax : float, optional
@@ -1650,9 +1650,9 @@ def sf2d(
     ----------
     coords : np.ndarray
         Coordinate frame (3D).
-    box_boundary : np.ndarray
-        Boundaries of the simulation box given in the form
-        np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]]).
+    box_boundary : np.ndarray of shape (3,2)
+        Boundary of the simulation box in the form of
+        `np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]])`.
     other_coords : np.ndarray, optional
         Coordinate frame of the other species to which the pair correlation
         is calculated. The default is None (uses coords).
