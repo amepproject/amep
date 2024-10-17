@@ -138,7 +138,7 @@ def average_func(
     if(nr == None or nr > N - skip * N):
         nr = max(1,int(N-skip*N))
 
-    evaluated_indices = np.ceil(np.linspace(skip*N, N-1, nr))
+    evaluated_indices = np.array(np.ceil(np.linspace(skip*N, N-1, nr)), dtype=int)
     func_result = [func(x, **kwargs) for x in tqdm(data[evaluated_indices])]
     evaluated = np.array(func_result)
     if indices:
