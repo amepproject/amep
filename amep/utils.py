@@ -136,9 +136,9 @@ def average_func(
     N = len(data)   # number of time steps
 
     if(nr == None or nr > N - skip * N):
-        nr = int(N-skip*N)
+        nr = max(1,int(N-skip*N))
 
-    evaluated_indices = np.linspace(skip*N, N-1, nr, dtype=int)
+    evaluated_indices = np.ceil(np.linspace(skip*N, N-1, nr))
     func_result = [func(x, **kwargs) for x in tqdm(data[evaluated_indices])]
     evaluated = np.array(func_result)
     if indices:
