@@ -1107,14 +1107,11 @@ class GSDReader(BaseReader):
     def __init__(
             self, directory: str, savedir: str, start: float = 0.0,
             stop: float = 1.0, nth: int = 1, filename: str = 'trajectory.gsd',
-            dt: float = 1.0,
+            dt: float = 1.0, e0: np.ndarray = [1,0,0],
             trajfile: str = TRAJFILENAME, deleteold: bool = False,
             verbose: bool = False) -> None:
         r'''
         Reader for simulation data in the gsd file format (hoomd-blue).
-
-        TODO in progress
-        - real-time not in gsd file
 
         Parameters
         ----------
@@ -1136,6 +1133,12 @@ class GSDReader(BaseReader):
             Timestep of the simulation. The GSD file format does only save
             the simulation step number but not the (physical) time.
             The default is 1.
+        e0 : np.ndarray, optional
+            Orientation vector of the particles. hoomd-blue does only save
+            rotations instead of orientations, thus an (initial) orientation
+            vector is needed. This can, for example, be the self-propulsion
+            direction of the particles. shape=(3,) or (N,3,).
+            The default is [1,0,0].
         trajfile : str, optional
             Name of the hdf5 trajectory file that is created when an object of
             this class is initialized. The default is TRAJFILENAME.
@@ -1152,8 +1155,6 @@ class GSDReader(BaseReader):
         '''
         # init class logger
         self.__log = get_class_logger(__name__, self.__class__.__name__)
-        
-        warnings.warn("GSDReader: angular momentum and omega are experimental features!")
         
         # back up trajectory file
         if os.path.exists(os.path.join(savedir, trajfile)):
@@ -1319,7 +1320,6 @@ class GSDReader(BaseReader):
                     # delete first if exists. length of string might have to be updated!
                     if "type_name" in frame.keys():
                         del frame["type_name"]
-                    # print(len(max(type_names, key=len)))
                     if "type_name" not in frame.keys():
                         frame.create_dataset("type_name",
                                              (N,),
@@ -1328,8 +1328,6 @@ class GSDReader(BaseReader):
                                              compression=COMPRESSION,
                                              shuffle=SHUFFLE,
                                              fletcher32=FLETCHER)
-                    # else:
-                    #     frame["type_name"][:] = type_names
 
                     # dimensions of the simulation
                     d = gsd_frame.configuration.dimensions
@@ -1354,7 +1352,9 @@ class GSDReader(BaseReader):
 
                     # orientations and orientation angle quat_theta from orientation-quaternions
                     quat_orientations   = np.array(gsd_frame.particles.orientation)
-                    orientations        = quat_orientations[:,1:]/np.linalg.norm(quat_orientations[:,1:], axis=1)[:, None]
+                    # orientations        = quat_orientations[:,1:]/np.linalg.norm(quat_orientations[:,1:], axis=1)[:, None] # old orientation calculation - but hoomd-blue only saves rotations instead of absolute orientations.
+                    orientations        = quaternion_rotate(quat_orientations, e0)
+                    orientations        /= np.linalg.norm(orientations, axis=1)[:,None]
                     if 'orientations' not in frame.keys():
                         frame.create_dataset('orientations',
                                              (N, 3),
@@ -1365,17 +1365,17 @@ class GSDReader(BaseReader):
                                              fletcher32=FLETCHER)
                     else:
                         frame['orientations'][:] = orientations
-                    quat_thetas         = 2*np.arctan2(np.linalg.norm(quat_orientations[:,1:], axis=1), quat_orientations[:,0])
-                    if 'quat_theta' not in frame.keys():
-                        frame.create_dataset('quat_theta',
-                                             (N,),
-                                             data=quat_thetas,
-                                             dtype=DTYPE,
-                                             compression=COMPRESSION,
-                                             shuffle=SHUFFLE,
-                                             fletcher32=FLETCHER)
-                    else:
-                        frame['quat_theta'][:] = quat_thetas
+                    # quat_thetas         = 2*np.arctan2(np.linalg.norm(quat_orientations[:,1:], axis=1), quat_orientations[:,0])
+                    # if 'quat_theta' not in frame.keys():
+                    #     frame.create_dataset('quat_theta',
+                    #                          (N,),
+                    #                          data=quat_thetas,
+                    #                          dtype=DTYPE,
+                    #                          compression=COMPRESSION,
+                    #                          shuffle=SHUFFLE,
+                    #                          fletcher32=FLETCHER)
+                    # else:
+                    #     frame['quat_theta'][:] = quat_thetas
 
                     # moment of inertia of the particles
                     moment_inertias = np.array(gsd_frame.particles.moment_inertia)
@@ -1391,11 +1391,12 @@ class GSDReader(BaseReader):
                         frame['moment_inertia'][:] = moment_inertias
 
                     # angular momentum of the particles from quaternions
-                    # todo!!
+                    # see: https://hoomd-blue.readthedocs.io/en/v2.9.3/aniso.html
                     quat_angmoms    = np.array(gsd_frame.particles.angmom)
-                    qxP = quaternion_multiply(quaternion_conjugate(quat_orientations), quat_angmoms)
-                    angmoms         = quaternion_rotate(quat_orientations, 0.5*qxP[:,1:])
-                    # angmoms         = quaternion_rotate(-quat_orientations, angmoms) # todo: maybe necessary to rotate from principal frame to box coordinate system?!
+                    angmoms = quaternion_multiply(quaternion_conjugate(quat_orientations), quat_angmoms)[:,1:]
+                    # qxP = quaternion_multiply(quaternion_conjugate(quat_orientations), quat_angmoms)
+                    # angmoms_principal= quaternion_rotate(quat_orientations, 0.5*qxP[:,1:])
+                    # angmoms          = quaternion_rotate(quaternion_conjugate(quat_orientations), angmoms_principal)
                     if 'angmom' not in frame.keys():
                         frame.create_dataset('angmom',
                                              (N, 3),
@@ -1428,9 +1429,6 @@ class GSDReader(BaseReader):
                                              fletcher32=FLETCHER)
                     else:
                         frame['omegas'][:] = omegas
-
-
-
 
                     # diameters of the particles
                     diameters       = np.array(gsd_frame.particles.diameter)
@@ -1540,7 +1538,10 @@ class GSDReader(BaseReader):
 
 class GROMACSReader(BaseReader):
     '''Reads GROMACS files and writes the containing data to an hdf5 file.
-    TODO list necessary files!
+
+    Necessary files: The trajectory (or one frame) in the file format of .trr 
+    or .gro or similar (see chemfiles documentation https://chemfiles.org/ ) 
+    as well as a topology in the format of .tpr or similar are needed.
     '''
 
     def __init__(
@@ -1551,7 +1552,7 @@ class GROMACSReader(BaseReader):
             trajfile: str = TRAJFILENAME, deleteold: bool = False,
             verbose: bool = False) -> None:
         r'''
-        Reader for simulation data from GROMAACS molecular dynamics simulations.
+        Reader for simulation data from GROMACS molecular dynamics simulations.
 
         TODO in progress
 
