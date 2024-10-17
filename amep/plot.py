@@ -875,9 +875,9 @@ def box(axis: mpl.axes.Axes, box_boundary: np.ndarray, **kwargs) -> None:
     ----------
     axis : AxisSubplot
         Matplotlib.pyplot AxisSubplot object.
-    box_boundary : np.ndarray
-        Boundaries of the simulation box.
-        [[xmin, xmax], [ymin, ymax], [zmin, zmax]]
+    box_boundary : np.ndarray of shape (3,2)
+        Boundary of the simulation box in the form of
+        `np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]])`.
     **kwargs : 
         Forwarded to axis.plot.
 
@@ -927,9 +927,9 @@ def particles(
         The matplotlib axes object where the particles will be plotted.
     coords : np.ndarray
         An array of coordinates for the particles.
-    box_boundary : np.ndarray
-        The boundary of the simulation box.
-        [[xmin, xmax], [ymin, ymax], [zmin, zmax]]
+    box_boundary : np.ndarray of shape (3,2)
+        Boundary of the simulation box in the form of
+        `np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]])`.
     radius : float or np.ndarray
         The radius of the particles.
     scalefactor : float, optional
