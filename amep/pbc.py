@@ -647,7 +647,8 @@ def kdtree(
         coords[coords[:,0]==box[0],0]=0
         coords[coords[:,1]==box[1],1]=0
         coords[coords[:,2]==box[2],2]=0
-
+        # print(box_boundary, box)
+        # print(np.max(coords, axis=0))
     return KDTree(coords, boxsize=box)
 
 # =============================================================================
