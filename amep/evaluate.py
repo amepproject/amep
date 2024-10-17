@@ -3596,8 +3596,8 @@ class ClusterGrowth(BaseEvaluation):
         
         # if no clusters are detected
         if len(values) == 0:
-            values = 0.0
-            weights = 1.0
+            values = [0.0]
+            weights = [1.0]
         else:
             weights = values
         
@@ -3655,8 +3655,8 @@ class ClusterGrowth(BaseEvaluation):
             
         # case if there is no cluster
         if len(values) == 0:
-            values = 0.0
-            weights = 1.0
+            values = [0.0]
+            weights = [1.0]
         else:
             weights = values
         
