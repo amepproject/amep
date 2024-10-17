@@ -1542,12 +1542,17 @@ class GROMACSReader(BaseReader):
     Necessary files: The trajectory (or one frame) in the file format of .trr 
     or .gro or similar (see chemfiles documentation https://chemfiles.org/ ) 
     as well as a topology in the format of .tpr or similar are needed.
+
+    Note: The molecule identification uses the bonds and a maximum molecule
+        search size `maxmss` with a default value of 20. If the molecules are
+        not identified correctly, try increasing this value (up to the number
+        of atoms of the larges molecule for example).
     '''
 
     def __init__(
             self, directory: str, savedir: str, start: float = 0.0,
             stop: float = 1.0, nth: int = 1, filename: str = 'traj.trr',
-            topology: str = 'topol.tpr',
+            topology: str = 'topol.tpr', maxmss: int = 20,
             dt: float = 1.0,
             trajfile: str = TRAJFILENAME, deleteold: bool = False,
             verbose: bool = False) -> None:
@@ -1574,6 +1579,13 @@ class GROMACSReader(BaseReader):
             File name of the GROMACS trajectory file. The default is 'traj.trr'.
         topology : str, optional
             File name of the GROMACS topology file. The default is 'topol.tpr'.
+        maxmss : int
+            Maximum molecule search size. If the molecules are not identified 
+            correctly, try increasing this value up to the number of atoms 
+            of the larges molecule for example. Because GROMACS is storing
+            connected atoms in proximity to each other, smaller values most
+            often work as well.
+            The default is 20.
         dt : float, optional
             Timestep of the simulation. The GSD file format does only save
             the simulation step number but not the (physical) time.
@@ -1594,10 +1606,6 @@ class GROMACSReader(BaseReader):
         '''
         # init class logger
         self.__log = get_class_logger(__name__, self.__class__.__name__)
-        
-        warnings.warn("GROMACSReader: under construction...")
-        warnings.warn("GROMACSReader: molecule_id calculation very slow. Implemented but currently commented out.")
-        warnings.warn("GROMACSReader: error!!! atom.type vs type_names vs atom_names can all be different!!!!!")
         
         # back up trajectory file
         if os.path.exists(os.path.join(savedir, trajfile)):
@@ -1648,6 +1656,9 @@ class GROMACSReader(BaseReader):
                 # If no ID is specified only one warning is issued to the user.
                 # Trigger idwarning is set to false:
                 idwarning=False
+
+                # save molecule_ids after first identification:
+                molecule_ids = None
 
                 # loop through all dump files
                 for n, gromacs_index in enumerate(tqdm(gromacs_indices)):
@@ -1762,7 +1773,6 @@ class GROMACSReader(BaseReader):
                     atom_names       = []
                     residue_names    = []
                     residue_ids      = np.zeros((N,), dtype=int)
-                    molecule_ids     = np.zeros((N,), dtype=int)
                     frame_topology=gromacs_frame.topology
                     for i, atom in enumerate(gromacs_frame.atoms):
                         masses[i] = atom.mass
@@ -1832,51 +1842,63 @@ class GROMACSReader(BaseReader):
                     else:
                         frame['residue_id'][:] = residue_ids
 
-                    # # determine molecule ids from bonds
-                    # bonds=gromacs_frame.topology.bonds
-                    # molecules = [list(bonds[0])]
-                    # bonds=np.delete(bonds, 0, axis=0)
-                    # i=0
-                    # while len(bonds)>0:
-                    #     bond = bonds[i]
-                    #     for molecule in molecules:
-                    #         if bond[0] in molecule or bond[1] in molecule:
-                    #             bonds=np.delete(bonds, i, axis=0)
-                    #             i-=1
-                    #             if bond[0] not in molecule:
-                    #                 molecule.append(bond[0])
-                    #             if bond[1] not in molecule:
-                    #                 molecule.append(bond[1])
-                    #     i+=1
-                    #     if i==len(bonds) and i!=0:
-                    #         i=0
-                    #         molecules.append(list(bonds[0]))
-                    #         bonds=np.delete(bonds, i, axis=0)
-                    # # from collections.abc import Iterable
-                    # def flatten(arg):
-                    #     if not isinstance(arg, (list, np.ndarray)): # if not list
-                    # #     if not isinstance(arg, Iterable): # if not list
-                    #         return [arg]
-                    #     return [x for sub in arg for x in flatten(sub)]
-                    # # extend by single-atom molecules
-                    # if N!=len(flatten(molecules)):
-                    #     all_atoms=np.arange(0,N)
-                    #     all_atoms=np.delete(all_atoms, flatten(molecules))
-                    #     for atom in all_atoms:
-                    #         molecules.append([atom])
-                    # for molecule_id, molecule in enumerate(molecules):
-                    #     for atom in molecule:
-                    #         molecule_ids[atom] = molecule_id
-                    # if 'molecule_id' not in frame.keys():
-                    #     frame.create_dataset('molecule_id',
-                    #                          (N,),
-                    #                          data=molecule_ids,
-                    #                          dtype=DTYPE,
-                    #                          compression=COMPRESSION,
-                    #                          shuffle=SHUFFLE,
-                    #                          fletcher32=FLETCHER)
-                    # else:
-                    #     frame['molecule_id'][:] = molecule_ids
+                    # determine molecule ids from bonds
+                    if molecule_ids is None:
+                        molecule_ids     = np.zeros((N,), dtype=int)
+                        # determine molecule ids from bonds
+                        for i in range(1):
+                            bonds=gromacs_frame.topology.bonds
+                            molecules = [list(bonds[0])]
+                            bonds=bonds[1:]
+                            i=0
+                            while len(bonds)>0:
+                                bond = bonds[i]
+                                molecule=molecules[-1]
+                                if bond[0] in molecule or bond[1] in molecule:
+                                    if i==0:
+                                        bonds=bonds[1:]
+                                    else:
+                                        bonds=np.concatenate((bonds[:i], bonds[i+1:]))
+                                    if bond[0] not in molecule:
+                                        molecule.append(bond[0])
+                                    if bond[1] not in molecule:
+                                        molecule.append(bond[1])
+                                    i=-1
+                                i+=1
+                                # maxmss : maximum molecule search size
+                                # reduces computation time significantly
+                                if (i==len(bonds) and i!=0) or (i>=maxmss):
+                                    i=0
+                                    molecules.append(list(bonds[i]))
+                                    bonds=bonds[1:]
+                    #         extend by single-atom molecules
+                    #         necessary for unified-atom simulations of water for example
+                    # #         from collections.abc import Iterable
+                    #         def flatten(arg):
+                    #             if not isinstance(arg, (list, np.ndarray)): # if not list
+                    # #             if not isinstance(arg, Iterable): # if not list
+                    #                 return [arg]
+                    #             return [x for sub in arg for x in flatten(sub)]
+                    # #         flattened=flatten(molecules)
+                            flattened=[atoms for molecule in molecules for atoms in molecule]
+                            if N!=len(flattened):
+                                missing_atoms=np.delete(np.arange(0,N), flattened)
+                                for atom in missing_atoms:
+                                    molecules.append([atom])
+                            for molecule_id, molecule in enumerate(molecules):
+                                for atom in molecule:
+                                    molecule_ids[atom] = molecule_id
+                    # store molecule_ids
+                    if 'molecule_id' not in frame.keys():
+                        frame.create_dataset('molecule_id',
+                                             (N,),
+                                             data=molecule_ids,
+                                             dtype=DTYPE,
+                                             compression=COMPRESSION,
+                                             shuffle=SHUFFLE,
+                                             fletcher32=FLETCHER)
+                    else:
+                        frame['molecule_id'][:] = molecule_ids
 
                     # unwrapped coordinates/particle image
                     uwcoords = np.zeros((N, 3), dtype=DTYPE)
