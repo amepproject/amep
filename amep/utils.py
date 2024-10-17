@@ -309,9 +309,8 @@ def profile(
     ----------
     coords : np.ndarray
         Coordinate frame.
-    box_boundary : np.ndarray
-        Boundaries of the simulation box.
-        [[xmin,xmax],[ymin,ymax],[zmin,zmax]]
+    box_boundary : (np.ndarray of shape (3,2))
+        Boundary of the simulation box in the form of np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]]).
     values : np.ndarray
         Per-particle values (1D array).
     binwidth : float, optional
