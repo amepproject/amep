@@ -1407,17 +1407,17 @@ class GSDReader(BaseReader):
                                              fletcher32=FLETCHER)
                     else:
                         frame['angmom'][:] = angmoms
-                    angmom_thetas   = quat_angmoms[:,0]
-                    if 'angmom_theta' not in frame.keys():
-                        frame.create_dataset('angmom_theta',
-                                             (N, ),
-                                             data=angmom_thetas,
-                                             dtype=DTYPE,
-                                             compression=COMPRESSION,
-                                             shuffle=SHUFFLE,
-                                             fletcher32=FLETCHER)
-                    else:
-                        frame['angmom_theta'][:] = angmom_thetas
+                    # angmom_thetas   = quat_angmoms[:,0]
+                    # if 'angmom_theta' not in frame.keys():
+                    #     frame.create_dataset('angmom_theta',
+                    #                          (N, ),
+                    #                          data=angmom_thetas,
+                    #                          dtype=DTYPE,
+                    #                          compression=COMPRESSION,
+                    #                          shuffle=SHUFFLE,
+                    #                          fletcher32=FLETCHER)
+                    # else:
+                    #     frame['angmom_theta'][:] = angmom_thetas
                     omegas       = angmoms / moment_inertias
                     if 'omegas' not in frame.keys():
                         frame.create_dataset('omegas',
