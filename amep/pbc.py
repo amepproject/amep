@@ -640,13 +640,15 @@ def kdtree(
         coords = coords + box/2. - center
         
         # fold coords back into box (to avoid errors)
-        coords = fold(coords, box_boundary)
+        coords = fold(coords, box_boundary-box_boundary[:,0][:,None])
         
         # shift particles at the right border to the left border
         # to avoid errors occuring if a particle is placed at L_i
         coords[coords[:,0]==box[0],0]=0
         coords[coords[:,1]==box[1],1]=0
         coords[coords[:,2]==box[2],2]=0
+        # should not be done for fields! all right boundaries will
+        # be shifted to the left and would be double-occupied!
 
     return KDTree(coords, boxsize=box)
 
