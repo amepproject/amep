@@ -772,7 +772,7 @@ class BaseFrame:
 
         return datakeys
     def data(
-            self, *args: str | list[str], ptype: int | None = None, zerofill: bool = False,
+            self, *args: str | tuple[list[str], ...], ptype: int | None = None, zerofill: bool = False,
             return_keys: bool = False) -> tuple[list, np.ndarray]:
         r'''
         Returns the entire data frame for all particles or for
@@ -785,10 +785,12 @@ class BaseFrame:
         that start with "name", "value[*]" returns all datasets with any
         number of characters in between the square brackets i.e. "value[1]",
         "value[2]", ..., "value[any text with any length]".
+
+        Duplicate keys are removed.
         
         Parameters
         ----------
-        *args : str | list[str]
+        *args : str | tuple[list[str], ...]
             Parameter keys. One wildcard character asterisk can be used, see
             note above. Either multiple strings or lists of strings are
             allowed, a combination should not be used.
@@ -849,11 +851,10 @@ class BaseFrame:
                             found_key = True
                 if not found_key:
                     raise KeyError(
-                        f"""The key {arg} does not exist in the frame,
-                        returning no data!"""
+                        f"The key \"{arg}\" does not exist in the frame, returning no data!"
                     )
             # remove duplicates
-            args = np.unique(extended_keys)
+            args = np.array(args)[np.sort(np.unique(extended_keys, return_index=True)[1])]
 
         # loop through given keys
         for i,key in enumerate(args):
