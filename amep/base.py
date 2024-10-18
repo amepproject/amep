@@ -772,7 +772,7 @@ class BaseFrame:
 
         return datakeys
     def data(
-            self, *args, ptype: int | None = None, zerofill: bool = False,
+            self, *args: str | list[str], ptype: int | None = None, zerofill: bool = False,
             return_keys: bool = False) -> tuple[list, np.ndarray]:
         r'''
         Returns the entire data frame for all particles or for
@@ -788,9 +788,10 @@ class BaseFrame:
         
         Parameters
         ----------
-        *args : str
+        *args : str | list[str]
             Parameter keys. One wildcard character asterisk can be used, see
-            note above.
+            note above. Either multiple strings or lists of strings are
+            allowed, a combination should not be used.
         ptype : int | list, optional
             Particle type. Is internally converted to a list and all matching
             ptypes are returned. The default is None.
@@ -812,10 +813,21 @@ class BaseFrame:
         data = None
         datakeys = []
 
+        # allow lists of keys as input
+        islist=False
+        listresult=[]
+        for arg in args:
+            if isinstance(arg, (list, np.ndarray)):
+                islist=True
+                listresult.append(self.data(*arg, ptype = ptype, zerofill = zerofill, return_keys = return_keys))
+        if islist:
+            if len(args)==1:
+                return listresult[0]
+            return listresult
+            
         # return all data if no arguments are given
         if len(args)==0:
             args = self.keys
-
         else:
             # Transform list of all given keys by allowing semi-wildcard matches
             # One asterisk * is allowed.
