@@ -101,11 +101,21 @@ def traj(
 
     Shortcuts to load an h5amep file directly:
 
-    >>> traj = amep.load.traj("data/traj.h5amep")
+    >>> traj = amep.load.traj("examples/data/traj.h5amep")
     >>> traj = amep.load.traj(
     ...     "data", trajfile="traj.h5amep", mode="h5amep"
     ... )
     >>> 
+
+    Example for loading GROMACS data:
+
+    >>> path = "examples/data/gromacs/"
+    >>> traj=amep.load.traj(directory=path, mode="gromacs", reload=True)
+
+    Example for loading GSD data
+
+    >>> path="examples/data/hoomd/"
+    >>> traj=amep.load.traj(directory=path, mode="gsd", reload=True)
 
 
     Fix for working with remote files and insufficient access rights:
