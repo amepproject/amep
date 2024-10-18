@@ -3093,6 +3093,11 @@ class Dist(BaseEvaluation):
         >>> axs.set_xlabel("Velocity")
         >>> axs.set_ylabel("P(Velocity)")
         >>> axs.semilogx()
+        >>> fig.savefig("/home/dormann/Documents/git_amep/doc/source/_static/images/evaluate/evaluate-Dist.png")
+
+        .. image:: /_static/images/evaluate/evaluate-Dist.png
+          :width: 400
+          :align: center
 
         '''
         super(Dist, self).__init__()
