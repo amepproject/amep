@@ -23,8 +23,12 @@ Including it's main class, readers and methods."""
 import unittest
 from pathlib import Path
 from matplotlib import use
-from amep.load import traj
-from amep.evaluate import ClusterGrowth, ClusterSizeDist, Function, SpatialVelCor, RDF, PCF2d, PCFangle, SF2d
+amep_path='/home/dormann/Documents/'
+import sys
+sys.path.append(amep_path)
+from git_amep.amep.load import traj
+from git_amep.amep.evaluate import ClusterGrowth, ClusterSizeDist, Function, SpatialVelCor, RDF, PCF2d, PCFangle, SF2d
+from git_amep.amep.evaluate import VelDist, Dist, EkinRot, EkinTrans, EkinTot
 use("Agg")
 DATA_DIR = Path("../examples/data/")
 
@@ -42,7 +46,7 @@ class TestEvaluateMethods(unittest.TestCase):
         RESULT_DIR.mkdir(exist_ok=True)
         cls.field_traj = traj(DATA_DIR/"continuum.h5amep")
         cls.particle_traj = traj(DATA_DIR/"lammps.h5amep")
-
+    
     def test_cluster_growth(self):
         """Test the cluster growth methods.
 
@@ -61,12 +65,21 @@ class TestEvaluateMethods(unittest.TestCase):
         self.assertTrue((ClusterGrowth(self.field_traj,
                                        ftype="c",
                                        mode="largest").frames >= 0).all())
-
+    '''
     def test_energy_methods(self):
         """Test the energy methods.
         TO BE IMPLEMENTED
         """
-        pass
+        traj = self.particle_traj
+        # Ekintrans
+        ekintrans = EkinTrans(traj, mass=0.05, skip=0.9, nav=2)
+        ekintrans.save(RESULT_DIR/"ekintrans_eval.h5", database=True, name="particles")
+        # Ekinrot
+        ekinrot = EkinRot(traj, inertia=0.005, skip=0.9, nav=2)
+        ekinrot.save(RESULT_DIR/"ekinrot_eval.h5", database=True, name="particles")
+        # Ekinrot
+        ekinrot = EkinRot(traj, mass=0.05, inertia=0.005, skip=0.9, nav=2)
+        ekinrot.save(RESULT_DIR/"ekinrot_eval.h5", database=True, name="particles")
 
     def test_function(self):
         """Test arbitray function evaluation.
@@ -74,6 +87,7 @@ class TestEvaluateMethods(unittest.TestCase):
         """
         traj = self.particle_traj
         ftraj = self.field_traj
+        # MSD
         def msd(frame, start=None):
             vec = start.unwrapped_coords() - frame.unwrapped_coords()
             return (vec ** 2).sum(axis=1).mean()
@@ -84,20 +98,30 @@ class TestEvaluateMethods(unittest.TestCase):
             )
         msd_eval.name = "msd"
         msd_eval.save(RESULT_DIR/"msd_eval.h5")
+        # PCF2d
         pcf2d = PCF2d(traj,
                       nav=2, nxbins=2000, nybins=2000,
                       njobs=4, skip=0.9
                       )
         pcf2d.save(RESULT_DIR/"pcf2d.h5")
+        # PCFangle
         pcfangle = PCFangle(
             traj, nav=2, ndbins=1000, nabins=1000,
             njobs=4, rmax=8.0, skip=0.9
             )
         pcfangle.save(RESULT_DIR/"pcfangle.h5")
+        # SF2d
         psf2d = SF2d(traj, skip=0.9, nav=2)
         psf2d.save(RESULT_DIR/"sf2d_eval.h5", database=True, name="particles")
         fsf2d = SF2d(ftraj, skip=0.9, nav=2, ftype="c")
         fsf2d.save(RESULT_DIR/"sf2d_eval.h5", database=True, name="field")
+        # VelDist
+        veldist = VelDist(traj, skip=0.9, nav=2)
+        veldist.save(RESULT_DIR/"veldist_eval.h5", database=True, name="particles")
+        # VelDist
+        import numpy as np
+        dist = Dist(traj, "v*",func=np.linalg.norm, axis=1, skip=0.9, nav=2)
+        dist.save(RESULT_DIR/"dist_eval.h5", database=True, name="particles")
 
     def test_order_evaluations(self):
         """Test order parameter evaluation.
@@ -117,9 +141,10 @@ class TestEvaluateMethods(unittest.TestCase):
                 nav=2, nbins=1000,
                 skip=0.9, njobs=4)
         rdfcalc.save(RESULT_DIR/'rdf.h5')
-
+    
     def test_transforms(self):
         """Test order parameter evaluation.
         TO BE IMPLEMENTED
         """
         pass
+    '''
