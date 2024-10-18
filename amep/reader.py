@@ -1113,6 +1113,11 @@ class GSDReader(BaseReader):
         r'''
         Reader for simulation data in the gsd file format (hoomd-blue).
 
+        Note: The gsd file format does not save the (physical) time.
+            Only the timestep is saved. By supplying the simulation 
+            timestep `dt`, the (physical) time will be calculated.
+            The default for `dt` is 1.
+
         Parameters
         ----------
         directory : str
