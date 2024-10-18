@@ -1100,8 +1100,8 @@ class ContinuumReader(BaseReader):
         return delimiter
 
 
-class GSDReader(BaseReader):
-    '''Reads GSD files and writes the containing data to an hdf5 file.
+class HOOMDReader(BaseReader):
+    '''Reads hoomd-blue GSD files and writes the containing data to an hdf5 file.
     '''
 
     def __init__(
@@ -1111,7 +1111,7 @@ class GSDReader(BaseReader):
             trajfile: str = TRAJFILENAME, deleteold: bool = False,
             verbose: bool = False) -> None:
         r'''
-        Reader for simulation data in the gsd file format (hoomd-blue).
+        Reader for simulation data in the hoomd-blue gsd file format.
 
         Note: The gsd file format does not save the (physical) time.
             Only the timestep is saved. By supplying the simulation 

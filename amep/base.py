@@ -169,7 +169,7 @@ LOADMODES = [
     'lammps',
     'h5amep',
     'field',
-    'gsd',
+    'hoomd',
     'gromacs'
 ]
 # maximum RAM usage in GB per CPU (used for parallelized methods)

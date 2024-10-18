@@ -33,7 +33,7 @@ simulation data or evaluation results.
 import os
 import h5py
 
-from .reader import LammpsReader, H5amepReader, ContinuumReader, GSDReader, GROMACSReader
+from .reader import LammpsReader, H5amepReader, ContinuumReader, HOOMDReader, GROMACSReader
 from .trajectory import ParticleTrajectory,FieldTrajectory
 from .base import TRAJFILENAME, BaseEvalData, BaseDatabase, LOADMODES
 from .base import check_path, get_module_logger
@@ -115,7 +115,7 @@ def traj(
     Example for loading GSD data
 
     >>> path="examples/data/hoomd/"
-    >>> traj=amep.load.traj(directory=path, mode="gsd", reload=True)
+    >>> traj=amep.load.traj(directory=path, mode="hoomd", reload=True)
 
 
     Fix for working with remote files and insufficient access rights:
@@ -231,8 +231,8 @@ def traj(
             **kwargs
         )
         return FieldTrajectory(reader)
-    elif mode == 'gsd':
-        reader = GSDReader(
+    elif mode == 'hoomd':
+        reader = HOOMDReader(
             directory,
             savedir,
             trajfile = trajfile,
