@@ -1095,10 +1095,10 @@ def field(
     cmap: list or str, optional
         A list representing the colormap to use for the particles or
         the name of a matplotlib colormap. The default is 'viridis'.
-    box_boundary : np.ndarray | None, optional
-        The boundary of the simulation box.
+    box_boundary : np.ndarray of shape (3,2) | None, optional
+        Boundary of the simulation box in the form of
+        `np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]])`.
         Needed if `set_ax_limits = True`.
-        [[xmin, xmax], [ymin, ymax], [zmin, zmax]]
     vmin : float or None, optional
         Lower limit for the colormap. The default is None.
     vmax : float or None, optional
