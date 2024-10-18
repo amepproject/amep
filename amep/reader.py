@@ -1552,6 +1552,10 @@ class GROMACSReader(BaseReader):
         search size `maxmss` with a default value of 20. If the molecules are
         not identified correctly, try increasing this value (up to the number
         of atoms of the larges molecule for example).
+
+        For very small trajectory files (such as the example file), the
+        h5amep format is larger than the GROMACS files. This evens out for
+        larger simulations.
     '''
 
     def __init__(
