@@ -703,7 +703,7 @@ def voronoi_density(
         Coordinates of the particles for the voronoi tessellation.
         If None, the user has to specify the Voronoi tessellation with the
         keyword `vor` (and ids for pbc=True).
-    box_boundary : np.ndarray of shape (3,2) or None
+    box_boundary : np.ndarray of shape (3,2) | None, optional
         Boundary of the simulation box in the form of
         `np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]])`.
         If None, the user has to specify the Voronoi tessellation with the
