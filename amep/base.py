@@ -854,7 +854,7 @@ class BaseFrame:
                         f"The key \"{arg}\" does not exist in the frame, returning no data!"
                     )
             # remove duplicates
-            args = np.array(args)[np.sort(np.unique(extended_keys, return_index=True)[1])]
+            args = np.array(extended_keys)[np.sort(np.unique(extended_keys, return_index=True)[1])]
 
         # loop through given keys
         for i,key in enumerate(args):
