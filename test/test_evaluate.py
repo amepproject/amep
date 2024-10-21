@@ -23,12 +23,9 @@ Including it's main class, readers and methods."""
 import unittest
 from pathlib import Path
 from matplotlib import use
-amep_path='/home/dormann/Documents/'
-import sys
-sys.path.append(amep_path)
-from git_amep.amep.load import traj
-from git_amep.amep.evaluate import ClusterGrowth, ClusterSizeDist, Function, SpatialVelCor, RDF, PCF2d, PCFangle, SF2d
-from git_amep.amep.evaluate import VelDist, Dist, EkinRot, EkinTrans, EkinTot
+from amep.load import traj
+from amep.evaluate import ClusterGrowth, ClusterSizeDist, Function, SpatialVelCor, RDF, PCF2d, PCFangle, SF2d
+from amep.evaluate import VelDist, Dist, EkinRot, EkinTrans, EkinTot
 use("Agg")
 DATA_DIR = Path("../examples/data/")
 
