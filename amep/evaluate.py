@@ -3087,13 +3087,23 @@ class Dist(BaseEvaluation):
         >>> import amep
         >>> path="/home/dormann/Documents/git_amep/examples/data/lammps.h5amep"
         >>> traj= amep.load.traj(path)
+        >>> # distribution of the absolute velocity
         >>> dist=amep.evaluate.Dist(traj, "v*", func=np.linalg.norm, axis=1, skip=0.5, logbins=True)
+        >>> # save results in hdf5 format
+        >>> dist.save("./eval/dist-eval.h5", name="velocitydistribution")
+
         >>> fig,axs=amep.plot.new()
         >>> axs.plot(dist.x, dist.xdist)
         >>> axs.set_xlabel("Velocity")
         >>> axs.set_ylabel("P(Velocity)")
         >>> axs.semilogx()
         >>> fig.savefig("/home/dormann/Documents/git_amep/doc/source/_static/images/evaluate/evaluate-Dist.png")
+
+        >>> # more examples:
+        >>> # distribution of the x-position
+        >>> dist=amep.evaluate.Dist(traj, "x", skip=0.5, logbins=True)
+        >>> # distribution of the angular velocity
+        >>> dist=amep.evaluate.Dist(traj, "omega*", func=np.linalg.norm, axis=1, skip=0.5, logbins=True)
 
         .. image:: /_static/images/evaluate/evaluate-Dist.png
           :width: 400
@@ -3722,7 +3732,7 @@ class ClusterGrowth(BaseEvaluation):
 
         if nav is None:
             nav = self.__traj.nframes
-            
+
         # check mode
         if self.__mode not in ["largest", "mean", "weighted mean"]:
             raise ValueError(
