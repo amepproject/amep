@@ -36,7 +36,7 @@ DATADIR = Path("../examples/data")
 FIELDDIR = DATADIR/'continuum'
 LAMMPSDIR = DATADIR/'lammps'
 HOOMDDIR = DATADIR/'hoomd'
-HOOMDDIR = DATADIR/'gromacs'
+GROMACSDIR = DATADIR/'gromacs'
 
 RNG = np.random.default_rng(1234)
 
