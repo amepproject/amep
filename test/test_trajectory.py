@@ -36,6 +36,7 @@ DATADIR = Path("../examples/data")
 FIELDDIR = DATADIR/'continuum'
 LAMMPSDIR = DATADIR/'lammps'
 HOOMDDIR = DATADIR/'hoomd'
+HOOMDDIR = DATADIR/'gromacs'
 
 RNG = np.random.default_rng(1234)
 
@@ -223,4 +224,17 @@ class TestHOOMDReader(unittest.TestCase):
     def test_trajfile(self):
         hoomd_traj = amep.load.traj(directory=HOOMDDIR,
                                     filename="simulated.gsd",
-                                    mode="gsd", start=.9)
+                                    mode="hoomd", start=.9)
+
+
+class TestGROMACSReader(unittest.TestCase):
+    """Testcase for HOOMD data.
+
+    TO BE IMPLEMENTED.
+    """
+
+    def test_trajfile(self):
+        gromacs_traj = amep.load.traj(directory=GROMACSDIR,
+                                    filename="traj.trr",
+                                    topology="top.tpr",
+                                    mode="gromacs", start=.9)
