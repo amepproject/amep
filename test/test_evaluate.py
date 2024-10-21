@@ -65,7 +65,7 @@ class TestEvaluateMethods(unittest.TestCase):
         self.assertTrue((ClusterGrowth(self.field_traj,
                                        ftype="c",
                                        mode="largest").frames >= 0).all())
-    '''
+
     def test_energy_methods(self):
         """Test the energy methods.
         TO BE IMPLEMENTED
@@ -78,8 +78,8 @@ class TestEvaluateMethods(unittest.TestCase):
         ekinrot = EkinRot(traj, inertia=0.005, skip=0.9, nav=2)
         ekinrot.save(RESULT_DIR/"ekinrot_eval.h5", database=True, name="particles")
         # Ekinrot
-        ekinrot = EkinRot(traj, mass=0.05, inertia=0.005, skip=0.9, nav=2)
-        ekinrot.save(RESULT_DIR/"ekinrot_eval.h5", database=True, name="particles")
+        ekintot = EkinRot(traj, mass=0.05, inertia=0.005, skip=0.9, nav=2)
+        ekintot.save(RESULT_DIR/"ekintot_eval.h5", database=True, name="particles")
 
     def test_function(self):
         """Test arbitray function evaluation.
@@ -121,7 +121,9 @@ class TestEvaluateMethods(unittest.TestCase):
         # VelDist
         import numpy as np
         dist = Dist(traj, "v*",func=np.linalg.norm, axis=1, skip=0.9, nav=2)
-        dist.save(RESULT_DIR/"dist_eval.h5", database=True, name="particles")
+        dist.save(RESULT_DIR/"distv_eval.h5", database=True, name="particles")
+        dist = Dist(traj, "vx", skip=0.9, nav=2)
+        dist.save(RESULT_DIR/"distvx_eval.h5", database=True, name="particles")
 
     def test_order_evaluations(self):
         """Test order parameter evaluation.
@@ -147,4 +149,3 @@ class TestEvaluateMethods(unittest.TestCase):
         TO BE IMPLEMENTED
         """
         pass
-    '''
