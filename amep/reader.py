@@ -1423,7 +1423,9 @@ class HOOMDReader(BaseReader):
                     #                          fletcher32=FLETCHER)
                     # else:
                     #     frame['angmom_theta'][:] = angmom_thetas
-                    omegas       = angmoms / moment_inertias
+                    angmoms_principal   = quaternion_rotate(quat_orientations, 0.5*angmoms[:,:])
+                    omegas_principal    = angmoms_principal / moment_inertias
+                    omegas             = quaternion_rotate(quaternion_conjugate(quat_orientations), omegas_principal)
                     if 'omegas' not in frame.keys():
                         frame.create_dataset('omegas',
                                              (N, 3),
