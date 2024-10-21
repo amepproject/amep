@@ -33,7 +33,7 @@ simulation data or evaluation results.
 import os
 import h5py
 
-from .reader import LammpsReader, H5amepReader, ContinuumReader
+from .reader import LammpsReader, H5amepReader, ContinuumReader, HOOMDReader, GROMACSReader
 from .trajectory import ParticleTrajectory,FieldTrajectory
 from .base import TRAJFILENAME, BaseEvalData, BaseDatabase, LOADMODES
 from .base import check_path, get_module_logger
@@ -101,11 +101,21 @@ def traj(
 
     Shortcuts to load an h5amep file directly:
 
-    >>> traj = amep.load.traj("data/traj.h5amep")
+    >>> traj = amep.load.traj("examples/data/traj.h5amep")
     >>> traj = amep.load.traj(
     ...     "data", trajfile="traj.h5amep", mode="h5amep"
     ... )
     >>> 
+
+    Example for loading GROMACS data:
+
+    >>> path = "examples/data/gromacs/"
+    >>> traj=amep.load.traj(directory=path, mode="gromacs", reload=True)
+
+    Example for loading GSD data
+
+    >>> path="examples/data/hoomd/"
+    >>> traj=amep.load.traj(directory=path, mode="hoomd", reload=True)
 
 
     Fix for working with remote files and insufficient access rights:
@@ -221,6 +231,26 @@ def traj(
             **kwargs
         )
         return FieldTrajectory(reader)
+    elif mode == 'hoomd':
+        reader = HOOMDReader(
+            directory,
+            savedir,
+            trajfile = trajfile,
+            deleteold = deleteold,
+            verbose = verbose,
+            **kwargs
+        )
+        return ParticleTrajectory(reader)
+    elif mode == 'gromacs':
+        reader = GROMACSReader(
+            directory,
+            savedir,
+            trajfile = trajfile,
+            deleteold = deleteold,
+            verbose = verbose,
+            **kwargs
+        )
+        return ParticleTrajectory(reader)
     # here one has to check both the amep version with which the file has been
     # created (reader.version) and the data type (particles or fields) -
     # the latter is needed to decide whether a ParticleTrajectory or a

@@ -31,6 +31,7 @@ The AMEP module :mod:`amep.utils` is a collection of various utility methods.
 # =============================================================================
 import os
 import time
+from packaging.version import Version
 
 import numpy as np
 
@@ -135,9 +136,9 @@ def average_func(
     N = len(data)   # number of time steps
 
     if(nr == None or nr > N - skip * N):
-        nr = int(N-skip*N)
+        nr = max(1,int(N-skip*N))
 
-    evaluated_indices = np.linspace(skip*N, N-1, nr, dtype=int)
+    evaluated_indices = np.array(np.ceil(np.linspace(skip*N, N-1, nr)), dtype=int)
     func_result = [func(x, **kwargs) for x in tqdm(data[evaluated_indices])]
     evaluated = np.array(func_result)
     if indices:
@@ -1188,10 +1189,14 @@ def sq_from_gr(
     '''
     if twod:
         ydata = ((gr - 1) * r).reshape(-1, 1) * special.jv(0, r.reshape(-1, 1) * q.reshape(1, -1))
-        return np.trapz(x=r, y=ydata, axis=0) * (2 * np.pi * rho) + 1
+        if Version(np.__version__) < Version("2.0.0"):
+            return np.trapz(x=r, y=ydata, axis=0) * (2 * np.pi * rho) + 1
+        return np.trapezoid(x=r, y=ydata, axis=0) * (2 * np.pi * rho) + 1
     else:
         ydata = ((gr - 1) * r).reshape(-1, 1) * np.sin(r.reshape(-1, 1) * q.reshape(1, -1))
-        return np.trapz(x=r, y=ydata, axis=0) * (4 * np.pi * rho / q) + 1    
+        if Version(np.__version__) < Version("2.0.0"):
+            return np.trapz(x=r, y=ydata, axis=0) * (4 * np.pi * rho / q) + 1
+        return np.trapezoid(x=r, y=ydata, axis=0) * (4 * np.pi * rho / q) + 1
     
 
 def sq_from_sf2d(
@@ -1273,7 +1278,10 @@ def msd_from_vacf(vacf, times):
         Time values as 1D array.
 
     '''
-    msd = 2*np.array([np.trapz((times[i]-times[:i+1])*vacf[:i+1], x=times[:i+1]) for i in range(len(times))])
+    if Version(np.__version__) < Version("2.0.0"):
+        msd = 2*np.array([np.trapz((times[i]-times[:i+1])*vacf[:i+1], x=times[:i+1]) for i in range(len(times))])
+    else:
+        msd = 2*np.array([np.trapezoid((times[i]-times[:i+1])*vacf[:i+1], x=times[:i+1]) for i in range(len(times))])
     return msd, times
 
 
@@ -1385,7 +1393,9 @@ def domain_length(
         s_fac = s_fac[q<=qmax]
         q = q[q<=qmax]
     
-    return 2*np.pi*(np.trapz(s_fac, x=q)/np.trapz(s_fac*q, x=q))
+    if Version(np.__version__) < Version("2.0.0"):
+        return 2*np.pi*(np.trapz(s_fac, x=q)/np.trapz(s_fac*q, x=q))
+    return 2*np.pi*(np.trapezoid(s_fac, x=q)/np.trapezoid(s_fac*q, x=q))
 
 
 # =============================================================================
@@ -1996,3 +2006,89 @@ def optimal_chunksize(
     # additionally we add some buffer
     chunksize = int((maxmem-buffer)*8e9/bit_per_element/number_of_elements)
     return chunksize
+
+
+def quaternion_rotate(quat: np.ndarray, vec: np.ndarray):
+    r'''
+    Calculates the 3d vector rotated by the quaternion.
+
+    Notes
+    -----
+    Method from http://people.csail.mit.edu/bkph/articles/Quaternions.pdf
+
+    Parameters
+    ----------
+    quat : np.ndarray
+        4d quaternion the vector `vec` will be rotated with.
+        Shapes (4,) or (N,4,) allowed.
+    vec : np.ndarray
+        3d vector that will be rotated by the quaternion `quat`.
+        Shapes (3,) or (N,3,) allowed.
+
+    Returns
+    -------
+    np.ndarray
+        Rotated 3d vector.
+
+    '''
+    if len(np.shape(quat))==2:
+        return ((quat[:,0] * quat[:,0] - np.sum(quat[:,1:]*quat[:,1:], axis=1))[:,None] * vec 
+            + 2 * quat[:,0,None] * np.cross(quat[:,1:], vec) 
+            + 2 * np.sum(quat[:,1:]*vec, axis=1)[:,None] * quat[:,1:])
+    return ((quat[0] * quat[0] - np.dot(quat[1:], quat[1:])) * vec 
+        + 2 * quat[0] * np.cross(quat[1:], vec) 
+        + 2 * np.dot(quat[1:], vec) * quat[1:])
+
+
+def quaternion_conjugate(quat : np.ndarray):
+    r'''
+    Calculates the conjugated quaternion.
+
+    Parameters
+    ----------
+    quat : np.ndarray
+        4d quaternion that will be conjugated.
+        Shapes (4,) or (N,4,) allowed.
+
+    Returns
+    -------
+    np.ndarray
+        Conjugated quaternion.
+
+    '''
+    return quat*np.array([1,-1,-1,-1])
+
+
+def quaternion_multiply(a : np.ndarray, b : np.ndarray):
+    r'''
+    Calculates the multiplication of two quaternions.
+    Quaternion multiplication is not commutative.
+
+    Parameters
+    ----------
+    a : np.ndarray
+        4d quaternion.
+        Shapes (4,) or (N,4,) allowed.
+    b : np.ndarray
+        4d quaternion.
+        Shapes (4,) or (N,4,) allowed.
+
+    Returns
+    -------
+    np.ndarray
+        Multiplied quaternion.
+        Shapes (4,) or (N,4,) respectively to input.
+
+    '''
+    ab=np.empty(np.shape(a))
+    if len(np.shape(a))==2:
+        ab[:,0]=((a[:,0] * b[:,0]) - np.sum(a[:,1:]*b[:,1:], axis=1))
+        ab[:,1:]=(a[:,0,None] * b[:,1:]
+                + a[:,1:] * b[:,0,None]
+                + np.cross(a[:,1:], b[:,1:]))
+        return ab
+    ab[0]=(a[0] * b[0] - np.dot(a[1:], b[1:]))
+    ab[1:]=(a[0] * b[1:]
+            + a[1:] * b[0]
+            + np.cross(a[1:], b[1:]))
+    return ab

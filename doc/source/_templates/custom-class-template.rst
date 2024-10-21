@@ -5,6 +5,7 @@
 .. autoclass:: {{ objname }}
    :members:                                    
    :show-inheritance:                          
+   :special-members: __getitem__
    :inherited-members:                         
 
    {% block methods %}
