@@ -195,6 +195,8 @@ class ParticleTrajectory(BaseTrajectory):
         >>>
 
         '''
+        if not isinstance(ptype, int):
+            raise TypeError("Trajectory.add_particle_info(): The particle type <ptype> must be an integer.")
         with h5py.File(os.path.join(self.reader.savedir, self.reader.filename), 'a') as root:
             if str(ptype) not in root['particles'].keys():
                 root['particles'].create_group(str(ptype))
