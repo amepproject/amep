@@ -1693,8 +1693,14 @@ class PosOrderCor(BaseEvaluation):
     """
 
     def __init__(
-            self, traj: ParticleTrajectory, grtdata=None, sxydata=None, skip=0.0, nav=10,
-            k0=None, order='hexagonal', dk=4.0, ptype=None, other=None,
+            self, traj: ParticleTrajectory, 
+            grtdata: BaseEvaluation | None = None,
+            sxydata: BaseEvaluation | None = None, 
+            skip: float = 0.0, nav: int = 10,
+            k0: list[np.ndarray, ...] | None = None, 
+            order: str = 'hexagonal', 
+            dk: float = 4.0, ptype: int | None = None, 
+            other: int | None = None,
             **kwargs) -> None:
         r'''
         Calculate the positional order correlation function.
@@ -1734,12 +1740,12 @@ class PosOrderCor(BaseEvaluation):
         ----------
         traj : Traj
             Trajectory object with simulation data.
-        grtdata : pd.DataFrame, optional
+        grtdata : BaseEvaluation, optional
             Pair correlation function g(r,theta) as obtained from
             amep.evaluate.PCFangle. If None, the angular pair
             correlation function is calculated within this method.
             The default is None.
-        sxydata : pd.DataFrame, optional
+        sxydata : BaseEvaluation, optional
             2d structure factor as obtained from amep.evaluate.SF2d.
             If None, the 2d structure factor is calculated within this
             method. The default is None.
@@ -2527,8 +2533,10 @@ class Psi6dist(BaseEvaluation):
     """
 
     def __init__(
-            self, traj, skip: float = 0.0, nav: int = 10, nbins: int = 50,
-            ptype: int | None = None, other=None, **kwargs) -> None:
+            self, traj: ParticleTrajectory, skip: float = 0.0, 
+            nav: int = 10, nbins: int = 50, 
+            ptype: int | None = None, other: int | None = None, 
+            **kwargs) -> None:
         r'''
         Calculate the distribution of the :math:`\Psi_6`.
 
@@ -2569,7 +2577,7 @@ class Psi6dist(BaseEvaluation):
 
         Parameters
         ----------
-        traj : Traj
+        traj : ParticleTrajectory
             Trajectory object.
         skip : float, optional
             Skip this fraction at the beginning of the trajectory. 
@@ -3459,7 +3467,7 @@ class ClusterGrowth(BaseEvaluation):
 
         Parameters
         ----------
-        traj : Traj
+        traj : ParticleTrajectory | FieldTrajectory
             Trajectory object.
         skip : float, optional
             Skip this fraction at the beginning of the trajectory.
@@ -4575,7 +4583,7 @@ class EkinTot(BaseEvaluation):
 
         Parameters
         ----------
-        traj : Traj
+        traj : ParticleTrajectory
             Trajectory object with simulation data.
         skip : float, default=0.0
             Skip this fraction at the beginning of
@@ -4717,7 +4725,7 @@ class EkinTrans(BaseEvaluation):
 
         Parameters
         ----------
-        traj : Traj
+        traj : ParticleTrajectory
             Trajectory object with simulation data.
         mass : float | np.ndarray
             Function to be used for analysis.
@@ -4862,7 +4870,7 @@ class EkinRot(BaseEvaluation):
 
         Parameters
         ----------
-        traj : Traj
+        traj : ParticleTrajectory
             Trajectory object with simulation data.
         mode : "total" or "particle"
             How to return the energy, c.f. thermo.py
