@@ -23,11 +23,11 @@ Test units for the amep.functions module.
 import unittest
 from pathlib import Path
 from numpy import linspace, average
+from numpy.random import normal
 from amep.functions import Gaussian, gaussian
 from amep.plot import new
 
-DATA_DIR = Path("./data/")
-PLOT_DIR = DATA_DIR/"plots"
+DATA_DIR = Path("../examples/data/")
 
 
 class TestMathFunctions(unittest.TestCase):
@@ -45,11 +45,4 @@ class TestMathFunctions(unittest.TestCase):
         amp = max(y_vec)
         gauss = Gaussian()
         gauss.fit(x_vec, y_vec, p0=[mean, sig, amp])
-        fig, axs = new(figsize=(5, 4))
-        axs.plot(x_vec, y_vec, label="data")
-        new_x = x_vec*0.3 + 2
-        axs.plot(new_x, gauss.generate(new_x), label="fit")
-        fig.savefig(PLOT_DIR/Path("test_gaussian.pdf"))
-        
-if __name__ == '__main__':
-    unittest.main()
+        # Check if fit and generated data are close.
