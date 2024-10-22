@@ -369,9 +369,9 @@ def mirror_points(
     ----------
         coordinates: np.ndarray
             coordinate frame (Nx3 array of floats; required)
-        box_boundary : np.ndarray
-            Boundaries of the simulation box given in the form
-            np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]]).
+	box_boundary : np.ndarray of shape (3,2)
+            Boundary of the simulation box in the form of
+            `np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]])`.
         width: float or None
             Width of the periodic images relative to the box dimensions.
             None means the original and all periodic images are returned;
@@ -550,8 +550,8 @@ def pbc_diff(
         First vector.
     v2 : np.ndarray
         Second vector. 
-    box_boundary : np.ndarray
-        Boundaries of the simulation box given in the form
+   box_boundary : np.ndarray of shape (3,2)
+        Boundary of the simulation box in the form of
         `np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]])`.
     pbc : bool, optional
         If True, periodic boundary conditions are considered.
@@ -581,8 +581,8 @@ def pbc_diff_rect(v1, v2, box_boundary):
         First vector.
     v2 : np.ndarray
         Second vector. 
-    box_boundary : np.ndarray
-        Boundaries of the simulation box given in the form
+    box_boundary : np.ndarray of shape (3,2)
+        Boundary of the simulation box in the form of
         `np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]])`.
         
     Returns
@@ -912,7 +912,7 @@ def __dis_chunk(
         Coordinates to which the distances should be calculated.
     otree : KDTree
         KDTree of coordinates from which the distances are calculated.
-    box_boundary : np.ndarray
+    box_boundary : np.ndarray of shape (3,2)
         Boundary of the simulation box in the form of
         `np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]])`.
     pbc : bool
