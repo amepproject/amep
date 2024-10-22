@@ -185,7 +185,7 @@ simulation data.
 
 
 | Observable | Particles | Fields |
-|:----------:|:---------:|:------:|
+|:-----------|:---------:|:------:|
 | **Spatial Correlation Functions:** |||
 | RDF (radial pair distribution function) | ✔ | ➖ |
 | PCF2d (2d pair correlation function) | ✔ | ➖ |

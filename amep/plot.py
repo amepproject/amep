@@ -909,7 +909,7 @@ def box(axis: mpl.axes.Axes, box_boundary: np.ndarray, **kwargs) -> None:
 
 
 def particles(
-        ax: mpl.axes, coords: np.ndarray, box_boundary: np.ndarray,
+        ax: mpl.axes.Axes, coords: np.ndarray, box_boundary: np.ndarray,
         radius: np.ndarray | float, scalefactor: float = 1.0,
         values: np.ndarray | None = None,
         cmap: list | str = 'viridis', set_ax_limits: bool = True,
@@ -1081,7 +1081,7 @@ def particles(
 
 
 def field(
-        ax: mpl.axes, density: np.ndarray, X: np.ndarray, Y: np.ndarray,
+        ax: mpl.axes.Axes, density: np.ndarray, X: np.ndarray, Y: np.ndarray,
         cmap: list | str = 'plasma', box_boundary: np.ndarray | None = None,
         vmin: float | None = None, vmax: float | None = None,
         cscale: str = 'lin', verbose: bool = False, **kwargs

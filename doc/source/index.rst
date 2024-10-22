@@ -3,8 +3,8 @@
   :align: center
 
 
-AMEP documentation
-==================
+AMEP 1.0.3 documentation
+========================
 
 .. include:: ../../README.md
    :parser: myst_parser.sphinx_
@@ -17,7 +17,7 @@ Table of Contents
    :maxdepth: 2
 
    gettingstarted/index
-   datastructures/index
+   howto_cite
    user_guide/index
    api
 

@@ -15,7 +15,7 @@ your research.
 
 .. toctree::
 
-   howto_cite
+   datastructures/index
 
 .. toctree::
 
