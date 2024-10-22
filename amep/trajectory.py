@@ -230,11 +230,13 @@ class ParticleTrajectory(BaseTrajectory):
         >>>
 
         '''
+        if not isinstance(ptype, int) and ptype is not None:
+            raise TypeError("Trajectory.get_particle_info(): The particle type <ptype> must be an integer.")
         with h5py.File(os.path.join(self.reader.savedir, self.reader.filename), 'r') as root:
             if ptype is None:
                 p = {}
                 for t in list(root['particles'].keys()):
-                    p[t] = dict(a for a in root['particles'][t].attrs.items())
+                    p[int(t)] = dict(a for a in root['particles'][t].attrs.items())
             elif str(ptype) in list(root['particles'].keys()):
                 p = dict(a for a in root['particles'][str(ptype)].attrs.items())
             else:
