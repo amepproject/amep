@@ -140,6 +140,7 @@ def average_func(
 
     evaluated_indices = np.linspace(skip*N, N-1, nr, dtype=int)
     func_result = [func(x, **kwargs) for x in tqdm(data[evaluated_indices])]
+    print(np.shape(func_result[0][0]), np.shape(func_result[0][1]), np.shape(func_result[0][2]))
     evaluated = np.array(func_result)
     if indices:
         return evaluated, np.mean(evaluated, axis=0), evaluated_indices
