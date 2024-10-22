@@ -118,8 +118,7 @@ class TestParticleTrajectory(unittest.TestCase):
 
     def test_ptype_type(self):
         self.traj.add_particle_info(1, "key", "value")
-        self.assertRaises(TypeError, self.traj.add_particle_info, "asdf")
-        self.traj.add_particle_info("asdf", "key2", "value2")
+        self.assertRaises(TypeError, self.traj.add_particle_info, "asdf", "key2", "value2")
         self.assertTrue(
             isinstance(self.traj.get_particle_info(1), dict),
             f'''Invalid type. Got {type(self.traj.get_particle_info(1))}
