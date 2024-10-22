@@ -27,7 +27,7 @@ The AMEP module :mod:`amep.trajectory` contains all trajectory classes. These
 are containers for a time series of simulation data (particle-based data or 
 continuum fields). The following classes are included:
 
-    ParticleTracetory :
+    ParticleTrajetory :
         Time-series of per-particle data such as coordinates, velocities,
         forces, etc.
     FieldTrajectory :
@@ -58,6 +58,8 @@ class ParticleTrajectory(BaseTrajectory):
         r"""
         Creates a trajectory object containing data frames for multiple
         time steps.
+
+        Can be viewed as a Sequence of :class:`.BaseFrame`.
 
         Parameters
         ----------
@@ -180,7 +182,7 @@ class ParticleTrajectory(BaseTrajectory):
         Returns
         -------
         None.
-        
+
         Examples
         --------
         >>> import amep
@@ -190,9 +192,11 @@ class ParticleTrajectory(BaseTrajectory):
         >>> print(traj.get_particle_info())
         {1: {'name': 'active'}, 2: {'name': 'passive'}}
         >>> traj.delete_particle_info(None)
-        >>> 
+        >>>
 
         '''
+        if not isinstance(ptype, int):
+            raise TypeError("Trajectory.add_particle_info(): The particle type <ptype> must be an integer.")
         with h5py.File(os.path.join(self.reader.savedir, self.reader.filename), 'a') as root:
             if str(ptype) not in root['particles'].keys():
                 root['particles'].create_group(str(ptype))
@@ -213,7 +217,7 @@ class ParticleTrajectory(BaseTrajectory):
         -------
         p : dict
             Parameters.
-        
+
         Examples
         --------
         >>> import amep
@@ -223,9 +227,11 @@ class ParticleTrajectory(BaseTrajectory):
         >>> print(traj.get_particle_info())
         {1: {'name': 'active'}, 2: {'name': 'passive'}}
         >>> traj.delete_particle_info(None)
-        >>> 
+        >>>
 
         '''
+        if not isinstance(ptype, int) and ptype is not None:
+            raise TypeError("Trajectory.get_particle_info(): The particle type <ptype> must be an integer.")
         with h5py.File(os.path.join(self.reader.savedir, self.reader.filename), 'r') as root:
             if ptype is None:
                 p = {}
@@ -319,6 +325,8 @@ class FieldTrajectory(BaseTrajectory):
         r'''
         Creates a trajectory object containing data frames for multiple
         time steps.
+
+        Can be viewed as a Sequence of :class:`.BaseField`.
 
         Parameters
         ----------

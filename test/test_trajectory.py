@@ -23,16 +23,18 @@ Test units for the amep.trajectory module.
 # =============================================================================
 # IMPORT MODULES
 # =============================================================================
-import numpy as np
+from pathlib import Path
 import unittest
-import amep
 import os
+import numpy as np
+import amep
 
 # =============================================================================
 # GLOBAL CONFIG.
 # =============================================================================
-FIELDDIR = './data/field'
-LAMMPSDIR = './data/lammps'
+DATADIR = Path("../examples/data")
+FIELDDIR = DATADIR/'continuum'
+LAMMPSDIR = DATADIR/'lammps'
 
 RNG = np.random.default_rng(1234)
 
@@ -51,64 +53,6 @@ FIELDS = ['rho', 'c', 'alpha', 'beta']
 DATA = ['id', 'x', 'y', 'z', 'vx', 'vy', 'fx', 'fy', 'mass', 'radius']
 NATOMS = 100
 
-# for lammps data creation
-
-
-# create directories if they do not exist
-if not os.path.isdir('./data'):
-    os.mkdir('./data')
-if not os.path.isdir(FIELDDIR):
-    os.mkdir(FIELDDIR)
-if not os.path.isdir(LAMMPSDIR):
-    os.mkdir(LAMMPSDIR)
-
-# =============================================================================
-# TEST DATA GENERATORS
-# =============================================================================
-def create_field_data():
-    
-    # generate grid.txt file
-    with open(
-            os.path.join(FIELDDIR, "grid.txt"),
-            "w",
-            encoding="utf-8"
-    ) as wfile:
-        wfile.write(f'BOX:\n{BOX[0,0]}\t{BOX[0,1]}\n{BOX[1,0]}\t{BOX[1,1]}\n{BOX[2,0]}\t{BOX[2,1]}\n')
-        wfile.write('SHAPE:\n' + '\t'.join(str(s) for s in SHAPE) + '\n')
-        wfile.write('COORDINATES:\tX\tY\tZ\n')
-        wfile.write('\n'.join('\t'.join(
-            str(COORDS[i][j]) for i in range(3)
-        ) for j in range(len(COORDS[0]))))
-    
-    # generate dump files with random data
-    for i, step in enumerate(TIMESTEPS):
-        with open(
-                os.path.join(FIELDDIR, f'field_{step}.txt'),
-                "w",
-                encoding="utf-8"
-        ) as wfile:
-            wfile.write(f'TIMESTEP:\n{step}\nDATA:\t'+'\t'.join(FIELDS)+'\n')
-            wfile.write('\n'.join('\t'.join(
-                str(RNG.random()) for _ in FIELDS
-            ) for _ in range(len(COORDS[0]))))
-
-def create_lammps_data():
-    
-    # generate dump files with random data
-    for i, step in enumerate(TIMESTEPS):
-        with open(
-                os.path.join(LAMMPSDIR, f'dump{step}.txt'),
-                "w",
-                encoding="utf-8"
-        ) as wfile:
-            wfile.write(f'ITEM: TIMESTEP\n{step}\n')
-            wfile.write(f'ITEM: NUMBER OF ATOMS\n{NATOMS}\n')
-            wfile.write('ITEM: BOX BOUNDS pp pp pp\n')
-            wfile.write(f'{BOX[0,0]} {BOX[0,1]}\n{BOX[1,0]} {BOX[1,1]}\n{BOX[2,0]} {BOX[2,1]}\n')
-            wfile.write('ITEM: ATOMS '+' '.join(DATA)+'\n')
-            wfile.write('\n'.join('\t'.join(
-                str(RNG.random()) for _ in DATA
-            ) for _ in range(NATOMS)))
 
 # =============================================================================
 # PARTICLETRAJECTORY TESTS
@@ -116,7 +60,7 @@ def create_lammps_data():
 class TestParticleTrajectory(unittest.TestCase):
     
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
         """
         Basic setup. Generating test data.
 
@@ -126,22 +70,26 @@ class TestParticleTrajectory(unittest.TestCase):
 
         """
         # generate some test LAMMPS data
-        create_lammps_data()
         
         # load the data
-        self.traj = amep.load.traj(
+        cls.traj = amep.load.traj(
             LAMMPSDIR,
             mode='lammps',
             reload=True
         )
         
         # add some particle information
-        self.traj.add_particle_info(1, 'name', 'atom A')
-        self.traj.add_particle_info(1, 'type', 'carbon')
-    
-    def test_nojump(self):
-        pass
-    
+        cls.traj.add_particle_info(1, 'name', 'atom A')
+        cls.traj.add_particle_info(1, 'type', 'carbon')
+
+    def test_key_access(self):
+        self.assertIn(self.traj[0].coords(ptype=self.traj[0].ptypes[0]),
+                      self.traj[0].coords(ptype=self.traj[0].ptypes),
+                      "Something went wrong acessing data."
+                      )
+        self.assertWarns(UserWarning, self.traj[0].coords, ptype=2)
+        self.assertWarns(UserWarning, self.traj[0].coords, ptype="a")
+
     def test_add_particle_info(self):
         # add particle info
         self.traj.add_particle_info(1, 'test', 10)
@@ -167,7 +115,17 @@ class TestParticleTrajectory(unittest.TestCase):
             f'''Invalid type. Got {type(self.traj.get_particle_info(1))}
             instead of dict.'''
         )
-    
+
+    def test_ptype_type(self):
+        self.traj.add_particle_info(1, "key", "value")
+        self.assertRaises(TypeError, self.traj.add_particle_info, "asdf", "key2", "value2")
+        self.assertTrue(
+            isinstance(self.traj.get_particle_info(1), dict),
+            f'''Invalid type. Got {type(self.traj.get_particle_info(1))}
+            instead of dict.'''
+        )
+        self.assertRaises(TypeError, self.traj.get_particle_info, "asdf")
+
     def test_delete_particle_info(self):
         # delete particle info
         self.traj.delete_particle_info(None)
@@ -188,7 +146,7 @@ class TestParticleTrajectory(unittest.TestCase):
 class TestFieldTrajectory(unittest.TestCase):
     
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
         """
         Basic setup. Generating test data.
 
@@ -197,22 +155,19 @@ class TestFieldTrajectory(unittest.TestCase):
         None.
 
         """
-        # generate some test field data
-        create_field_data()
-        
         # load the data
-        self.traj = amep.load.traj(
+        cls.traj = amep.load.traj(
             FIELDDIR,
             mode='field',
-            delimiter='\t',
+            delimiter=' ',
             dumps='field_*.txt',
             reload=True
         )
-        
+
         # add some field information
-        self.traj.add_field_info('c', 'name', 'chemicals')
-        self.traj.add_field_info('rho', 'name', 'bacterial density')
-    
+        cls.traj.add_field_info('c', 'name', 'chemicals')
+        cls.traj.add_field_info('rho', 'name', 'bacterial density')
+
     def test_add_field_info(self):
         # add field info
         self.traj.add_field_info('rho', 'test', 10)
@@ -252,6 +207,3 @@ class TestFieldTrajectory(unittest.TestCase):
         # add deleted field information again
         self.traj.add_field_info('c', 'name', 'chemicals')
         self.traj.add_field_info('rho', 'name', 'bacterial density')
-
-if __name__ == '__main__':
-    unittest.main()

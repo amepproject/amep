@@ -37,7 +37,6 @@ import csv
 import warnings
 import h5py
 import string
-
 import numpy as np
 
 from tqdm.autonotebook import tqdm
@@ -124,6 +123,7 @@ class H5amepReader(BaseReader):
 
         '''
         return self.__version
+
 
 class LammpsReader(BaseReader):
     '''Reads LAMMPS simulation data and writes it to an hdf5 file.
@@ -502,6 +502,17 @@ class LammpsReader(BaseReader):
                         else:
                             frame['torque'][:] = torque
 
+                        if 'angmom' not in frame.keys():
+                            frame.create_dataset('angmom',
+                                                 (N, 3),
+                                                 data=angmom,
+                                                 dtype=DTYPE,
+                                                 compression=COMPRESSION,
+                                                 shuffle=SHUFFLE,
+                                                 fletcher32=FLETCHER)
+                        else:
+                            frame['angmom'][:] = angmom
+
                         # spatial dimension
                         frame.attrs['d'] = d
 
@@ -562,6 +573,7 @@ class LammpsReader(BaseReader):
         finally:
             pass
 
+
     def __sorter(self, item):
         r'''
         Returns the time step of a dump file that is given
@@ -578,7 +590,6 @@ class LammpsReader(BaseReader):
         if key=='':
             return float(basename.split('.')[0])
         return float(basename.split(key)[1].split('.')[0])
-
 
 
     def __get_timestep_from_logfile(self):
