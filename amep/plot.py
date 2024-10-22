@@ -1519,7 +1519,7 @@ def animate_trajectory(
     ...     traj, "./figures/plot/plot-animate_trajectory_1.gif",
     ...     formatter=lambda x: amep.plot.format_axis(x, direction="out"),
     ...     vmin=0.0, vmax=3.0, ftype='c', xlabel=r"$x$", ylabel=r"$y$",
-    ...     cbar_label=r"$c(x,y)$"
+    ...     cbar_label=r"$c(x,y)$", fps=5
     ... )
     >>>
     
@@ -1533,7 +1533,7 @@ def animate_trajectory(
     ...     traj, "./figures/plot/plot-animate_trajectory_2.gif",
     ...     painter=lambda x,p: (x.velocities(ptype=p)**2).sum(axis=1),
     ...     xlabel='x', ylabel='y', cbar_label=r'$|\vec{v}|^2$',
-    ...     vmin=1e0, vmax=1e6, cscale="log"
+    ...     vmin=1e0, vmax=1e6, cscale="log", fps=5
     ... )
     >>> 
 
