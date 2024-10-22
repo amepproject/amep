@@ -51,7 +51,7 @@ html_theme_options = {
                 "url": "https://github.com/amepproject/amep",  # required
                 # Icon class (if "type": "fontawesome"), or path to local image (if "type": "local")
                 "icon": "fa-brands fa-square-github",
-                # The type of image to be used (see below for details)
+                # The type of image to be used
                 "type": "fontawesome",
             },
             {
@@ -61,8 +61,16 @@ html_theme_options = {
                 "url": "https://pypi.org/project/amep/",  # required
                 # Icon class (if "type": "fontawesome"), or path to local image (if "type": "local")
                 "icon": "fa-brands fa-python",
-                # The type of image to be used (see below for details)
+                # The type of image to be used
                 "type": "fontawesome",
             }
-            ]
-        }
+        ],
+        #"switcher": {
+        #    "json_url": "https://amepproject.de/switcher.json",
+        #    "version_match": release
+        #},
+        #"check_switcher": True,
+        #"navbar_persistent": ["search-button.html", "theme-switcher.html"],
+        #"navbar_end": ["version-switcher.html", "icon-links.html"]
+        # "navbar_start": ["navbar_logo", "version-switcher"]
+    }

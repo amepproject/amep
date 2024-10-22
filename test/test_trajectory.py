@@ -118,17 +118,13 @@ class TestParticleTrajectory(unittest.TestCase):
 
     def test_ptype_type(self):
         self.traj.add_particle_info(1, "key", "value")
-        self.traj.add_particle_info("asdf", "key2", "value2")
+        self.assertRaises(TypeError, self.traj.add_particle_info, "asdf", "key2", "value2")
         self.assertTrue(
             isinstance(self.traj.get_particle_info(1), dict),
             f'''Invalid type. Got {type(self.traj.get_particle_info(1))}
             instead of dict.'''
         )
-        self.assertTrue(
-            isinstance(self.traj.get_particle_info("asdf"), dict),
-            f'''Invalid type. Got {type(self.traj.get_particle_info(1))}
-            instead of dict.'''
-        )
+        self.assertRaises(TypeError, self.traj.get_particle_info, "asdf")
 
     def test_delete_particle_info(self):
         # delete particle info

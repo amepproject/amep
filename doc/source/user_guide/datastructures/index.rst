@@ -11,7 +11,3 @@ the sections below.
 .. toctree::
    
    field_data
-
-.. toctree::
-
-    particle_data_reader
