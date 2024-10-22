@@ -19,17 +19,16 @@
 # =============================================================================
 """Test units for all functions in the plot part of amep"""
 import unittest
-from requests import get
 from pathlib import Path
-from zipfile import ZipFile
 from random import choice
 from numpy import linspace, exp
 import numpy as np
 from matplotlib.pyplot import close
 from amep import plot, load
 from amep.trajectory import FieldTrajectory, ParticleTrajectory
+from amep.base import BaseFrame
 
-DATA_DIR = Path("./data")
+DATA_DIR = Path("../examples/data")
 FIELD_DIR = DATA_DIR/"fields"
 PLOT_DIR = DATA_DIR/"plots"
 LATEX_TESCASES = {"<": r"\textless ",
@@ -39,43 +38,15 @@ LATEX_TESCASES = {"<": r"\textless ",
                   "_": r"\_",
                   "3^5>9^2": r"3\^{}5\textgreater 9\^{}2"
                   }
-SERVER_URL: str = "https://kuno.fkp.physik.tu-darmstadt.de"
-WEB_FOLDER: str = "d/a3d9887b8a5747e0a56e/files/?p=%2F"
-FILE_NAMES: tuple[str] = ("fields", "particles")
-FILE_END: str = ".zip"
-URL_END: str = "&dl=1"
-
-
-def get_test_files():
-    for file_name in FILE_NAMES:
-        zip_path = DATA_DIR/f"{file_name}{FILE_END}"
-        file_url = f"{SERVER_URL}/{WEB_FOLDER}{file_name}{FILE_END}{URL_END}"
-        # try:
-        print(f"Downloading {file_name}")
-        with open(zip_path, "wb") as ofile:
-            ofile.write(get(file_url, allow_redirects=True).content)
-        print(f"unziping {file_name}")
-        print(zip_path)
-        with ZipFile(zip_path, "r") as z_file:
-            z_file.extractall(DATA_DIR)
-            zip_path.unlink()
-        # except Exception as exc:
-        #     print(f"Something failed while getting {file_name}.\nNamely{exc}")
 
 
 class TestPlotMethods(unittest.TestCase):
     """A test Case for the plot functions"""
     @classmethod
     def setUpClass(cls):
-        DATA_DIR.mkdir(exist_ok=True)
         PLOT_DIR.mkdir(exist_ok=True)
-
-        if not all((DATA_DIR/file_name).is_dir() for file_name in FILE_NAMES):
-            get_test_files()
-        cls.trajs = [*(load.traj(str(directory)) for directory
-                       in (DATA_DIR/"particles").iterdir()),
-                     *(load.traj(str(directory), mode="field") for directory
-                       in (DATA_DIR/"fields").iterdir())
+        cls.trajs = [load.traj(fil) for fil in DATA_DIR.iterdir()
+                     if ".h5amep" in fil.suffixes
                      ]
 
     def test_to_latex(self):
@@ -152,24 +123,25 @@ class TestPlotMethods(unittest.TestCase):
         """Test the animation facilities of AMEP."""
         f_trajectory = choice([traj for traj in self.trajs
                                if isinstance(traj, FieldTrajectory)])
-        OUT_FIELD = PLOT_DIR/"field_vid.gif"
+        out_field = PLOT_DIR/"field_vid.gif"
         p_trajectory = choice([traj for traj in self.trajs
                                if isinstance(traj, ParticleTrajectory)])
-        OUT_PARTICLES = PLOT_DIR/"particle_vid.gif"
-        plot.animate_trajectory(f_trajectory, OUT_FIELD)
-        plot.animate_trajectory(p_trajectory, OUT_PARTICLES)
+        out_particles = PLOT_DIR/"particle_vid.gif"
+        plot.animate_trajectory(f_trajectory, out_field, ftype="c", nth=10)
+        plot.animate_trajectory(p_trajectory, out_particles, nth=50)
 
     def test_ll_video(self):
+        """Test the low level video interface."""
         trajectory = choice([traj for traj in self.trajs
                              if isinstance(traj, FieldTrajectory)])
         fig, axie = plot.new((1, 1))
         image = axie.imshow(trajectory[0].data("c"))
         fig.colorbar(image)
 
-        def make_frame(frame: np.ndarray) -> list:
+        def make_frame(frame: BaseFrame) -> list:
             now = frame.data("c")
-            nowmin = np.min(now)
-            nowmax = np.max(now)
+            nowmin: float = np.min(now)
+            nowmax: float = np.max(now)
             image.set_array(now)
             image.set_clim(nowmin, nowmax)
             return [image,]
@@ -178,6 +150,3 @@ class TestPlotMethods(unittest.TestCase):
                           PLOT_DIR/"ll_vid.gif",
                           output_codec="libx264", bitrate=500000)
         close(fig)
-
-if __name__ == '__main__':
-    unittest.main()

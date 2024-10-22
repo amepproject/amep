@@ -1,6 +1,6 @@
-=====================
-How to cite **AMEP**
-=====================
+============
+How to Cite
+============
 
 If you use **AMEP** for a project that leads to a scientific publication, please acknowledge 
 the use of **AMEP** within the body of your publication for example by copying or adapting 

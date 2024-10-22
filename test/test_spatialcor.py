@@ -32,9 +32,11 @@ import amep
 # MAIN TIMECOR TEST
 # =============================================================================
 class TestSpatialcor(unittest.TestCase):
+    """Test case for spatial correlation functions.
+    """
 
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
         """
         Basic setup. Generating test data.
 
@@ -46,47 +48,46 @@ class TestSpatialcor(unittest.TestCase):
         # initialize random number generator with seed 0
         rng = np.random.default_rng(0)
         # generate random coordinates
-        self.coords = np.zeros((1000,3))
-        self.coords[:,:2] = rng.uniform(
-            low = -10,
-            high = 10,
-            size = (1000,2)
+        cls.coords = np.zeros((1000, 3))
+        cls.coords[:, :2] = rng.uniform(
+            low=-10,
+            high=10,
+            size=(1000, 2)
         )
         # create box
-        self.box = np.array(
-            [[-10,10],
-             [-10,10],
-             [-0.5,0.5]]
+        cls.box = np.array(
+            [[-10, 10],
+             [-10, 10],
+             [-0.5, 0.5]]
         )
 
     def test_rdf(self):
+        """Calculate and compare radial distribution functions.
+
+        Calculate rdf by different means and compare the results."""
         # calculate rdf with mode diff
         rdf_diff, _ = amep.spatialcor.rdf(
             self.coords,
             self.box,
-            nbins = 50,
-            pbc = True,
-            rmax = 5.0,
-            mode = 'diff'
+            nbins=50,
+            pbc=True,
+            rmax=5.0,
+            mode='diff'
         )
         # calculate rdf with mode kdtree
         rdf_kdtree, _ = amep.spatialcor.rdf(
             self.coords,
             self.box,
-            nbins = 50,
-            pbc = True,
-            rmax = 5.0,
-            mode = 'kdtree'
+            nbins=50,
+            pbc=True,
+            rmax=5.0,
+            mode='kdtree'
         )
         # compare results
         compare = rdf_diff.round(3) == rdf_kdtree.round(3)
         self.assertTrue(
             compare.all(),
-            'The rdf calculation with mode diff and mode kdtree are not the '\
-            'same. Got a summed difference of '\
+            'The rdf calculation with mode diff and mode kdtree are not the '
+            'same. Got a summed difference of '
             f'{np.abs(rdf_diff-rdf_kdtree).sum()}'
         )
-        
-        
-if __name__ == '__main__':
-    unittest.main()

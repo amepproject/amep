@@ -95,22 +95,27 @@ def traj(
     Minimal example for loading lammps trajectory from path `"data"`:
 
     >>> import amep
-    >>> traj = amep.load.traj("data")
-    >>> traj = amep.load.traj("data", reload=True) # data will be read again
+    >>> traj = amep.load.traj("/examples/data/lammps/")
+    >>> traj = amep.load.traj("/examples/data/lammps/", reload=True) # data will be read again
 
 
     Shortcuts to load an h5amep file directly:
 
-    >>> traj = amep.load.traj("data/traj.h5amep")
+    >>> traj = amep.load.traj("/examples/data/lammps.h5amep")
     >>> traj = amep.load.traj(
     ...     "data", trajfile="traj.h5amep", mode="h5amep"
     ... )
     >>> 
 
+    
+    Example for loading continuum data:
+
+    >>> traj = amep.load.traj("/examples/data/continuum/", mode="field", dumps="field_*")
+
 
     Fix for working with remote files and insufficient access rights:
-    Save the h5amep file locally while importing/loading the simulation data
-    for the first time:
+    This can be solved by saving the h5amep file locally while
+    importing/loading the simulation data from the remote directory.
 
     >>> traj = amep.load.traj(
     ...     "/path/to/sftp:host=192.168.255.255/remote/directory/",
@@ -221,6 +226,7 @@ def traj(
             **kwargs
         )
         return FieldTrajectory(reader)
+
     # here one has to check both the amep version with which the file has been
     # created (reader.version) and the data type (particles or fields) -
     # the latter is needed to decide whether a ParticleTrajectory or a

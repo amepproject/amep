@@ -23,8 +23,8 @@ Test units for the amep.timecor module.
 # =============================================================================
 # IMPORT MODULES
 # =============================================================================
-import numpy as np
 import unittest
+import numpy as np
 import amep
 
 
@@ -32,9 +32,10 @@ import amep
 # MAIN TIMECOR TEST
 # =============================================================================
 class TestTimecor(unittest.TestCase):
+    """Test case for time correlation functions."""
 
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
         """
         Basic setup. Generating test data.
 
@@ -43,18 +44,19 @@ class TestTimecor(unittest.TestCase):
         None.
 
         """
-        self.start_coords = np.array([
+        cls.start_coords = np.array([
             [1.0, 2.0, 3.0],
             [-3.0, 0.0, 5.0],
             [0.0, -2.0, 5.0]
         ])
-        self.end_coords = np.array([
+        cls.end_coords = np.array([
             [2.0, 4.0, 3.0],
             [-1.0, 1.0, 5.0],
             [4.0, -2.0, 4.0]
         ])
 
     def test_msd(self):
+        """Test calculation of the mean square displacement."""
         msd = amep.timecor.msd(
             self.start_coords,
             self.end_coords
@@ -63,12 +65,13 @@ class TestTimecor(unittest.TestCase):
             np.isclose(msd, 9.0),
             f'Incorrect MSD value. Got {msd} instead of 9.0.'
         )
-    
+
     def test_acf(self):
+        """Test calculation of the autocorellation function."""
         # 1d test
         acf = amep.timecor.acf(
-            self.start_coords[:,0],
-            self.end_coords[:,0]
+            self.start_coords[:, 0],
+            self.end_coords[:, 0]
         )
         self.assertTrue(
             np.isclose(acf, 5/3),
@@ -76,8 +79,8 @@ class TestTimecor(unittest.TestCase):
         )
         # 2d test
         acf = amep.timecor.acf(
-            self.start_coords[:,0:2],
-            self.end_coords[:,0:2]
+            self.start_coords[:, 0:2],
+            self.end_coords[:, 0:2]
         )
         self.assertTrue(
             np.isclose(acf, 4+5/3),
@@ -93,8 +96,9 @@ class TestTimecor(unittest.TestCase):
             f'''Incorrect ACF value for 3D data. Got {acf}
             instead of {4+5/3+54/3}.'''
         )
-    
+
     def test_isf(self):
+        """Test calculation of the isotropic structure factor."""
         isf = amep.timecor.isf(self.start_coords, self.end_coords, 2*np.pi)
         self.assertTrue(
             np.isclose(isf, 0.05625849532694646),
@@ -106,8 +110,4 @@ class TestTimecor(unittest.TestCase):
             np.isclose(isf, 0.032969797157540344),
             f'''Incorrect ISF value for k={3*np.pi}.
             Got {isf} instead of 0.05625849532694646.'''
-        )        
-        
-        
-if __name__ == '__main__':
-    unittest.main()
+        )
