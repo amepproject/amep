@@ -51,6 +51,7 @@ from .pbc import pbc_points
 from .trajectory import ParticleTrajectory, FieldTrajectory
 from . import thermo as thermo
 
+from typing import Callable
 
 # =============================================================================
 # GENERAL FUNCTION
@@ -59,7 +60,8 @@ class Function(BaseEvaluation):
     """Apply a user-defined function to a trajectory.
     """
 
-    def __init__(self, traj, func, skip=0.0, nav=10, **kwargs):
+    def __init__(self, traj: ParticleTrajectory | FieldTrajectory, 
+        func: Callable, skip: float = 0.0, nav: int = 10, **kwargs):
         r'''Calculate a given function for a trajectory.
 
         Parameters
@@ -130,7 +132,7 @@ class Function(BaseEvaluation):
             nr=self.__nav, indices=True, **kwargs)
         
         self.__times = self.__traj.times[self.__indices]
-    def __compute(self, ind, **kwargs):
+    def __compute(self, ind: int, **kwargs):
         r'''
         Calculation for a single frame,
 
@@ -1691,7 +1693,7 @@ class PosOrderCor(BaseEvaluation):
     """
 
     def __init__(
-            self, traj, grtdata=None, sxydata=None, skip=0.0, nav=10,
+            self, traj: ParticleTrajectory, grtdata=None, sxydata=None, skip=0.0, nav=10,
             k0=None, order='hexagonal', dk=4.0, ptype=None, other=None,
             **kwargs) -> None:
         r'''
