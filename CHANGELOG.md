@@ -3,6 +3,26 @@
 All notable changes to **AMEP** will be documented in this file. **AMEP** 
 adheres to [semantic versioning](https://semver.org/).
 
+## AMEP 1.0.3 (22 Oct 2024)
+
+### Bug fixes:
+
+* documentation improvements (ME, KS, KD, LH)
+* bug fix related to `trajectory.add_particle_info` and `trajectory.get_particle_info` (KD, KS)
+* LammpsReader angular momentum import bug fixed (KD)
+* bug in `evaluate.Psi6dist` related to default value of number of bins fixed (KD)
+* bug in `evaluate.VelDist` related to default value of number of bins fixed (KD)
+* faster tests - now based on example data (KS, LH, KD)
+
+### Contributors:
+
+* Lukas Hecht (LH)
+* Kay-Robert Dormann (KD)
+* Kai Luca Spanheimer (KS)
+* Mahdieh Ebrahimi (ME)
+
+
+
 ## AMEP 1.0.2 (22 Mai 2024)
 
 ### Bug fixes:
