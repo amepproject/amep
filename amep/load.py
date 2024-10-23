@@ -186,7 +186,7 @@ def traj(
     mode = mode.lower()
     if mode not in LOADMODES:
         raise KeyError(
-            f'''amep.load.traj: mode {mode} does not exist.
+            f'''amep.load.traj: mode \'{mode}\' does not exist.
                 Available modes are {LOADMODES}.'''
         )
         
