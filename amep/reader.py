@@ -1398,9 +1398,8 @@ class HOOMDReader(BaseReader):
                     # angular momentum of the particles from quaternions
                     # see: https://hoomd-blue.readthedocs.io/en/v2.9.3/aniso.html
                     quat_angmoms    = np.array(gsd_frame.particles.angmom)
-                    angmoms = quaternion_multiply(quaternion_conjugate(quat_orientations), quat_angmoms)[:,1:]
-                    # qxP = quaternion_multiply(quaternion_conjugate(quat_orientations), quat_angmoms)
-                    # angmoms_principal= quaternion_rotate(quat_orientations, 0.5*qxP[:,1:])
+                    angmoms_principal = 0.5*quaternion_multiply(quaternion_conjugate(quat_orientations), quat_angmoms)[:,1:]
+                    angmoms          = quaternion_rotate(quat_orientations, angmoms_principal)
                     # angmoms          = quaternion_rotate(quaternion_conjugate(quat_orientations), angmoms_principal)
                     if 'angmom' not in frame.keys():
                         frame.create_dataset('angmom',
@@ -1423,9 +1422,8 @@ class HOOMDReader(BaseReader):
                     #                          fletcher32=FLETCHER)
                     # else:
                     #     frame['angmom_theta'][:] = angmom_thetas
-                    angmoms_principal   = quaternion_rotate(quat_orientations, 0.5*angmoms[:,:])
-                    omegas_principal    = angmoms_principal / moment_inertias
-                    omegas             = quaternion_rotate(quaternion_conjugate(quat_orientations), omegas_principal)
+                    omegas_principal   = angmoms_principal / moment_inertias
+                    omegas             = quaternion_rotate(quat_orientations, omegas_principal)
                     if 'omegas' not in frame.keys():
                         frame.create_dataset('omegas',
                                              (N, 3),
