@@ -1400,7 +1400,6 @@ class HOOMDReader(BaseReader):
                     quat_angmoms    = np.array(gsd_frame.particles.angmom)
                     angmoms_principal = 0.5*quaternion_multiply(quaternion_conjugate(quat_orientations), quat_angmoms)[:,1:]
                     angmoms          = quaternion_rotate(quat_orientations, angmoms_principal)
-                    # angmoms          = quaternion_rotate(quaternion_conjugate(quat_orientations), angmoms_principal)
                     if 'angmom' not in frame.keys():
                         frame.create_dataset('angmom',
                                              (N, 3),
