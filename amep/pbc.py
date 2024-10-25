@@ -596,7 +596,8 @@ def pbc_diff_rect(v1, v2, box_boundary):
         v = v1 - v2
         
     # fold distance vectors back into the box
-    v = fold(v, box_boundary)
+    # must fold with respect to center of box
+    v = fold(v, box_boundary-np.mean(box_boundary, axis=1)[:,None])
     return v
 
 
