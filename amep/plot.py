@@ -36,6 +36,7 @@ from typing import Callable, Iterable
 from os.path import abspath, dirname, join
 from pathlib import Path
 import warnings
+warnings.simplefilter('always', PendingDeprecationWarning)
 import shutil
 import numpy as np
 import matplotlib as mpl
@@ -98,6 +99,7 @@ def style(style_name: str = "", mpl_default: bool = False) -> None:
     if not mpl_default:
         style=""
         if style_name in ('amep_latex', 'amep_standard'):
+            warnings.warn("The options <mpl_default: bool>, 'amep_latex' and 'amep_standard' will be removed in an upcoming major release. Please use the modes 'matplotlib', 'latex' and 'standard' instead.", PendingDeprecationWarning)
             style = join(abspath(dirname(__file__)),
                         './styles/',
                         style_name + '.mplstyle')
@@ -115,6 +117,7 @@ def style(style_name: str = "", mpl_default: bool = False) -> None:
             style = style_name
         plt.style.use(style)
     else:
+        warnings.warn("The options <mpl_default: bool>, 'amep_latex' and 'amep_standard' will be removed in an upcoming major release. Please use the modes 'matplotlib', 'latex' and 'standard' instead.", PendingDeprecationWarning)
         mpl.rcParams.update(mpl.rcParamsDefault)
         plt.style.use('default')
 
