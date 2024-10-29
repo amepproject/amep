@@ -2175,6 +2175,7 @@ class LDdist(BaseEvaluation):
             ptype: int | None = None, other: int | None = None,
             mode: str = 'number',
             use_voronoi: bool = False,
+            lattice: np.ndarray | None = None,
             **kwargs) -> None:
         r'''
         Calculate the local density distribution and takes an average
@@ -2231,6 +2232,11 @@ class LDdist(BaseEvaluation):
             density. If False, averages over circles of radius `rmax` are used.
             Note that `other` is ignored if `use_voronoi` is set to True.
             The default is False.
+        lattice : np.ndarray | None, optional
+            ...todo
+            ...todo
+            ...todo
+            ...todo
         **kwargs
             Other keyword arguments are forwarded to the local density functions
             used such as `rmax`, `pbc`, `enforce_nd`.
@@ -2306,6 +2312,7 @@ class LDdist(BaseEvaluation):
         self.__mode = mode
         self.__ftype = ftype
         self.__use_voronoi = use_voronoi
+        self.__lattice = lattice
         self.__kwargs = kwargs
         
         # check mode
@@ -2385,9 +2392,17 @@ class LDdist(BaseEvaluation):
                     **self.__kwargs
                 )
         else:
+            # define coordinates where the local density is tested at.
+            # For typical local density, this is the coordinates
+            # of all particles. When a lattice is supplied, the lattice
+            # points will be used.
+            if lattice is None:
+                testcoords=frame.coords(ptype=self.__ptype)
+            else:
+                testcoords=lattice
             if self.__mode == 'number':
                 ld = local_number_density(
-                    frame.coords(ptype=self.__ptype),
+                    testcoords,
                     frame.box,
                     frame.radius(ptype=self.__other),
                     other_coords = frame.coords(ptype=self.__other),
@@ -2395,7 +2410,7 @@ class LDdist(BaseEvaluation):
                 )
             elif self.__mode == 'mass':
                 ld = local_mass_density(
-                    frame.coords(ptype=self.__ptype),
+                    testcoords,
                     frame.box,
                     frame.radius(ptype=self.__other),
                     frame.mass(ptype=self.__other),
@@ -2404,7 +2419,7 @@ class LDdist(BaseEvaluation):
                 )
             elif self.__mode == 'packing':
                 ld = local_packing_fraction(
-                    frame.coords(ptype=self.__ptype),
+                    testcoords,
                     frame.box,
                     frame.radius(ptype=self.__other),
                     other_coords = frame.coords(ptype=self.__other),

@@ -2006,3 +2006,295 @@ def optimal_chunksize(
     # additionally we add some buffer
     chunksize = int((maxmem-buffer)*8e9/bit_per_element/number_of_elements)
     return chunksize
+
+
+def lattice(box_boundary: np.ndarray, N: int, mode: str = "square", 
+    a: float|None=None, f:float=1.0,**kwargs):
+    r'''
+    asdf
+
+    Notes
+    -----
+    The memory estimate in GB for the computation with one chunk can be written
+    `chunksize*number_of_elements*bit_per_element/8/1e9+buffer`. Setting it
+    equal to `maxmem` leads to the estimate of `chunksize`.
+
+    Parameters
+    ----------
+    data_length : int
+        Length of the data to be chunked.
+    number_of_elements : int
+        Number of (array) elements to be stored for each chunk.
+    bit_per_element : int, optional
+        Number of bits per element, e.g., 32 for float32 numbers or 64 for
+        float64 numbers. The default is 32.
+    buffer : float, optional
+        Additional buffer to avoid filling up the RAM. The default is 0.25.
+    maxmem : float, optional
+        Maxmimum RAM usage per CPU core. The default is MAXMEM.
+
+    Returns
+    -------
+    int
+        Chunksize.
+
+    '''
+    if mode=="square":
+        box_size=box_boundary[:,1]-box_boundary[:,0]
+        nx, ny=jig(box_size[0], box_size[1], N)
+        x=np.linspace(box_boundary[0,0], box_boundary[0,1],nx+1)
+        y=np.linspace(box_boundary[1,0], box_boundary[1,1],ny+1)
+        xarr=(x[:-1]+x[1:])/2
+        yarr=(y[:-1]+y[1:])/2
+        grid=mesh_to_coords(*np.meshgrid(xarr, yarr))
+        return grid
+    elif mode=="hexagonal":
+        center=np.mean(box_boundary,axis=1)
+        print(center)
+        # return "todo!!"
+        #def hexagonal(a, N, f=1.0, center=np.array([0.0,0.0,0.0])):
+        '''
+        Returns the coordinates of the points on a 2D hexagonal
+        lattice of sites with a width-to-height ratio f centered
+        around the given center. The final particle number N can
+        slightly differ from the given value of N.
+
+        Notes
+        -----
+        See also notes from September 1, 2022.
+        
+        Parameters
+        ----------
+        a : float
+            Length of the lattice site.
+        N : float
+            Number of particles.
+        f : float, optional
+            Width-to-height ratio. The default is 1.0.
+        center : np.ndarray, optional
+            Center of the lattice. The default is the origin.
+            
+        Returns
+        -------
+        coords : np.ndarray
+            Coordinate frame of the lattice points.
+            
+        Examples
+        --------
+        >>> hex = hexagonal(2, 100, f=1)
+        >>> fig, axs = amep.plot.new(figsize=(8,8))
+        >>> axs.scatter(hex[:,0], hex[:,1])
+        >>> 
+        
+        '''
+        Nx = int(np.sqrt(np.sqrt(3)*N*f/2)+0.5)
+        Ny = int(np.sqrt(2*N/f/np.sqrt(3))+0.5)
+        coords = np.zeros((int(Nx*Ny),3))
+        n = 0
+        for k in range(Nx):
+            for j in range(Ny):
+                if j%2 == 0:
+                    coords[n] = np.array([(2*k)*a/2, j*np.sqrt(3)*a/2, 0.0])
+                else:
+                    coords[n] = np.array([(1+2*k)*a/2, j*np.sqrt(3)*a/2, 0.0])
+                n += 1
+                
+        # shift coordinates to the given center
+        coords = coords - np.mean(coords, axis=0) + center
+        return coords
+
+
+
+def low_factors(n: int):
+    '''
+    helper function for jig
+
+    The functions low_factors and jig have been modified from
+    https://github.com/standupmaths/JigsawInferenceGizmo
+
+    Notes
+    -----
+    # JIG code from Stand-up Maths video "Why don't Jigsaw Puzzles have the correct number of pieces?"
+
+    MIT License
+
+    Copyright (c) 2022 Stand-up Maths
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+    '''
+    
+    # all the factors which are the lower half of each factor pair
+    lf = []
+    for i in range(1, int(n**0.5)+1):
+        if n % i == 0:
+            lf.append(i)
+    return lf
+
+def jig(w: float, h: float, n: int):
+    '''
+    Calculates the "optimal" number of divisions of a box
+    of width w and height h in a rectangular grid with n
+    pieces.
+    The returned number of grid points will be >=n.
+
+    The functions low_factors and jig have been modified from
+    https://github.com/standupmaths/JigsawInferenceGizmo
+
+    Notes
+    -----
+    # JIG code from Stand-up Maths video "Why don't Jigsaw Puzzles have the correct number of pieces?"
+    
+    MIT License
+
+    Copyright (c) 2022 Stand-up Maths
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+    
+    Parameters
+    ----------
+    w : float
+        width of the box.
+    h : float
+        height of the box.
+    n : int
+        number of grid points for a rectangular grid
+        This number will be aimed
+        
+    Returns
+    -------
+    grid : np.ndarray
+        (nx, ny) - number of x and y divisions to 
+        get the "optimal" grid.
+    '''
+    
+    # percentage we'll check in either direction
+    threshold = 0.1
+
+    # the extra badness per piece
+    penalty = 1.005
+
+    # check if ratio has been flipped
+    flipped=False
+    ratio = max(w,h)/min(w,h)   # switched to be greater than 1
+    if ratio != h/w:
+        flipped=True
+    
+    # print("")
+    # print(f"{w} by {h} is picture ratio {round(ratio,4)}")
+    # print("")
+    
+    max_cap = int((1+threshold)*n)
+    min_cap = int((1-threshold)*n)
+
+    up_range = [i for i in range(n,max_cap+1)]
+    down_range = [i for i in range(min_cap,n)]  # do not want n included again
+    down_range.reverse()
+
+    # start at 100 which is silly high and then move down.
+    up_best = 100
+    up_best_deets = []
+    down_best = 100
+    down_best_deets = []
+
+    # I am using the run marker so I know if looking above or below n
+    run = 0
+
+    for dis_range in [up_range,down_range]:
+        best_n = 0
+        best_n_ratio = 0
+        best_n_sides = []
+        
+        # if run == 0:
+        #     print(f"Looking for >= {n} solutions:")
+        #     print("")
+        # else:
+        #     print("")
+        #     print("Just out of interest, here are smaller options:")
+        #     print("")
+        
+        for i in dis_range:
+            this_best = 0
+            for j in low_factors(i):
+                j2 = int(i/j)   # must be a whole number anyway
+                this_ratio = j2/j
+                if this_best == 0:
+                    this_best =  this_ratio
+                    best_sides = [j,j2]
+                else:
+                    if abs(this_ratio/ratio - 1) < abs(this_best/ratio - 1):
+                        this_best = this_ratio
+                        best_sides = [j,j2]
+            yes = 0
+            if best_n == 0:
+                yes = 1
+            else:
+                if abs(this_best/ratio - 1) < abs(best_n_ratio/ratio - 1):
+                    yes = 1
+            if yes == 1:
+                best_n = i
+                best_n_ratio = this_best
+                best_n_sides = best_sides
+                piece_ratio = max(ratio,this_best)/min(ratio,this_best)
+                badness_score = (penalty**(abs(i-n)))*piece_ratio
+                if run == 0:
+                    if badness_score < up_best:
+                        up_best = badness_score
+                        up_best_deets = [best_n,best_n_sides,best_n_ratio]
+                else:
+                    if badness_score < down_best:
+                        down_best = badness_score
+                        down_best_deets = [best_n,best_n_sides,best_n_ratio]
+                # print(f"{best_n} pieces in {best_n_sides} (grid ratio {round(best_n_ratio,4)}) needs piece ratio {round(piece_ratio,4)}")
+                # if b==1:
+                #     print(f"[badness = {round(badness_score,5)}]")
+
+        # print(f"for {n} the best is {best_n} pieces with size {best_n_sides}")
+
+        run += 1
+
+    # print("")
+    # print(f"If I had to guess: I think it's {up_best_deets[0]} pieces.")
+
+    # if down_best < up_best:
+    #     print("")
+    #     print(f"BUT, fun fact, {down_best_deets[0]} would be even better.")
+
+    # print("")
+    # return 'DONE'
+
+    # return flipped (width vs height) number of pieces if necessary
+    if flipped:
+        return np.array(up_best_deets[1][::-1])
+    return np.array(up_best_deets[1])
