@@ -2008,8 +2008,7 @@ def optimal_chunksize(
     return chunksize
 
 
-def lattice(box_boundary: np.ndarray, N: int, mode: str = "square", 
-    **kwargs):
+def lattice_2d(box_boundary: np.ndarray, N: int, mode: str = "square", threed=True):
     r'''
     asdf
 
@@ -2023,15 +2022,7 @@ def lattice(box_boundary: np.ndarray, N: int, mode: str = "square",
     ----------
     data_length : int
         Length of the data to be chunked.
-    number_of_elements : int
-        Number of (array) elements to be stored for each chunk.
-    bit_per_element : int, optional
-        Number of bits per element, e.g., 32 for float32 numbers or 64 for
-        float64 numbers. The default is 32.
-    buffer : float, optional
-        Additional buffer to avoid filling up the RAM. The default is 0.25.
-    maxmem : float, optional
-        Maxmimum RAM usage per CPU core. The default is MAXMEM.
+    tdoooooooooooooooooooooooooooooooooooooooooooo
 
     Returns
     -------
@@ -2040,13 +2031,27 @@ def lattice(box_boundary: np.ndarray, N: int, mode: str = "square",
 
     '''
     if mode=="square":
+        # get "ideal" grid size for x and y
         box_size=box_boundary[:,1]-box_boundary[:,0]
         nx, ny=jig(box_size[0], box_size[1], N)
+
+        # create lattice points
         x=np.linspace(box_boundary[0,0], box_boundary[0,1],nx+1)
         y=np.linspace(box_boundary[1,0], box_boundary[1,1],ny+1)
+
+        # shift lattice points for pbc and non-pbc
         xarr=(x[:-1]+x[1:])/2
         yarr=(y[:-1]+y[1:])/2
+
+        # create grid-coordinates
         grid=mesh_to_coords(*np.meshgrid(xarr, yarr))
+        if threed:
+            # add z axis if necessary
+            shape=np.array(np.shape(grid))+[0,1]
+            array=np.zeros(shape)
+            array[:,:2]=grid
+            array[:,2]=np.mean(box_boundary[2,:])
+            grid= array
         return grid
     elif mode=="hexagonal":
         center=np.mean(box_boundary,axis=1)
