@@ -35,7 +35,7 @@ from packaging.version import Version
 import warnings
 import numpy as np
 
-from .utils import average_func, kpeaks, rotate_coords, in_box, sq_from_sf2d
+from .utils import average_func, kpeaks, rotate_coords, in_box, sq_from_sf2d, lattice_2d
 from .base import BaseEvaluation
 from .order import psi_k, local_number_density, local_mass_density
 from .order import local_packing_fraction, voronoi_density
@@ -2175,7 +2175,8 @@ class LDdist(BaseEvaluation):
             ptype: int | None = None, other: int | None = None,
             mode: str = 'number',
             use_voronoi: bool = False,
-            lattice: np.ndarray | None = None,
+            lattice_points: np.ndarray | None = None, lattice_mode: str = "square",
+            lattice_n: int | None = None,
             **kwargs) -> None:
         r'''
         Calculate the local density distribution and takes an average
@@ -2232,11 +2233,19 @@ class LDdist(BaseEvaluation):
             density. If False, averages over circles of radius `rmax` are used.
             Note that `other` is ignored if `use_voronoi` is set to True.
             The default is False.
-        lattice : np.ndarray | None, optional
-            ...todo
-            ...todo
-            ...todo
-            ...todo
+        lattice_points : np.ndarray | None, optional
+            Lattice points can be supplied to calculate the local density at.
+            If lattice points are given, no lattice will be created.
+            Default is None.
+        lattice_mode : str, optional
+            Mode with which to create the lattice with. Only used if
+            `lattice_n` is not None. Forwarded to `utils.lattice_2d`
+            Default is "square".
+        lattice_n : int | None, optional
+            Number of lattice points to check the local density at. The
+            next nearest larger number is used that is close to square tiles.
+            If this keyword is not None, then a lattice will be created.
+            Default is None.
         **kwargs
             Other keyword arguments are forwarded to the local density functions
             used such as `rmax`, `pbc`, `enforce_nd`.
@@ -2312,7 +2321,9 @@ class LDdist(BaseEvaluation):
         self.__mode = mode
         self.__ftype = ftype
         self.__use_voronoi = use_voronoi
-        self.__lattice = lattice
+        self.__lattice_points = lattice_points
+        self.__lattice_mode = lattice_mode
+        self.__lattice_n = lattice_n
         self.__kwargs = kwargs
         
         # check mode
@@ -2396,10 +2407,14 @@ class LDdist(BaseEvaluation):
             # For typical local density, this is the coordinates
             # of all particles. When a lattice is supplied, the lattice
             # points will be used.
-            if lattice is None:
-                testcoords=frame.coords(ptype=self.__ptype)
+            if self.__lattice_points is not None:
+                if np.shape(self.__lattice_points)[1]!=3:
+                    raise ValueError("The lattice points must be supplied in three dimensional form.")
+                testcoords=self.__lattice_points
+            elif self.__lattice_n is not None:
+                testcoords=lattice_2d(box_boundary=frame.box, N=self.__lattice_n, mode=self.__lattice_mode, threed=True)
             else:
-                testcoords=lattice
+                testcoords=frame.coords(ptype=self.__ptype)
             if self.__mode == 'number':
                 ld = local_number_density(
                     testcoords,
