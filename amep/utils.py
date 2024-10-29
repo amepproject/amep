@@ -2009,7 +2009,7 @@ def optimal_chunksize(
 
 
 def lattice(box_boundary: np.ndarray, N: int, mode: str = "square", 
-    a: float|None=None, f:float=1.0,**kwargs):
+    **kwargs):
     r'''
     asdf
 
@@ -2050,7 +2050,9 @@ def lattice(box_boundary: np.ndarray, N: int, mode: str = "square",
         return grid
     elif mode=="hexagonal":
         center=np.mean(box_boundary,axis=1)
-        print(center)
+        box_size=box_boundary[:,1]-box_boundary[:,0]
+        f=box_size[0]/box_size[1]
+        a=1
         # return "todo!!"
         #def hexagonal(a, N, f=1.0, center=np.array([0.0,0.0,0.0])):
         '''
@@ -2100,8 +2102,19 @@ def lattice(box_boundary: np.ndarray, N: int, mode: str = "square",
                 n += 1
                 
         # shift coordinates to the given center
-        coords = coords - np.mean(coords, axis=0) + center
-        return coords
+        # coords = coords - np.mean(coords, axis=0) + center
+        mins=np.min(coords, axis=0)
+        maxs=np.max(coords, axis=0)
+        # Ny=jeder punkt einzeln
+        # Nx=ein punktepaar einzeln
+        print(Nx,Ny)
+        a=[Nx,Ny,1]
+        print(a)
+        coords = coords*box_size/a +box_size/a/4
+        print(coords)
+        print("todoooooo!!!!!")
+        raise Exception("todoooooo!!!!!")
+        return None
 
 
 
