@@ -2054,7 +2054,9 @@ def lattice_2d(box_boundary: np.ndarray, N: int, mode: str = "square", threed=Tr
             grid= array
         return grid
     elif mode=="hexagonal":
+        raise Exception("todoooooo!!!!!")
         ratio = np.sqrt(3)/2 # cos(60°)
+        print(ratio)
         N_X = int(np.sqrt(N/ratio))
         N_Y = N // N_X
         xv, yv = np.meshgrid(np.arange(N_X), np.arange(N_Y), sparse=False, indexing='xy')
@@ -2063,7 +2065,7 @@ def lattice_2d(box_boundary: np.ndarray, N: int, mode: str = "square", threed=Tr
 
         center=np.mean(box_boundary,axis=1)
         box_size=box_boundary[:,1]-box_boundary[:,0]
-        f=box_size[0]/box_size[1]
+        f=box_size[0]/box_size[1]/ratio
         a=1
         # return "todo!!"
         #def hexagonal(a, N, f=1.0, center=np.array([0.0,0.0,0.0])):
@@ -2122,11 +2124,10 @@ def lattice_2d(box_boundary: np.ndarray, N: int, mode: str = "square", threed=Tr
         print(Nx,Ny)
         a=[Nx,Ny,1]
         print(a)
-        coords = coords*box_size/a +box_size/a/4
-        print(coords)
-        return coords
+        coords = coords*box_size/a# +box_size/a/2
+        # print(coords)
         print("todoooooo!!!!!")
-        raise Exception("todoooooo!!!!!")
+        return coords
         return None
 
 
