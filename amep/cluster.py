@@ -1036,18 +1036,18 @@ def identify(
     particle_idx  = set(np.arange(len(coords)))
     clustered_idx = set()
 
-    n = 0
+    cluster_id = 0
     for cl in sorted_clusters:
-
         for i in cl:
-            idx[i] = n
+            idx[i] = cluster_id
             clustered_idx.add(i)
-
-        n += 1
+        cluster_id += 1
 
     # add leftover single particles
     for k in particle_idx - clustered_idx:
-        idx[k] = n
-        n += 1
+        idx[k] = cluster_id
+        sorted_clusters.append([k])
+        cluster_id += 1
+    idx=np.array(idx, dtype=int)
 
     return sorted_clusters, idx
