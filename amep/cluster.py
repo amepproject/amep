@@ -940,7 +940,8 @@ def identify(
     sorted_clusters : list
         List of lists, where each list contains the indices of the particles
         that belong to the same cluster. The list is sorted by the number of
-        particles in each cluster.
+        particles in each cluster. Single particles are also included as
+        clusters in this list.
     idx : numpy.ndarray
         Array of shape (N,) containing the cluster ID for each particle. N is 
         the total number of particles.
