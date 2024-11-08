@@ -1434,20 +1434,9 @@ class HOOMDReader(BaseReader):
                     else:
                         frame['omegas'][:] = omegas
 
-                    # diameters of the particles
-                    diameters       = np.array(gsd_frame.particles.diameter)
-                    radii = diameters/2
-                    if 'diameter' not in frame.keys():
-                        frame.create_dataset('diameter',
-                                             (N,),
-                                             data=diameters,
-                                             dtype=DTYPE,
-                                             compression=COMPRESSION,
-                                             shuffle=SHUFFLE,
-                                             fletcher32=FLETCHER)
-                    else:
-                        frame['diameter'][:] = diameters
-
+                    # radius of the particles
+                    # AMEP works with radius instead of diameters
+                    radii       = np.array(gsd_frame.particles.diameter)/2
                     if 'radius' not in frame.keys():
                         frame.create_dataset('radius',
                                              (N,),
