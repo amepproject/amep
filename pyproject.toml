@@ -36,7 +36,9 @@ dependencies = [
     "numpy >= 1.26.6",
     "scipy >= 1.10.0",
     "scikit-image >= 0.20.0",
-    "tqdm >= 4.65.0"
+    "tqdm >= 4.65.0",
+    "gsd >= 3.2.0",
+    "chemfiles >= 0.10.4"
 ]
 
 [project.urls]

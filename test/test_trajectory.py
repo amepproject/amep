@@ -35,6 +35,8 @@ import amep
 DATADIR = Path("../examples/data")
 FIELDDIR = DATADIR/'continuum'
 LAMMPSDIR = DATADIR/'lammps'
+HOOMDDIR = DATADIR/'hoomd'
+GROMACSDIR = DATADIR/'gromacs'
 
 RNG = np.random.default_rng(1234)
 
@@ -207,3 +209,28 @@ class TestFieldTrajectory(unittest.TestCase):
         # add deleted field information again
         self.traj.add_field_info('c', 'name', 'chemicals')
         self.traj.add_field_info('rho', 'name', 'bacterial density')
+
+
+class TestHOOMDReader(unittest.TestCase):
+    """Testcase for HOOMD data.
+
+    TO BE IMPLEMENTED.
+    """
+
+    def test_trajfile(self):
+        hoomd_traj = amep.load.traj(directory=HOOMDDIR,
+                                    filename="simulated.gsd",
+                                    mode="hoomd", start=.9)
+
+
+class TestGROMACSReader(unittest.TestCase):
+    """Testcase for HOOMD data.
+
+    TO BE IMPLEMENTED.
+    """
+
+    def test_trajfile(self):
+        gromacs_traj = amep.load.traj(directory=GROMACSDIR,
+                                    filename="traj.trr",
+                                    topology="top.tpr",
+                                    mode="gromacs", start=.9)

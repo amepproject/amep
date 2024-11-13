@@ -29,6 +29,8 @@ import amep
 
 DATA_DIR: Path = Path("../examples/data/")
 PARTICLE_DIR: Path = DATA_DIR/"lammps"
+GROMACS_DIR: Path = DATA_DIR/"gromacs"
+HOOMD_DIR: Path = DATA_DIR/"hoomd"
 FIELD_DIR: Path = DATA_DIR/"continuum"
 FILE_NAMES: tuple[str, ...] = ("particles",
                                "fields"
@@ -47,6 +49,21 @@ class TestLoad(unittest.TestCase):
             PARTICLE_DIR,
             mode='lammps',
             dumps='dump*.txt'
+        )
+        # test fields
+        traj = amep.load.traj(
+            FIELD_DIR,
+            mode='field',
+            dumps='field_*.txt',
+            delimiter=' ',
+        )
+        traj = amep.load.traj(
+            HOOMD_DIR,
+            mode='hoomd'
+        )
+        traj = amep.load.traj(
+            GROMACS_DIR,
+            mode='gromacs'
         )
         # test fields
         traj = amep.load.traj(

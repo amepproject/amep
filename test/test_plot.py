@@ -128,7 +128,7 @@ class TestPlotMethods(unittest.TestCase):
                                if isinstance(traj, ParticleTrajectory)])
         out_particles = PLOT_DIR/"particle_vid.gif"
         plot.animate_trajectory(f_trajectory, out_field, ftype="c", nth=10)
-        plot.animate_trajectory(p_trajectory, out_particles, nth=50)
+        plot.animate_trajectory(p_trajectory, out_particles, nth=20)
 
     def test_ll_video(self):
         """Test the low level video interface."""

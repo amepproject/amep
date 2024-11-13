@@ -32,6 +32,7 @@ observables from simulation data of particle-based and continuum simulations.
 # IMPORT MODULES
 # =============================================================================
 from packaging.version import Version
+from collections.abc import Callable
 import warnings
 import numpy as np
 
@@ -3072,6 +3073,210 @@ class VelDist(BaseEvaluation):
         return self.__indices
 
 
+
+class Dist(BaseEvaluation):
+    """General distribution.
+    """
+    
+    def __init__(
+            self, traj: ParticleTrajectory | FieldTrajectory,
+            keys: str | list[str, ...], func: Callable | None = None, skip: float = 0.0,
+            nav: float = 10, nbins: int = 50, ptype: float | None = None,
+            ftype: str | None = None, logbins: bool = False,
+            xmin: float | None = None, xmax: float | None = None,
+            **kwargs):
+        r'''
+        Calculate the distribution of a user-defined key or keys.
+
+        Namely the components :math:`v_x, v_y, v_z`
+        as well as the magnitude :math:`v` of the velocity 
+        and its square :math:`v^2`. It also
+        takes an average over several frames (= time average).
+
+        Parameters
+        ----------
+        traj : Traj
+            Trajectory object.
+        skip : float, optional
+            Skip this fraction at the beginning of the trajectory.
+            The default is 0.0.
+        keys : str, list(str)
+        name keys, func=None, ...todo...
+        xmin : float | None, optional
+            Minimum value for the histogram. If None, then the
+            minimum value of the last frame will be used
+        xmax : float | None, optional
+            Maximum value for the histogram. If None, then the
+            maximum value of the last frame will be used
+        nav : int, optional
+            Number of frames to use for the average. The default is 10.
+        nbins : int, optional
+            Number of bins. The default is None.
+        ptype : float, optional
+            Particle type. The default is None.
+
+        Returns
+        -------
+        None
+        
+        Examples
+        --------
+        >>> import amep
+        >>> path="/home/dormann/Documents/git_amep/examples/data/lammps.h5amep"
+        >>> traj= amep.load.traj(path)
+        >>> # distribution of the absolute velocity
+        >>> dist=amep.evaluate.Dist(traj, "v*", func=np.linalg.norm, axis=1, skip=0.5, logbins=True)
+        >>> # save results in hdf5 format
+        >>> dist.save("./eval/dist-eval.h5", name="velocitydistribution")
+
+        >>> fig,axs=amep.plot.new()
+        >>> axs.plot(dist.x, dist.xdist)
+        >>> axs.set_xlabel("Velocity")
+        >>> axs.set_ylabel("P(Velocity)")
+        >>> axs.semilogx()
+        >>> fig.savefig("/home/dormann/Documents/git_amep/doc/source/_static/images/evaluate/evaluate-Dist.png")
+
+        >>> # more examples:
+        >>> # distribution of the x-position
+        >>> dist=amep.evaluate.Dist(traj, "x", skip=0.5, logbins=True)
+        >>> # distribution of the angular velocity
+        >>> dist=amep.evaluate.Dist(traj, "omega*", func=np.linalg.norm, axis=1, skip=0.5, logbins=True)
+
+        .. image:: /_static/images/evaluate/evaluate-Dist.png
+          :width: 400
+          :align: center
+
+        '''
+        super(Dist, self).__init__()
+        
+        if func is None:
+            func = lambda x: x
+        
+        self.name = "dist"
+        
+        self.__traj  = traj
+        self.__keys  = keys
+        self.__skip  = skip
+        self.__nav   = nav
+        self.__nbins = nbins
+        self.__ptype = ptype
+        self.__xmin  = xmin
+        self.__xmax  = xmax
+        self.__func  = func
+        self.__logbins = logbins
+        self.__kwargs = kwargs
+
+        if self.__xmin is None or self.__xmax is None:
+            if isinstance(traj, FieldTrajectory):
+                minmaxdata=self.__traj[-1].data(self.__keys, ftype=self.__ftype)
+            else:
+                minmaxdata=self.__traj[-1].data(self.__keys, ptype=self.__ptype)
+            minmaxdata = func(minmaxdata, **kwargs)
+        if self.__xmin is None:
+            self.__xmin = np.min(minmaxdata)
+            
+        if self.__xmax is None:
+            self.__xmax = np.max(minmaxdata)
+
+        self.__frames, res, self.__indices = average_func(
+            self.__compute, np.arange(self.__traj.nframes), skip=self.__skip,
+            nr=self.__nav, indices=True)
+        
+        self.__times  = self.__traj.times[self.__indices]
+        self.__xdist  = res[0]
+        self.__x      = res[1]
+        
+    def __compute(self, ind):
+        r'''
+        Calculation for a single frame,
+
+        Parameters
+        ----------
+        ind : int
+            Frame index.
+
+        Returns
+        -------
+        hist : np.ndarray
+            Histogram.
+        bins : np.ndarray
+            Bin positions. Same shape as hist.
+        '''
+        data=self.__traj[ind].data(self.__keys, ptype=self.__ptype)
+        data=self.__func(data, **self.__kwargs)
+
+        keyhist, keybins = distribution(
+            data, nbins=self.__nbins, xmin=self.__xmin, xmax=self.__xmax, logbins=self.__logbins)
+        
+        return keyhist, keybins
+    
+    @property
+    def xdist(self):
+        r'''
+        Time-averaged distribution of the magnitude of the velocity.
+
+        Returns
+        -------
+        np.ndarray
+            Distribution of the magnitude of the velocity.
+        '''
+        return self.__xdist
+    
+    @property
+    def x(self):
+        r'''
+        Magnitude of the velocities.
+
+        Returns
+        -------
+        np.ndarray
+            Magnitude of the velocities.
+
+        '''
+        return self.__x
+    
+    @property
+    def frames(self):
+        r'''
+        VelDist for each frame.
+
+        Returns
+        -------
+        np.ndarray
+            VelDist for each frame.
+
+        '''
+        return self.__frames
+    
+    @property
+    def times(self):
+        r'''
+        Times at which the VelDist is evaluated.
+
+        Returns
+        -------
+        np.ndarray
+            Times at which the VelDist is evaluated.
+
+        '''
+        return self.__times
+    
+    @property
+    def indices(self):
+        r'''
+        Indices of all frames for which the VelDist has been
+        evaluated.
+
+        Returns
+        -------
+        np.ndarray
+            Frame indices.
+
+        '''
+        return self.__indices
+
+
+
 # =============================================================================
 # CLUSTER ANALYSIS
 # =============================================================================
@@ -3517,9 +3722,9 @@ class ClusterGrowth(BaseEvaluation):
         >>> axs.plot(clg.times, clg.frames, label="largest")
         >>> clg = amep.evaluate.ClusterGrowth(traj, mode="mean")
         >>> axs.plot(clg.times, clg.frames, label="mean")
-        >>> clg = amep.evaluate.ClusterGrowth(ptraj, mode="mean", min_size=20)
+        >>> clg = amep.evaluate.ClusterGrowth(traj, mode="mean", min_size=20)
         >>> axs.plot(clg.times, clg.frames, label="mean min 20")
-        >>> clg = amep.evaluate.ClusterGrowth(ptraj, mode="weighted mean")
+        >>> clg = amep.evaluate.ClusterGrowth(traj, mode="weighted mean")
         >>> axs.plot(clg.times, clg.frames, label="weighted mean")
         >>> axs.loglog()
         >>> axs.legend()
@@ -3564,7 +3769,7 @@ class ClusterGrowth(BaseEvaluation):
 
         if nav is None:
             nav = self.__traj.nframes
-            
+
         # check mode
         if self.__mode not in ["largest", "mean", "weighted mean"]:
             raise ValueError(
@@ -3633,8 +3838,8 @@ class ClusterGrowth(BaseEvaluation):
         
         # if no clusters are detected
         if len(values) == 0:
-            values = 0.0
-            weights = 1.0
+            values = [0.0]
+            weights = [1.0]
         else:
             weights = values
         
@@ -3692,8 +3897,8 @@ class ClusterGrowth(BaseEvaluation):
             
         # case if there is no cluster
         if len(values) == 0:
-            values = 0.0
-            weights = 1.0
+            values = [0.0]
+            weights = [1.0]
         else:
             weights = values
         
