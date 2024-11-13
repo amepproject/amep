@@ -97,13 +97,13 @@ class TestEvaluateMethods(unittest.TestCase):
         msd_eval.save(RESULT_DIR/"msd_eval.h5")
         # PCF2d
         pcf2d = PCF2d(traj,
-                      nav=2, nxbins=2000, nybins=2000,
+                      nav=2, nxbins=50, nybins=50,
                       njobs=4, skip=0.9
                       )
         pcf2d.save(RESULT_DIR/"pcf2d.h5")
         # PCFangle
         pcfangle = PCFangle(
-            traj, nav=2, ndbins=1000, nabins=1000,
+            traj, nav=2, ndbins=50, nabins=50,
             njobs=4, rmax=8.0, skip=0.9
             )
         pcfangle.save(RESULT_DIR/"pcfangle.h5")
@@ -132,7 +132,7 @@ class TestEvaluateMethods(unittest.TestCase):
         """Test order parameter evaluation.
         TO BE IMPLEMENTED
         """
-        svc = SpatialVelCor(self.particle_traj, skip=0.9, nav=5, njobs=4)
+        svc = SpatialVelCor(self.particle_traj, skip=0.9, nav=2, njobs=4)
 
         svc.save(RESULT_DIR/"svc.h5")
         rdfcalc = RDF(

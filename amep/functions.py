@@ -10,8 +10,7 @@
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
+# GNU General Public License for more details.  #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
@@ -23,17 +22,19 @@ Functions and Fitting
 
 .. module:: amep.functions
 
-The AMEP module :mod:`amep.functions` contains regularly used functions to fit 
+The AMEP module :mod:`amep.functions` contains regularly used functions to fit
 to data as well as fitting methods.
+The naming covention is that the fit classes are named in CamelCase while the
+mathematical functions that can be fitted are name all lowercase.
 
 """
 # =============================================================================
 # IMPORT MODULES
 # =============================================================================
-import numpy as np
 import inspect
+import numpy as np
 
-from scipy.special import erf, erfc
+from scipy.special import erf, erfc, gamma
 from .base import BaseFunction
 
 # =============================================================================
@@ -43,27 +44,35 @@ def gaussian(
         x: np.ndarray, mu: float = 0.0, sig: float = 1.0, offset: float = 0.0,
         A: float = 1.0, normalized: bool = False) -> np.ndarray:
     r'''
-    1D Gaussian.
+    Gaussian Bell curve.
+
+    Equivalent to the probability density function of a normal distribution.
+    By the central limit theorem this is a good guess for most peak shapes
+    that arise from many random processes.
+    The function is given by
+
+    .. math::
+        g(x)=A\exp\left(-\frac{\left(x-\mu\right)^2}{\sigma^2}\right)+b.
 
     Parameters
     ----------
     x : np.ndarray
-        x values.
+        :math:`x` values.
     mu : float
-        Mean value.
+        Mean value :math:`\mu`.
     sig : float
-        Standard deviation.
+        Standard deviation :math:`\sigma`.
     offset : float, optional
-        Shifts the Gaussian in y direction. The default is 0.0.
+        Shifts the Gaussian by :math:`b` in y direction. The default is 0.0.
     A : float, optional
-        Amplitude. The default is 1.0.
+        Amplitude :math:`A`. The default is 1.0.
     normalized : bool, optional
         If True, the Gaussian is normalized to unit area. The default is False.
 
     Returns
     -------
     np.ndarray
-        g(x).
+        g(x)
 
     Examples
     --------
@@ -84,7 +93,7 @@ def gaussian(
     '''
     if normalized:
         A = 1.0/(np.sqrt(2*np.pi) * sig)
-    
+
     return A*np.exp(-((x-mu)**2)/2/sig**2) + offset
 
 
@@ -93,34 +102,55 @@ def gaussian2d(
         muy: float, sigx: float, sigy: float, theta: float, offset: float
         ) -> np.ndarray:
     r'''
-    2D Gaussian.
-    
+    2D Gaussian Bell curve.
+
+
+    Equivalent to the probability density function of a normal distribution
+    in two dimensions.
+    By the central limit theorem this is a good guess for most peak shapes
+    that arise from many random processes.
+    This parametrization can include correlations
+    via the angle variable :math:`\theta`.
+    The function is given by
+
+    .. math::
+        g(x)= A\exp\left(-\left(\vec{x}-\vec{\mu}\right)^T
+                R(\Theta)^{-1}\sigma^{-2}R(\Theta)
+                \left(\vec{x}-\vec{\mu}\right)
+        \right)+b
+
+    where :math:`\vec{x}` is the vector composed the x and y coordinates,
+    :math:`\vec{\mu}` is the mean vector composed
+    of :math:`\mu_x` and :math:`\mu_y` and
+    :math:`\sigma^{-2}` is the diagonal matrix with the inverse
+    variances :math:`\sigma_x^{-2}` and :math:`\sigma_y^{-2}` as entries.
+
     Parameters
     ----------
     data : tuple
         tuple (x,y) of x and y values where x and y
-        are 1D np.ndarrays
+        are 1D np.ndarrays.
     A : float
-        amplitude (float)
+        amplitude.
     mux : float
-        mean in x direction (float)
+        mean :math:`\mu_x` in x direction.
     muy : float
-        mean in y direction (float)
+        mean :math:`\mu_y` in y direction.
     sigx : float
-        sqrt(variance) in x direction (float)
+        standard deviation :math:`\sigma_x` in x direction.
     sigy : float
-        sqrt(variance) in y direction (float)
+        standard deviation :math:`\sigma_y`  in y direction.
     theta : float
-        orientation angle of the polar axis (float)
+        Orientation angle :math:`\Theta` of the polar axis.
     offset : float
-        offset (float)
-        
+        offset :math:`b`. Shifts the output value linearly.
+
     Returns
     -------
-    np.ndarray
+    g(x): np.ndarray
         1D array of floats (flattended 2D array!)
-        
-        
+
+
     Examples
     --------
     >>> import amep
@@ -142,14 +172,15 @@ def gaussian2d(
       :align: center
 
     '''
-    (x,y) = data_tuple
+    (x, y) = data_tuple
     mux = float(mux)
-    muy = float(muy)    
+    muy = float(muy)
     a = (np.cos(theta)**2)/(2*sigx**2) + (np.sin(theta)**2)/(2*sigy**2)
     b = -(np.sin(2*theta))/(4*sigx**2) + (np.sin(2*theta))/(4*sigy**2)
     c = (np.sin(theta)**2)/(2*sigx**2) + (np.cos(theta)**2)/(2*sigy**2)
-    g = offset + A*np.exp( - (a*((x-mux)**2) + 2*b*(x-mux)*(y-muy) 
-                            + c*((y-muy)**2)))
+    g = offset + A*np.exp(a*((x-mux)**2)
+                          + 2*b*(x-mux)*(y-muy)
+                          + c*((y-muy)**2))
     return g.ravel()
 
 
@@ -204,25 +235,26 @@ class Gaussian(BaseFunction):
           :align: center
 
         '''
-        super(Gaussian, self).__init__(3)
-        
+        super().__init__(3)
+
         self.name = 'Gaussian'
         self.keys = ['mu', 'sig', 'a']
-        
+
     def f(
             self, p: list | np.ndarray,
             x: float | np.ndarray) -> float | np.ndarray:
         r'''
         Non-normalized Gaussian function in 1d of the form
-        
+
         .. math::
-            
+
             g(x) = a\exp\left\lbrace\frac{(x-\mu)^2}{2\sigma^2}\right\rbrace.
 
         Parameters
         ----------
         p : list or np.ndarray
-            Parameters $\mu$, $\sigma$, and $a$ of the Gaussian function.
+            Parameters :math:`\mu`, :math:`\sigma`,
+            and :math:`a` of the Gaussian function.
         x : float or np.ndarray
             Value(s) at which the function is evaluated.
 
@@ -236,7 +268,14 @@ class Gaussian(BaseFunction):
 
 
 class NormalizedGaussian(BaseFunction):
-    """Normalized one-dimensional Gaussian.
+    r"""Normalized one-dimensional Gaussian.
+
+    Has the mathematical form
+
+        .. math::
+
+            g(x) = \frac{1}{\sqrt{2\pi}\sigma}
+                \exp\left\lbrace\frac{(x-\mu)^2}{2\sigma^2}\right\rbrace.
     """
     def __init__(self) -> None:
         r'''
@@ -287,25 +326,27 @@ class NormalizedGaussian(BaseFunction):
           :align: center
 
         '''     
-        super(NormalizedGaussian, self).__init__(2)
-        
+        super().__init__(2)
+
         self.name = 'NormalizedGaussian'
-        self.keys = ['mu','sig']
-        
+        self.keys = ['mu', 'sig']
+
     def f(
           self, p: list | np.ndarray,
           x: float | np.ndarray) -> float | np.ndarray:
         r'''
         Normalized one-dimensional Gaussian function of the form
 
-        .. math..:
+        .. math::
 
-            g(x) = \frac{1}{\sqrt{2\pi}\sigma}\exp\left\lbrace\right\frac{(x-\mu)^2}{2\sigma^2}\rbrace.
+            g(x) = \frac{1}{\sqrt{2\pi}\sigma}
+                \exp\left\lbrace\frac{(x-\mu)^2}{2\sigma^2}\right\rbrace.
 
         Parameters
         ----------
         p : list or np.ndarray
-            Parameters $\mu$ and $\sigma$ of the normalized Gaussian function.
+            Parameters :math:`\mu` and :math:`\sigma`
+            of the normalized Gaussian function.
         x : float | np.ndarray
             Value(s) at which the function is evaluated.
 
@@ -317,8 +358,8 @@ class NormalizedGaussian(BaseFunction):
         '''
         A = 1.0 / (np.sqrt(2*np.pi) * p[1])
         return A * np.exp(-((x-p[0])**2) / 2 / p[1]**2)
-    
-    
+
+
 class ExGaussian(BaseFunction):
     """Exponentially modified Gaussian.
     """
@@ -330,22 +371,23 @@ class ExGaussian(BaseFunction):
         -----
         The exponentially modified Gaussian function has three parameters
         :math:`\lambda, \mu`, and :math:`\sigma`, and it is defined as
-        
-        .. math..:
-            
-            g_{\rm ex}(x) = \frac{\lambda}{2} e^{\frac{\lambda}{2} (2 \mu + \lambda \sigma^2 - 2 x)}
-             {\rm erfc} \left(\frac{\mu + \lambda \sigma^2 - x}{ \sqrt{2} \sigma}\right),
-            
-        where :math:`{\rm erfc}` is the complementary error function [1]_. The 
+
+        .. math::
+
+            g_{\rm ex}(x) = \frac{\lambda}{2} e^{\frac{\lambda}{2}
+             (2 \mu + \lambda \sigma^2 - 2 x)}{\rm erfc}
+             \left(\frac{\mu + \lambda \sigma^2 - x}{ \sqrt{2} \sigma}\right),
+
+        where :math:`{\rm erfc}` is the complementary error function [1]_. The
         parameters are ordered as follows:
-        
+
             p[0] : :math:`\lambda`
-            
+
             p[1] : :math:`\mu`
-            
+
             p[2] : :math:`\sigma`
-            
-        The mean value of the distribution is given by :math:`\mu+1/\lambda` 
+
+        The mean value of the distribution is given by :math:`\mu+1/\lambda`
         and the standard deviation by :math:`\sqrt{\sigma^2 + 1/\lambda^2}`.
 
         References
@@ -393,11 +435,11 @@ class ExGaussian(BaseFunction):
           :align: center
 
         '''
-        super(ExGaussian, self).__init__(3)
-        
+        super().__init__(3)
+
         self.name = 'Exponentially modified Gaussian'
         self.keys = ['lambda', 'mu', 'sigma']
-        
+
     def f(
             self, p: list | np.ndarray,
             x: float | np.ndarray) -> float | np.ndarray:
@@ -407,8 +449,11 @@ class ExGaussian(BaseFunction):
 
         .. math..:
 
-            g_{\rm ex}(x) = \frac{\lambda}{2} e^{\frac{\lambda}{2} (2 \mu + \lambda \sigma^2 - 2 x)}
-             {\rm erfc} \left(\frac{\mu + \lambda \sigma^2 - x}{ \sqrt{2} \sigma}\right)
+            g_{\rm ex}(x) = \frac{\lambda}{2} e^{\frac{\lambda}{2}
+                                (2 \mu + \lambda \sigma^2 - 2 x)}
+                                {\rm erfc} \left(
+                                \frac{\mu + \lambda \sigma^2 - x}{
+                                \sqrt{2} \sigma}\right)
 
         Parameters
         ----------
@@ -429,11 +474,11 @@ class ExGaussian(BaseFunction):
     @property
     def mean(self) -> float:
         return self.params[1] + 1.0/self.params[0]
-    
+
     @property
     def std(self) -> float:
         return np.sqrt(self.params[2]**2 + 1.0/self.params[0]**2)
-    
+
 
 class SkewGaussian(BaseFunction):
     """Skewed Gaussian distribution.
@@ -505,11 +550,11 @@ class SkewGaussian(BaseFunction):
           :align: center
 
         '''
-        super(SkewGaussian, self).__init__(3)
-        
+        super().__init__(3)
+
         self.name = 'Skew Normal Distribution'
         self.keys = ['mu', 'sigma', 'alpha']
-        
+
     def f(
             self, p: list | np.ndarray,
             x: float | np.ndarray) -> float | np.ndarray:
@@ -538,24 +583,44 @@ class SkewGaussian(BaseFunction):
         '''
         return 1.0/np.sqrt(2*np.pi)/p[1] * np.exp(-(x-p[0])**2/2/p[1]**2) *\
             (1 + erf(p[2]*(x-p[0])/np.sqrt(2)/p[1]))
-    
+
     @property
     def mean(self) -> float:
         delta = self.params[2]/np.sqrt(1+self.params[2]**2)
         return self.params[0] + self.params[1]*delta*np.sqrt(2/np.pi)
-    
+
     @property
     def std(self) -> float:
         delta = self.params[2]/np.sqrt(1+self.params[2]**2)
         return np.sqrt(self.params[1]**2*(1-2*delta**2/np.pi))
-    
-    
+
+
 class MaxwellBoltzmann(BaseFunction):
     """Maxwell-Boltzmann distribution.
     """
 
-    def __init__(self, d=1, m=None):
+    def __init__(self,
+                 d: int = 1,
+                 m: float = 1.):
         r'''Maxwell-Boltzmann velocity distribution.
+
+        Initializes a function object of a Maxwell-Boltzmann distribution.
+        This distribution describes velocities of free particles in
+        thermal equilibrium.
+        It is usually derived in three dimensions where it is
+
+        .. math::
+
+            f(v) = {\left[\frac{m}{2\pi{}k_bT}\right]}^\frac{3}{2}4\pi{}
+            v^2\exp\left(-\frac{mv^2}{k_bT}\right)
+
+        in arbitrary spatial dimensions :math:`d` it is given by
+
+        .. math::
+
+            f(v) =  \frac{2}{\Gamma\left(\frac{d}{2}\right)}
+                    {\left[\frac{m}{k_bT}\right]}^\frac{d}{2}
+                    v^{d-1}\exp\left(-\frac{mv^2}{k_bT}\right)
 
         Parameters
         ----------
@@ -593,36 +658,47 @@ class MaxwellBoltzmann(BaseFunction):
           :align: center
 
         '''
-        super(MaxwellBoltzmann, self).__init__(1)
+        super().__init__(1)
 
         self.__d = d
         self.__m = m
 
-        if self.__m is None:
-            self.__m = 1
-
         self.name = 'Maxwell-Boltzmann Distribution'
         self.keys = ['kbT']
 
-    def f(self, p, x):
+    def f(self,
+          p: list[float] | np.ndarray,
+          x: float | np.ndarray
+          ) -> float | np.ndarray:
         r"""Calculate the value of the Maxwell-Boltzmann distribution.
+
+        This distribution describes velocities of free particles in
+        thermal equilibrium.
+        It is usually derived in three dimensions where it is
+
+        .. math::
+
+            f(v) = {\left[\frac{m}{2\pi{}k_bT}\right]}^\frac{3}{2}4\pi{}
+            v^2\exp\left(-\frac{mv^2}{k_bT}\right)
+
+        in arbitrary spatial dimensions :math:`d` it is given by
+
+        .. math::
+
+            f(v) =  \frac{2}{\Gamma\left(\frac{d}{2}\right)}
+                    {\left[\frac{m}{k_bT}\right]}^\frac{d}{2}
+                    v^{d-1}\exp\left(-\frac{mv^2}{k_bT}\right)
 
         Parameters
         ----------
         p: list | np.ndarray
             Parameters :math:`k_{\rm B}T`.
         x: float | np.ndarray
-            Value(s) at which the function is evaluated.
+            Velocities(s) :math:`v` at which the function is evaluated.
 
         """
-        if self.__d == 1:
-            return (self.__m/(2*np.pi*p[0]))**(1./2.) * np.exp(
-                    -self.__m*x**2/(2*p[0]))
-        elif self.__d == 2:
-            return (self.__m/p[0]) * x * np.exp(-self.__m*x**2/(2*p[0]))
-        elif self.__d == 3:
-            return (self.__m/(2*np.pi*p[0]))**(3./2.) * 4*np.pi*x**2 * np.exp(
-                    -self.__m*x**2/(2*p[0]))
+        return ((self.__m/(2*p[0]))**(self.__d/2)/gamma(self.__d/2)*2 *
+                np.exp(-self.__m*x**2/(2*p[0]))*x**(self.__d-1))
 
     @property
     def mean(self):
@@ -636,15 +712,36 @@ class MaxwellBoltzmann(BaseFunction):
 class Gaussian2d(BaseFunction):
     """Two-dimensional Gaussian.
     """
-    
+
     def __init__(self):
         r'''
-        Two-dimensional Gaussian function.
+        Initializes a function object of Two-dimensional Gaussian function.
+
+        Equivalent to the probability density function of a normal distribution
+        in two dimensions.
+        By the central limit theorem this is a good guess for most peak shapes
+        that arise from many random processes.
+        This parametrization can include correlations
+        via the angle variable :math:`\theta`.
+        The function is given by
+
+        .. math::
+            g(x)= A\exp\left(-\left(\vec{x}-\vec{\mu}\right)^T
+                    R(\Theta)^{-1}\sigma^{-2}R(\Theta)
+                    \left(\vec{x}-\vec{\mu}\right)
+            \right)+b
+
+        where :math:`\vec{x}` is the vector composed the x and y coordinates,
+        :math:`\vec{\mu}` is the mean vector composed
+        of :math:`\mu_x` and :math:`\mu_y` and
+        :math:`\sigma^{-2}` is the diagonal matrix with the inverse
+        variances :math:`\sigma_x^{-2}` and :math:`\sigma_y^{-2}` as entries.
+
 
         Returns
         -------
         None.
-        
+
         Examples
         --------
         >>> import amep
@@ -666,51 +763,64 @@ class Gaussian2d(BaseFunction):
         .. image:: /_static/images/functions/functions-Gaussian2d.png
           :width: 400
           :align: center
-        
+
         '''
-        super(Gaussian2d, self).__init__(6)
-    
+        super().__init__(6)
+
         self.name = 'Two-dimensional Gaussian'
         self.keys = ['a', 'mux', 'muy', 'sigx', 'sigy', 'theta']
-        
+
     def f(self, p, x):
         r'''
         2D Gaussian.
-        
+        The function is given by
+
+        .. math::
+            g(x)= A\exp\left(-\left(\vec{x}-\vec{\mu}\right)^T
+                    R(\Theta)^{-1}\sigma^{-2}R(\Theta)
+                    \left(\vec{x}-\vec{\mu}\right)
+            \right)+b
+
+        where :math:`\vec{x}` is the vector composed the x and y coordinates,
+        :math:`\vec{\mu}` is the mean vector composed
+        of :math:`\mu_x` and :math:`\mu_y` and
+        :math:`\sigma^{-2}` is the diagonal matrix with the inverse
+        variances :math:`\sigma_x^{-2}` and :math:`\sigma_y^{-2}` as entries.
+
         Parameters
         ----------
         p: list
-            Parameters.
+            Parameters :math:`(A,\mu_x,\mu_y,\sigma_x,\sigma_y,\Theta)`.
         x: np.ndarray
             x-values as 2d array of shape (N,2).
-            
+
         Returns
         -------
         np.ndarray
             1D array of shape (N,).
-            
-            
+
+
         Examples
         --------
         >>> 
         '''
-        X = x[:,0]
-        Y = x[:,1]
+        X = x[:, 0]
+        Y = x[:, 1]
         a = (np.cos(p[5])**2)/(2*p[3]**2) + (np.sin(p[5])**2)/(2*p[4]**2)
         b = -(np.sin(2*p[5]))/(4*p[3]**2) + (np.sin(2*p[5]))/(4*p[4]**2)
         c = (np.sin(p[5])**2)/(2*p[3]**2) + (np.cos(p[5])**2)/(2*p[4]**2)
-        g = p[0]*np.exp( - (a*((X-p[1])**2) + 2*b*(X-p[1])*(Y-p[2]) 
-                                + c*((Y-p[2])**2)))
+        g = p[0]*np.exp(- (a*((X-p[1])**2) + 2*b*(X-p[1])*(Y-p[2])
+                           + c*((Y-p[2])**2)))
         return g
-    
+
     @property
     def mean(self):
         pass
-    
+
     @property
     def std(self):
         pass
-    
+
 
 class Fit(BaseFunction):
     """Fitting a 1d function.
@@ -777,19 +887,23 @@ class Fit(BaseFunction):
         len_diff = len(inspected_object[0]) - len(inspected_object[3])
         fct_call_params_defaults = inspected_object[3]
         fct_def_params = inspected_object[0][len_diff:]
-        # 2: Get user defined function to get all parameters and their default values, then get the parameters from
+        # 2: Get user defined function to get all parameters and
+        # their default values, then get the parameters from
         # the actual function call and categorize parameters
         # - their function call values if they are mentioned
-        # - their default values if they are mentioned as "=None" in the function call
+        # - their default values if they are mentioned as
+        # "=None" in the function call
         # - fit to them if neither of the above is true
 
         # Extract all params from def and call of fct
         self.fct_def_params = fct_def_params
-        fct_call_params = [i for i in kwargs.keys()]
-        fct_call_values = [i for i in kwargs.values()]
-        # Get the length difference between arguments and kwargs, this allows us to match name to value
+        fct_call_params = list(kwargs.keys())
+        fct_call_values = list(kwargs.values())
+        # Get the length difference between arguments and kwargs,
+        # this allows us to match name to value
 
-        # Determine which params have what values in fit and which are to be fitted
+        # Determine which params have what values
+        # in fit and which are to be fitted
         fit_params_input = []
         fit_params_to_determine = []
         for k, param in enumerate(fct_def_params):
@@ -806,7 +920,6 @@ class Fit(BaseFunction):
 
         self.defaults = inspected_object[3]
         self.g = g
-
 
         self.fit_params_input = fit_params_input
         self.keys = fit_params_to_determine

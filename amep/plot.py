@@ -539,7 +539,7 @@ def new(figsize: tuple[float, float] = None,
         **kwargs
         ) -> tuple[plt.Figure, mpl.axes.Axes | np.ndarray]:
     r'''
-    Create a new matplotlib.pyplot figure.
+    Create a new matplotlib.pyplot figure (uses matplotlib.pyplot.subplots).
 
     Parameters
     ----------
@@ -578,6 +578,14 @@ def new(figsize: tuple[float, float] = None,
         matplotlib.pyplot figure object.
     axes : AxesSubplot
         matplotlib.pyplot axes objects..
+
+    Examples
+    --------
+    >>> import amep
+    >>> import numpy as np
+    >>> fig, axs = amep.plot.new()
+    >>> x = np.linspace(0,10,1000)
+    >>> axs.plot(x, np.sin(x))
 
     '''
     gridspec = {}
@@ -875,9 +883,9 @@ def box(axis: mpl.axes.Axes, box_boundary: np.ndarray, **kwargs) -> None:
     ----------
     axis : AxisSubplot
         Matplotlib.pyplot AxisSubplot object.
-    box_boundary : np.ndarray
-        Boundaries of the simulation box.
-        [[xmin, xmax], [ymin, ymax], [zmin, zmax]]
+    box_boundary : np.ndarray of shape (3,2)
+        Boundary of the simulation box in the form of
+        `np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]])`.
     **kwargs : 
         Forwarded to axis.plot.
 
@@ -901,7 +909,7 @@ def box(axis: mpl.axes.Axes, box_boundary: np.ndarray, **kwargs) -> None:
 
 
 def particles(
-        ax: mpl.axes, coords: np.ndarray, box_boundary: np.ndarray,
+        ax: mpl.axes.Axes, coords: np.ndarray, box_boundary: np.ndarray,
         radius: np.ndarray | float, scalefactor: float = 1.0,
         values: np.ndarray | None = None,
         cmap: list | str = 'viridis', set_ax_limits: bool = True,
@@ -927,9 +935,9 @@ def particles(
         The matplotlib axes object where the particles will be plotted.
     coords : np.ndarray
         An array of coordinates for the particles.
-    box_boundary : np.ndarray
-        The boundary of the simulation box.
-        [[xmin, xmax], [ymin, ymax], [zmin, zmax]]
+    box_boundary : np.ndarray of shape (3,2)
+        Boundary of the simulation box in the form of
+        `np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]])`.
     radius : float or np.ndarray
         The radius of the particles.
     scalefactor : float, optional
@@ -1073,7 +1081,7 @@ def particles(
 
 
 def field(
-        ax: mpl.axes, density: np.ndarray, X: np.ndarray, Y: np.ndarray,
+        ax: mpl.axes.Axes, density: np.ndarray, X: np.ndarray, Y: np.ndarray,
         cmap: list | str = 'plasma', box_boundary: np.ndarray | None = None,
         vmin: float | None = None, vmax: float | None = None,
         cscale: str = 'lin', verbose: bool = False, **kwargs
@@ -1095,10 +1103,10 @@ def field(
     cmap: list or str, optional
         A list representing the colormap to use for the particles or
         the name of a matplotlib colormap. The default is 'viridis'.
-    box_boundary : np.ndarray | None, optional
-        The boundary of the simulation box.
+    box_boundary : np.ndarray of shape (3,2) | None, optional
+        Boundary of the simulation box in the form of
+        `np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]])`.
         Needed if `set_ax_limits = True`.
-        [[xmin, xmax], [ymin, ymax], [zmin, zmax]]
     vmin : float or None, optional
         Lower limit for the colormap. The default is None.
     vmax : float or None, optional
@@ -1511,7 +1519,7 @@ def animate_trajectory(
     ...     traj, "./figures/plot/plot-animate_trajectory_1.gif",
     ...     formatter=lambda x: amep.plot.format_axis(x, direction="out"),
     ...     vmin=0.0, vmax=3.0, ftype='c', xlabel=r"$x$", ylabel=r"$y$",
-    ...     cbar_label=r"$c(x,y)$"
+    ...     cbar_label=r"$c(x,y)$", fps=5
     ... )
     >>>
     
@@ -1525,7 +1533,7 @@ def animate_trajectory(
     ...     traj, "./figures/plot/plot-animate_trajectory_2.gif",
     ...     painter=lambda x,p: (x.velocities(ptype=p)**2).sum(axis=1),
     ...     xlabel='x', ylabel='y', cbar_label=r'$|\vec{v}|^2$',
-    ...     vmin=1e0, vmax=1e6, cscale="log"
+    ...     vmin=1e0, vmax=1e6, cscale="log", fps=5
     ... )
     >>> 
 

@@ -703,7 +703,7 @@ def voronoi_density(
         Coordinates of the particles for the voronoi tessellation.
         If None, the user has to specify the Voronoi tessellation with the
         keyword `vor` (and ids for pbc=True).
-    box_boundary : np.ndarray of shape (3,2) or None
+    box_boundary : np.ndarray of shape (3,2) | None, optional
         Boundary of the simulation box in the form of
         `np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]])`.
         If None, the user has to specify the Voronoi tessellation with the
@@ -1017,13 +1017,13 @@ def nearest_neighbors(
     Parameters
     ----------
     coords : np.ndarray of shape (N,3)
-        Array of coordinates/points to search for neighbors.
+        Array of coordinates to search for neighbors of.
     box_boundary : np.ndarray of shape (3,2)
         Boundary of the simulation box in the form of
         `np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]])`.
     other_coords : np.ndarray of shape (M,3) or None, optional
-        Array of points to search for neighbors of. The default is None (use 
-        coords).
+        Array of coordinates of the particles (neighbors).
+        The default is None (use coords).
     rmax : float, optional
         Distance cutoff. Only neighbors with distance smaller than the cutoff
         are returned. The default is 1.0.

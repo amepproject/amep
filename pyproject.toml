@@ -1,6 +1,6 @@
 [project]
 name = "amep"
-version = "1.0.2"
+version = "1.0.3"
 license = {file="LICENSE"}
 authors = [
     {name = "Lukas Hecht", email = "lukas.hecht@pkm.tu-darmstadt.de"},

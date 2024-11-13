@@ -52,6 +52,7 @@ from .pbc import pbc_points
 from .trajectory import ParticleTrajectory, FieldTrajectory
 from . import thermo as thermo
 
+from typing import Callable
 
 # =============================================================================
 # GENERAL FUNCTION
@@ -60,7 +61,8 @@ class Function(BaseEvaluation):
     """Apply a user-defined function to a trajectory.
     """
 
-    def __init__(self, traj, func, skip=0.0, nav=10, **kwargs):
+    def __init__(self, traj: ParticleTrajectory | FieldTrajectory, 
+        func: Callable, skip: float = 0.0, nav: int = 10, **kwargs):
         r'''Calculate a given function for a trajectory.
 
         Parameters
@@ -131,7 +133,7 @@ class Function(BaseEvaluation):
             nr=self.__nav, indices=True, **kwargs)
         
         self.__times = self.__traj.times[self.__indices]
-    def __compute(self, ind, **kwargs):
+    def __compute(self, ind: int, **kwargs):
         r'''
         Calculation for a single frame,
 
@@ -1692,8 +1694,14 @@ class PosOrderCor(BaseEvaluation):
     """
 
     def __init__(
-            self, traj, grtdata=None, sxydata=None, skip=0.0, nav=10,
-            k0=None, order='hexagonal', dk=4.0, ptype=None, other=None,
+            self, traj: ParticleTrajectory, 
+            grtdata: BaseEvaluation | None = None,
+            sxydata: BaseEvaluation | None = None, 
+            skip: float = 0.0, nav: int = 10,
+            k0: list[np.ndarray, ...] | None = None, 
+            order: str = 'hexagonal', 
+            dk: float = 4.0, ptype: int | None = None, 
+            other: int | None = None,
             **kwargs) -> None:
         r'''
         Calculate the positional order correlation function.
@@ -1733,12 +1741,12 @@ class PosOrderCor(BaseEvaluation):
         ----------
         traj : Traj
             Trajectory object with simulation data.
-        grtdata : pd.DataFrame, optional
+        grtdata : BaseEvaluation, optional
             Pair correlation function g(r,theta) as obtained from
             amep.evaluate.PCFangle. If None, the angular pair
             correlation function is calculated within this method.
             The default is None.
-        sxydata : pd.DataFrame, optional
+        sxydata : BaseEvaluation, optional
             2d structure factor as obtained from amep.evaluate.SF2d.
             If None, the 2d structure factor is calculated within this
             method. The default is None.
@@ -2526,8 +2534,10 @@ class Psi6dist(BaseEvaluation):
     """
 
     def __init__(
-            self, traj, skip=0.0, nav=10, nbins=None, ptype=None,
-            other=None, **kwargs) -> None:
+            self, traj: ParticleTrajectory, skip: float = 0.0, 
+            nav: int = 10, nbins: int = 50, 
+            ptype: int | None = None, other: int | None = None, 
+            **kwargs) -> None:
         r'''
         Calculate the distribution of the :math:`\Psi_6`.
 
@@ -2568,7 +2578,7 @@ class Psi6dist(BaseEvaluation):
 
         Parameters
         ----------
-        traj : Traj
+        traj : ParticleTrajectory
             Trajectory object.
         skip : float, optional
             Skip this fraction at the beginning of the trajectory. 
@@ -2576,7 +2586,7 @@ class Psi6dist(BaseEvaluation):
         nav : int, optional
             Number of frames to use for the average. The default is 10.
         nbins : int, optional
-            Number of bins. The default is None.
+            Number of bins. The default is 50.
         ptype : float, optional
             Particle type. If None, all particles are used.
             The default is None.
@@ -2621,9 +2631,6 @@ class Psi6dist(BaseEvaluation):
         self.__ptype = ptype
         self.__other = other
         self.__kwargs = kwargs
-        
-        if self.__nbins is None:
-            self.__nbins = int(self.__traj[0].n(ptype=self.__ptype)/100)
         
         self.__frames, res, self.__indices = average_func(
             self.__compute, np.arange(self.__traj.nframes), skip=self.__skip,
@@ -2743,8 +2750,10 @@ class VelDist(BaseEvaluation):
     """
     
     def __init__(
-            self, traj, skip=0.0, nav=10, nbins=None, ptype=None, vmin=None,
-            vmax=None, v2min=None):
+            self, traj, skip: float = 0.0, nav: int = 10,
+            nbins: int = 50, ptype: int | None = None,
+            vmin: float | None = None, vmax: float | None = None,
+            v2min: float | None = None) -> None:
         r'''
         Calculate the distribution of velocities.
 
@@ -2752,6 +2761,14 @@ class VelDist(BaseEvaluation):
         as well as the magnitude :math:`v` of the velocity 
         and its square :math:`v^2`. It also
         takes an average over several frames (= time average).
+
+        For the :math:`v^2` distribution, logarithmic
+        bins are used. Therefore `v2min`:math:`\ge 0`
+        needs to be ensured. For the maximum value,
+        `vmax` is used as :math:`3v_{max}^2`.
+        Analogously for the maximum of :math:'v',
+        where :math:`\sqrt{3v_{max}}` is used. For the minimum
+        of :math:'v', the square root of `v2min` is used.
 
         Parameters
         ----------
@@ -2763,9 +2780,22 @@ class VelDist(BaseEvaluation):
         nav : int, optional
             Number of frames to use for the average. The default is 10.
         nbins : int, optional
-            Number of bins. The default is None.
+            Number of bins. The default is 50.
         ptype : float, optional
             Particle type. The default is None.
+        vmin : float | None, optional
+            Minimum value for the histogram in each spatial dimension
+            :math:`v_x, v_y, v_z`.
+            If None, then the minimum value of the last frame will be used
+        vmax : float | None, optional
+            Maximum value for the histogram in each spatial dimension
+            :math:`v_x, v_y, v_z`.
+            If None, then the maximum value of the last frame will be used
+        v2min : float | None, optional
+            Minimum value for the velocity-squared histogram.
+            This value has to be :math:`\ge 0` due to the use of
+            logarithmic bins for the :math:`v^2` distribution.
+            If None, then the minimum value of the last frame will be used.
 
         Returns
         -------
@@ -2801,9 +2831,6 @@ class VelDist(BaseEvaluation):
         self.__vmax  = vmax
         self.__v2min = v2min
         
-        if self.__nbins is None:
-            self.__nbins = int(self.__traj[0].n(ptype=self.__ptype)/100)
-            
         if self.__vmin is None:
             self.__vmin = np.min(self.__traj[-1].velocities(ptype=self.__ptype))
             
@@ -2860,12 +2887,22 @@ class VelDist(BaseEvaluation):
         
         v2 = np.sum(vel**2, axis=1)
         
+        
         v2hist, v2bins = distribution(
             v2, nbins=self.__nbins, logbins=True, xmin=self.__v2min,
-            xmax=(3*self.__vmin**2+3*self.__vmax**2)/2)
+            xmax=3*self.__vmax**2)
         vhist, vbins = distribution(
-            np.sqrt(v2), nbins=self.__nbins, xmin=0,
-            xmax=np.sqrt((3*self.__vmin**2+3*self.__vmax**2)/2))
+            np.sqrt(v2), nbins=self.__nbins, xmin=np.sqrt(self.__v2min),
+            xmax=np.sqrt(3*self.__vmax**2))
+
+
+# (KD, 2024.07.16) was:
+        # v2hist, v2bins = distribution(
+        #     v2, nbins=self.__nbins, logbins=True, xmin=self.__v2min,
+        #     xmax=(3*self.__vmin**2+3*self.__vmax**2)/2)
+        # vhist, vbins = distribution(
+        #     np.sqrt(v2), nbins=self.__nbins, xmin=0,
+        #     xmax=np.sqrt((3*self.__vmin**2+3*self.__vmax**2)/2))
         
         return xhist, xbins, yhist, ybins, zhist, zbins, vhist, vbins, v2hist,\
                v2bins 
@@ -3635,7 +3672,7 @@ class ClusterGrowth(BaseEvaluation):
 
         Parameters
         ----------
-        traj : Traj
+        traj : ParticleTrajectory | FieldTrajectory
             Trajectory object.
         skip : float, optional
             Skip this fraction at the beginning of the trajectory.
@@ -4751,7 +4788,7 @@ class EkinTot(BaseEvaluation):
 
         Parameters
         ----------
-        traj : Traj
+        traj : ParticleTrajectory
             Trajectory object with simulation data.
         skip : float, default=0.0
             Skip this fraction at the beginning of
@@ -4893,7 +4930,7 @@ class EkinTrans(BaseEvaluation):
 
         Parameters
         ----------
-        traj : Traj
+        traj : ParticleTrajectory
             Trajectory object with simulation data.
         mass : float | np.ndarray
             Function to be used for analysis.
@@ -5038,7 +5075,7 @@ class EkinRot(BaseEvaluation):
 
         Parameters
         ----------
-        traj : Traj
+        traj : ParticleTrajectory
             Trajectory object with simulation data.
         mode : "total" or "particle"
             How to return the energy, c.f. thermo.py
