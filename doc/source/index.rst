@@ -3,7 +3,7 @@
   :align: center
 
 
-AMEP 1.0.3 documentation
+AMEP 1.1.0-dev documentation
 ========================
 
 .. include:: ../../README.md
