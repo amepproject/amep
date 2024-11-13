@@ -36,6 +36,7 @@ from typing import Callable, Iterable
 from os.path import abspath, dirname, join
 from pathlib import Path
 import warnings
+warnings.simplefilter('always', PendingDeprecationWarning)
 import shutil
 import numpy as np
 import matplotlib as mpl
@@ -73,6 +74,10 @@ def style(style_name: str = "", mpl_default: bool = False) -> None:
     r'''
     Set the plot style.
 
+    .. note:: Deprecates in 2.0.0
+          `mpl_default: bool` will be removed in an upcoming major release. Please use "matplotlib".
+          "amep_latex" and "amep_standard" will be removed. Please use "latex" and "standard" instead.
+
     Parameters
     ----------
     style_name : str, optional
@@ -80,6 +85,9 @@ def style(style_name: str = "", mpl_default: bool = False) -> None:
         styles, one can choose the AMEP styles `'amep_latex'` and 
         `'amep_standard'`. The AMEP styles are used per default when AMEP is
         imported.
+        Please switch to the modes "latex", "standard" for AMEP-styles and
+        "matplotlib" for the default matplotlib style. Any other 'style_name'
+        is forwarded to 'matplotlib.pyplot.style.use(style_name)'.
     mpl_default : bool, optional
         Determines whether to apply a style or revert
         to the default pyplot style. The default is False.
@@ -89,14 +97,27 @@ def style(style_name: str = "", mpl_default: bool = False) -> None:
     None.
     '''
     if not mpl_default:
+        style=""
         if style_name in ('amep_latex', 'amep_standard'):
-            path = join(abspath(dirname(__file__)),
+            warnings.warn("The options <mpl_default: bool>, 'amep_latex' and 'amep_standard' will be removed in an upcoming major release. Please use the modes 'matplotlib', 'latex' and 'standard' instead.", PendingDeprecationWarning)
+            style = join(abspath(dirname(__file__)),
                         './styles/',
                         style_name + '.mplstyle')
-            plt.style.use(path)
+        elif style_name=="latex":
+            style = join(abspath(dirname(__file__)),
+                        './styles/',
+                        'amep_latex.mplstyle')
+        elif style_name=="standard":
+            style = join(abspath(dirname(__file__)),
+                        './styles/',
+                        'amep_standard.mplstyle')
+        elif style_name=="matplotlib":
+            style = "default"
         else:
-            plt.style.use(style_name)
+            style = style_name
+        plt.style.use(style)
     else:
+        warnings.warn("The options <mpl_default: bool>, 'amep_latex' and 'amep_standard' will be removed in an upcoming major release. Please use the modes 'matplotlib', 'latex' and 'standard' instead.", PendingDeprecationWarning)
         mpl.rcParams.update(mpl.rcParamsDefault)
         plt.style.use('default')
 
