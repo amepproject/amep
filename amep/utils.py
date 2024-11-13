@@ -959,6 +959,11 @@ def detect2peaks(
     Detects the two highest peaks in the given data after smoothing it
     with a running average. Includes also global maxima at the boundaries.
 
+    Notes
+    -----
+    This method only produces correct results if there are at most two
+        peaks present! Please check the behavior in your individual case.
+
     Parameters
     ----------
     xdata : np.ndarray
@@ -983,7 +988,7 @@ def detect2peaks(
     avydata : np.ndarray
         Averaged y values.
     avxdata : np.ndarray
-        Averaged x values (same shape as avxdata).
+        Averaged x values (same shape as avydata).
     
     Examples
     --------
@@ -1021,6 +1026,12 @@ def detect2peaks(
     # smooth data with running mean
     avxdata = runningmean(xdata, nav, mode='valid')
     avydata = runningmean(ydata, nav, mode='valid')
+
+    # detecting maxima at the borders
+    # adding "virtual" points at the beginning and end of data
+    dx=avxdata[1]-avxdata[0]
+    avxdata=np.concatenate(([avxdata[0]-dx], avxdata, [avxdata[-1]+dx]))
+    avydata=np.concatenate(([np.min(avydata)], avydata, [np.min(avydata)]))
     
     # determine peaks in averaged data
     ind, other = signal.find_peaks(avydata, height=height, distance=distance, width=width)
@@ -1053,7 +1064,8 @@ def detect2peaks(
             high = [np.max(avxdata[ind[largest]]),\
                     avydata[ind[largest]][np.argmax(avxdata[ind[largest]])]] # high x peak
 
-    return low, high, avydata, avxdata
+    # remove virtual points in avxdata and avydata
+    return low, high, avydata[1:-1], avxdata[1:-1]
 
 
 
