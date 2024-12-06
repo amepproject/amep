@@ -1344,6 +1344,11 @@ def domain_length(
     l: float
         Domain length as inverse expectation value of q.
 
+    Notes
+    -------
+    Here, qmin=2*np.pi/boxsize, therefore we do not need to modify anything within this function.
+    In the future, it would be interesting to set a qmin where we are calculating the structure factor itself.
+    
     Examples
     --------
     >>> import amep

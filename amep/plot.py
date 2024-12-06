@@ -1829,3 +1829,56 @@ def voronoi(axs: mpl.axes.Axes, vor: Voronoi, **kwargs):
     else:
         raise Exception("amep.plot.voronoi: Cannot plot 3d data.")
     plt.show()
+
+def draw_arrow(fig, x: float, y: float, dx: float, dy: float, **kwargs):
+    r"""Draws an arrow on a Matplotlib figure.
+
+    This function uses the `FancyArrow` class to draw an arrow on a Matplotlib figure 
+    at a specified position, with a given displacement. The arrow is added directly 
+    to the figure's artist list.
+
+    Parameters
+    ----------
+    fig : matplotlib.figure.Figure
+        The Matplotlib figure object on which the arrow will be drawn.
+    x : float
+        The starting x-coordinate of the arrow, in figure coordinates (0 to 1).
+    y : float
+        The starting y-coordinate of the arrow, in figure coordinates (0 to 1).
+    dx : float
+        The horizontal displacement (change in x) of the arrow, in figure coordinates.
+    dy : float
+        The vertical displacement (change in y) of the arrow, in figure coordinates.
+    **kwargs : dict, optional
+        Additional keyword arguments passed to `matplotlib.patches.FancyArrow`, 
+        such as `color`, `width`, `head_width`, and `head_length`.
+
+    Returns
+    -------
+    None
+        This function modifies the figure in-place by adding the arrow as an artist.
+
+    Notes
+    -----
+    The arrow's position and size are specified in figure coordinates. Figure 
+    coordinates range from 0 to 1, where (0, 0) represents the bottom-left corner 
+    and (1, 1) represents the top-right corner of the figure.
+
+    Examples
+    --------
+    >>> import amep
+    >>> import numpy as np
+    >>> start_points = [(0.2, 0.2), (0.4, 0.4), (0.6, 0.6), (0.8, 0.8)]
+    >>> displacements = [(0.1, 0.05), (-0.05, 0.1), (0.05, -0.05), (-0.1, -0.1)]
+    >>> fig, axs = amep.plot.new(figsize=(3, 3))
+    >>> for (x, y), (dx, dy) in zip(start_points, displacements):
+    >>>     amep.plot.draw_arrow(fig, x, y, dx, dy, color="blue", alpha=0.8, width=0.005, head_width=0.02, head_length=0.03)
+    >>> plt.show()
+
+    See Also
+    --------
+    matplotlib.patches.FancyArrow : Used to create the arrow object.
+    """
+
+    arrow = FancyArrow(x, y, dx, dy, transform=fig.transFigure, length_includes_head=True, **kwargs)
+    fig.add_artist(arrow) 
