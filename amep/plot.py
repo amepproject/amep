@@ -1866,6 +1866,17 @@ def draw_arrow(fig, x: float, y: float, dx: float, dy: float, **kwargs):
 
     Examples
     --------
+    1) simple example
+    >>> fig, axs = amep.plot.new(figsize=(3, 3))
+    >>> x=0.2
+    >>> y=0.2
+    >>> dx=0.5
+    >>> dy=0.5
+    >>> amep.plot.draw_arrow(fig, x, y, dx, dy, color="blue", alpha=0.8, width=0.05, head_width=0.1, head_length=0.03)
+
+
+
+    2) advanced example
     >>> import amep
     >>> import numpy as np
     >>> start_points = [(0.2, 0.2), (0.4, 0.4), (0.6, 0.6), (0.8, 0.8)]

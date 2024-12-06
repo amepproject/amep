@@ -1379,6 +1379,8 @@ def sfiso(
     where :math:`N` is the number of particles [1]_.
 
     Mode 'fft' only works in 2D!!!
+    
+    Here, qmin is set to the default value 2*np.pi/boxsize. 
 
     References
     ----------

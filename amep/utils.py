@@ -1346,8 +1346,8 @@ def domain_length(
 
     Notes
     -------
-    Here, qmin=2*np.pi/boxsize, therefore we do not need to modify anything within this function.
-    In the future, it would be interesting to set a qmin where we are calculating the structure factor itself.
+    Here, qmin is set to the default value 2*np.pi/boxsize. Please check also the 2D isotropic static structure factor (amep.spatialcor.sfiso).
+    
     
     Examples
     --------
