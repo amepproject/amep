@@ -3651,7 +3651,7 @@ class ClusterGrowth(BaseEvaluation):
 
     def __init__(
             self, traj: ParticleTrajectory | FieldTrajectory,
-            skip: float = 0.0, nav: int = 10 | None = None,
+            skip: float = 0.0, nav: int | None = 10,
             min_size: int = 0,
             ptype: int | None = None, ftype: str | list | None = None,
             mode: str = "largest", use_density: bool = True,
@@ -3982,7 +3982,7 @@ class MSD(BaseEvaluation):
     
     def __init__(
             self, traj: ParticleTrajectory, ptype: int | None = None,
-            skip: float = 0.0, nav: int = 10 | None = None,
+            skip: float = 0.0, nav: int | None = 10,
             use_nojump: bool = False, pbc: bool = True) -> None:
         r'''
         Calculates the mean-square displacement over time. If periodic boundary
@@ -4208,7 +4208,7 @@ class VACF(BaseEvaluation):
 
     def __init__(
             self, traj: ParticleTrajectory, ptype: int | None = None,
-            skip: float = 0.0, nav: int = 10 | None = None,
+            skip: float = 0.0, nav: int | None = 10,
             direction: str = 'xyz') -> None:
         r'''
         Calculate the velocity autocorrelation function.
@@ -4406,7 +4406,7 @@ class OACF(BaseEvaluation):
     """Orientational autocorrelation function.
     """
 
-    def __init__(self, traj, ptype=None, skip=0.0, nav: int = 10 | None = None, direction='xyz'):
+    def __init__(self, traj, ptype=None, skip=0.0, nav: int | None = 10, direction='xyz'):
         r'''
         Calculate the orientational autocorrelation function
         averaged over all particles of the given type.
@@ -4610,7 +4610,7 @@ class TimeCor(BaseEvaluation):
     quantity.
     """
 
-    def __init__(self, traj, *args, ptype=None, skip=0.0, nav: int = 10 | None = None):
+    def __init__(self, traj, *args, ptype=None, skip=0.0, nav: int | None = 10):
         r'''
         Calculate the autocorrelation function.
         Averages over all particles of the given type.
