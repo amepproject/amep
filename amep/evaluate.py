@@ -75,9 +75,9 @@ class Function(BaseEvaluation):
         skip: float, default=0.0
             Skip this fraction at the beginning of
             the trajectory.
-        nav: int, default=10
-            number of frames to consider for
-            the time average.
+        nav: int, optional
+            Number of frames to consider for the time average.
+            The default is 10.
         **kwargs: Keyword Arguments
             General python keyword arguments to be
             forwarded to the function f.
@@ -440,8 +440,8 @@ class RDF(BaseEvaluation):
             Skip this fraction at the beginning of the trajectory. The default
             is 0.0.
         nav : int, optional
-            Maximum number of frames to consider for the time average. The
-            default is 10.
+            Number of frames to consider for the time average.
+            The default is 10.
         ptype : float, optional
             Particle type. The default is None.
         other : float, optional
@@ -630,8 +630,8 @@ class PCF2d(BaseEvaluation):
             Skip this fraction at the beginning of the trajectory. The default
             is 0.0.
         nav : int, optional
-            Maximum number of frames to consider for the time average. The
-            default is 10.
+            Number of frames to consider for the time average.
+            The default is 10.
         ptype : float or None, optional
             Particle type. The default is None.
         other : float or None, optional
@@ -865,8 +865,8 @@ class PCFangle(BaseEvaluation):
             Skip this fraction at the beginning of the trajectory. The default
             is 0.0.
         nav : int, optional
-            Maximum number of frames to consider for the time average. The
-            default is 10.
+            Number of frames to consider for the time average.
+            The default is 10.
         ptype : float or None, optional
             Particle type. The default is None.
         other : float or None, optional
@@ -1083,9 +1083,9 @@ class SF2d(BaseEvaluation):
         skip : float, optional
             Skip this fraction at the beginning of
             the trajectory. The default is 0.0.
-        nav : int, optional 
-            Max. number of frames to consider for
-            the time average. The default is 10.
+        nav : int, optional
+            Number of frames to consider for the time average.
+            The default is 10.
         ptype : float, optional
             Particle type. The default is None.
         other : float, optional
@@ -1426,7 +1426,7 @@ class SFiso(BaseEvaluation):
             Skip this fraction at the beginning of the trajectory.
             The default is 0.0.
         nav : int, optional
-            Max. number of frames to consider for the time average.
+            Number of frames to consider for the time average.
             The default is 10.
         qmax : float, optional
             Maximum wave number to consider. This value is ignored if a
@@ -1754,8 +1754,8 @@ class PosOrderCor(BaseEvaluation):
             Skip this fraction at the beginning of
             the trajectory. The default is 0.0.
         nav : int, optional
-            Max. number of frames to consider for
-            the time average. The default is 10.
+            Number of frames to consider for the time average.
+            The default is 10.
         k0 : list, optional
             list of k vectors (each has to be a
             np.ndarray of shape (1,3); the z component
@@ -1983,8 +1983,8 @@ class HexOrderCor(BaseEvaluation):
             Skip this fraction at the beginning of the trajectory. The default
             is 0.0.
         nav : int, optional
-            Maximum number of frames to consider for the time average. The
-            default is 10.
+            Number of frames to consider for the time average.
+            The default is 10.
         ptype : float, optional
             Particle type. The default is None.
         other : float, optional
@@ -2205,7 +2205,8 @@ class LDdist(BaseEvaluation):
             Skip this fraction at the beginning of the trajectory.
             The default is 0.0.
         nav : int, optional
-            Number of frames to use for the average. The default is 10.
+            Number of frames to consider for the time average.
+            The default is 10.
         nbins : int
             Number of bins for the histogram. The default is 50.
         xmin : float, optional
@@ -2584,7 +2585,8 @@ class Psi6dist(BaseEvaluation):
             Skip this fraction at the beginning of the trajectory. 
             The default is 0.0.
         nav : int, optional
-            Number of frames to use for the average. The default is 10.
+            Number of frames to consider for the time average.
+            The default is 10.
         nbins : int, optional
             Number of bins. The default is 50.
         ptype : float, optional
@@ -2778,7 +2780,8 @@ class VelDist(BaseEvaluation):
             Skip this fraction at the beginning of the trajectory.
             The default is 0.0.
         nav : int, optional
-            Number of frames to use for the average. The default is 10.
+            Number of frames to consider for the time average.
+            The default is 10.
         nbins : int, optional
             Number of bins. The default is 50.
         ptype : float, optional
@@ -3081,7 +3084,7 @@ class Dist(BaseEvaluation):
     def __init__(
             self, traj: ParticleTrajectory | FieldTrajectory,
             keys: str | list[str, ...], func: Callable | None = None, skip: float = 0.0,
-            nav: float = 10, nbins: int = 50, ptype: float | None = None,
+            nav: int = 10, nbins: int = 50, ptype: float | None = None,
             ftype: str | None = None, logbins: bool = False,
             xmin: float | None = None, xmax: float | None = None,
             **kwargs):
@@ -3109,7 +3112,8 @@ class Dist(BaseEvaluation):
             Maximum value for the histogram. If None, then the
             maximum value of the last frame will be used
         nav : int, optional
-            Number of frames to use for the average. The default is 10.
+            Number of frames to consider for the time average.
+            The default is 10.
         nbins : int, optional
             Number of bins. The default is None.
         ptype : float, optional
@@ -3325,7 +3329,7 @@ class ClusterSizeDist(BaseEvaluation):
             Skip this fraction at the beginning of the trajectory.
             The default is 0.0.
         nav : int, optional
-            Maximum number of frames to consider for the average.
+            Number of frames to consider for the time average.
             The default is 10.
         include_single : bool, optional
             If True, single-particle clusters are included in the histogram.
@@ -3647,7 +3651,7 @@ class ClusterGrowth(BaseEvaluation):
 
     def __init__(
             self, traj: ParticleTrajectory | FieldTrajectory,
-            skip: float = 0.0, nav: int | None = None,
+            skip: float = 0.0, nav: int = 10 | None,
             min_size: int = 0,
             ptype: int | None = None, ftype: str | list | None = None,
             mode: str = "largest", use_density: bool = True,
@@ -3678,8 +3682,9 @@ class ClusterGrowth(BaseEvaluation):
             Skip this fraction at the beginning of the trajectory.
             The default is 0.0.
         nav : int, optional
-            Total number of time steps (frames) to consider.
-            The default is None.
+            Number of frames to consider for the time average.
+            The default is 10 if None, i.e., all 
+            available time steps are used.
         min_size : int, optional
             Consider only clusters with at least this size. If a 
             ParticleTrajectory is supplied, the minimum size is given in number
@@ -3977,7 +3982,7 @@ class MSD(BaseEvaluation):
     
     def __init__(
             self, traj: ParticleTrajectory, ptype: int | None = None,
-            skip: float = 0.0, nav: int | None = None,
+            skip: float = 0.0, nav: int = 10 | None,
             use_nojump: bool = False, pbc: bool = True) -> None:
         r'''
         Calculates the mean-square displacement over time. If periodic boundary
@@ -3997,7 +4002,7 @@ class MSD(BaseEvaluation):
             of the trajectory. The default is 0.0.
         nav : int or None, optional
             Number of time steps at which the mean square
-            displacement should be evaluated. The default is None, i.e., all 
+            displacement should be evaluated. The default is 10 if None, i.e., all 
             available time steps are used.
         use_nojump : bool, optional
             Forces the use of nojump coordinates. The default is False.
@@ -4203,7 +4208,7 @@ class VACF(BaseEvaluation):
 
     def __init__(
             self, traj: ParticleTrajectory, ptype: int | None = None,
-            skip: float = 0.0, nav: int or None = None,
+            skip: float = 0.0, nav: int = 10 | None,
             direction: str = 'xyz') -> None:
         r'''
         Calculate the velocity autocorrelation function.
@@ -4221,7 +4226,8 @@ class VACF(BaseEvaluation):
             of the trajectory. The default is 0.0.
         nav : int, optional
             Number of time steps at which the autocorrelation
-            function should be evaluated. The default is None.
+            function should be evaluated. The default is 10 if None, i.e., all 
+            available time steps are used.
         direction : str, optional
             'x', 'y', 'z', or any combination of it.
             The default is 'xyz' (average over all directions).
@@ -4400,7 +4406,7 @@ class OACF(BaseEvaluation):
     """Orientational autocorrelation function.
     """
 
-    def __init__(self, traj, ptype=None, skip=0.0, nav=None, direction='xyz'):
+    def __init__(self, traj, ptype=None, skip=0.0, nav: int = 10 | None, direction='xyz'):
         r'''
         Calculate the orientational autocorrelation function
         averaged over all particles of the given type.
@@ -4416,7 +4422,8 @@ class OACF(BaseEvaluation):
             of the trajectory. The default is 0.0.
         nav : int, optional
             Number of time steps at which the autocorrelation
-            function should be evaluated. The default is None.
+            function should be evaluated. The default is 10 if None, i.e., all 
+            available time steps are used.
         direction : str, optional
             'x', 'y', 'z', or any combination of it.
             The default is 'xyz' (average over all directions).
@@ -4603,7 +4610,7 @@ class TimeCor(BaseEvaluation):
     quantity.
     """
 
-    def __init__(self, traj, *args, ptype=None, skip=0.0, nav=None):
+    def __init__(self, traj, *args, ptype=None, skip=0.0, nav: int = 10 | None):
         r'''
         Calculate the autocorrelation function.
         Averages over all particles of the given type.
@@ -4636,7 +4643,8 @@ class TimeCor(BaseEvaluation):
             of the trajectory. The default is 0.0.
         nav : int, optional
             Number of time steps at which the autocorrelation
-            function should be evaluated. The default is None.
+            function should be evaluated. The default is 10 if None, i.e., all 
+            available time steps are used.
 
         Returns
         -------
@@ -4793,9 +4801,9 @@ class EkinTot(BaseEvaluation):
         skip : float, default=0.0
             Skip this fraction at the beginning of
             the trajectory.
-        nav : int, default=10
-            number of frames to consider for
-            the time average.
+        nav : int, optional
+            Number of frames to consider for the time average.
+            The default is 10.
         mass : float or np.ndarray
             Mass(es) of the particles.
         inertia : float or np.ndarray
@@ -4942,9 +4950,9 @@ class EkinTrans(BaseEvaluation):
         skip : float, default=0.0
             Skip this fraction at the beginning of
             the trajectory.
-        nav : int, default=10
-            number of frames to consider for
-            the time average.
+        nav : int, optional
+            Number of frames to consider for the time average.
+            The default is 10.
         **kwargs : Keyword Arguments
             General python keyword arguments to be
             forwarded to the function f
@@ -5084,9 +5092,9 @@ class EkinRot(BaseEvaluation):
         skip : float, default=0.0
             Skip this fraction at the beginning of
             the trajectory.
-        nav : int, default=10
-            number of frames to consider for
-            the time average.
+        nav : int, optional
+            Number of frames to consider for the time average.
+            The default is 10.
         **kwargs : Keyword Arguments
             General python keyword arguments to be
             forwarded to the function f
