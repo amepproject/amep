@@ -914,6 +914,8 @@ def box(axis: mpl.axes.Axes, box_boundary: np.ndarray, **kwargs) -> None:
     -------
     None.
     '''
+    warnings.simplefilter('always', PendingDeprecationWarning)
+    warnings.warn("The function 'plot.box' will be removed in version 2.0.0. Please use the function 'plot.box_boundary' instead.", PendingDeprecationWarning)
     defaultKwargs = {'c': 'k', 'ls': '-', 'marker': ''}
     if 'color' in kwargs:
         # either 'c' or 'color' can be given, not both
@@ -927,6 +929,40 @@ def box(axis: mpl.axes.Axes, box_boundary: np.ndarray, **kwargs) -> None:
     axis.plot([box_boundary[0,1],box_boundary[0,1]], box_boundary[1], **kwargs)
     axis.plot(box_boundary[0], [box_boundary[1,0],box_boundary[1,0]], **kwargs)
     axis.plot(box_boundary[0], [box_boundary[1,1],box_boundary[1,1]], **kwargs)
+
+
+def box_boundary(axis: mpl.axes.Axes, box_boundary: np.ndarray, **kwargs) -> None:
+    r'''
+    Adds the simulation box to the given axis.
+
+    Parameters
+    ----------
+    axis : AxisSubplot
+        Matplotlib.pyplot AxisSubplot object.
+    box_boundary : np.ndarray of shape (3,2)
+        Boundary of the simulation box in the form of
+        `np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]])`.
+    **kwargs : 
+        Forwarded to axis.plot.
+
+    Returns
+    -------
+    None.
+    '''
+    defaultKwargs = {'c': 'k', 'ls': '-', 'marker': ''}
+    if 'color' in kwargs:
+        # either 'c' or 'color' can be given, not both
+        kwargs['c'] = kwargs['color']
+        del kwargs['color']
+    if 'linestyle' in kwargs:
+        kwargs['ls'] = kwargs['linestyle']
+        del kwargs['linestyle']
+    kwargs = defaultKwargs | kwargs
+    axis.plot([box_boundary[0,0],box_boundary[0,0]], box_boundary[1], **kwargs)
+    axis.plot([box_boundary[0,1],box_boundary[0,1]], box_boundary[1], **kwargs)
+    axis.plot(box_boundary[0], [box_boundary[1,0],box_boundary[1,0]], **kwargs)
+    axis.plot(box_boundary[0], [box_boundary[1,1],box_boundary[1,1]], **kwargs)
+
 
 
 def particles(
