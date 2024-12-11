@@ -5180,3 +5180,562 @@ class EkinRot(BaseEvaluation):
 
         '''
         return self.__indices
+    
+    
+# =============================================================================
+# TEMPERATURES
+# =============================================================================
+class Tkin(BaseEvaluation):
+    """Kinetic temperature based on the second moment of the velocity
+    distribution.
+    """
+    def __init__(
+            self, traj: ParticleTrajectory, skip: float = 0.0, nav: int = 10,
+            ptype: int | None = None, **kwargs
+            ) -> None:
+        r'''
+        Calculates the kinetic temperature based on the second moment of the
+        velocity distribution.[1]_
+        
+        References
+        ----------
+        
+        .. [1] L. Hecht, L. Caprini, H. Löwen, and B. Liebchen, 
+           How to Define Temperature in Active Systems?, J. Chem. Phys. 161, 
+           224904 (2024). https://doi.org/10.1063/5.0234370
+
+        Parameters
+        ----------
+        traj : ParticleTrajectory
+            Trajectory object with simulation data.
+        skip : float, optional
+            Skip this fraction at the beginning of the trajectory.
+            The default is 0.0.
+        nav : int, optional
+            Number of frames to consider for the time average.
+            The default is 10.
+        ptype : float, optional
+            Particle type. The default is None.
+        **kwargs
+            Other keyword arguments are forwarded to
+            `amep.thermo.Tkin`.
+
+        '''
+        super(Tkin, self).__init__()
+
+        self.name = 'Tkin'
+        
+        self.__traj   = traj
+        self.__skip   = skip
+        self.__nav    = nav
+        self.__ptype  = ptype
+        self.__kwargs = kwargs
+        
+        self.__frames, self.__avg, self.__indices = average_func(
+            self.__compute,
+            self.__traj,
+            skip = self.__skip,
+            nr = self.__nav,
+            indices = True
+        )
+        
+        self.__times = self.__traj.times[self.__indices]
+
+        
+    def __compute(self, frame):
+        r'''
+        Calculation for a single frame.
+        
+        Parameters
+        ----------
+        frame : BaseFrame
+            A single frame of particle-based simulation data.
+              
+        Returns
+        -------
+        temp: float
+            Mean temperature.
+        '''
+        temp = thermo.Tkin(
+            frame.velocities(ptype=self.__ptype),
+            frame.mass(ptype=self.__ptype),
+            **self.__kwargs
+        )
+        return temp
+
+    
+    @property
+    def frames(self):
+        r'''
+        Spatial velocity correlation function for each frame.
+
+        Returns
+        -------
+        np.ndarray
+            Function value for each frame.
+
+        '''
+        return self.__frames
+    
+    @property
+    def times(self):
+        r'''
+        Times at which the spatial velocity correlation
+        function is evaluated.
+
+        Returns
+        -------
+        np.ndarray
+            Times at which the function is evaluated.
+
+        '''
+        return self.__times
+    
+    @property
+    def avg(self):
+        r'''
+        Time-averaged spatial velocity correlation function 
+        (averaged over the given number of frames).
+
+        Returns
+        -------
+        np.ndarray
+            Time-averaged spatial velocity correlation function.
+
+        '''
+        return self.__avg
+    
+    @property
+    def indices(self):
+        r'''
+        Indices of all frames for which the spatial velocity 
+        correlation function has been evaluated.
+
+        Returns
+        -------
+        np.ndarray
+            Frame indices.
+
+        '''
+        return self.__indices
+
+class Tkin4(BaseEvaluation):
+    """Kinetic temperature based on the 4th moment of the velocity
+    distribution.
+    """
+    def __init__(
+            self, traj: ParticleTrajectory, 
+            skip: float = 0.0, nav: int = 10,
+            ptype: int | None = None, **kwargs
+            ) -> None:
+        r'''
+        Calculates the kinetic temperature based on the 4th moment of the
+        velocity distribution.[1]_
+        
+        References
+        ----------
+        
+        .. [1] L. Hecht, L. Caprini, H. Löwen, and B. Liebchen, 
+           How to Define Temperature in Active Systems?, J. Chem. Phys. 161, 
+           224904 (2024). https://doi.org/10.1063/5.0234370
+
+        Parameters
+        ----------
+        traj : ParticleTrajectory
+            Trajectory object with simulation data.
+        skip : float, optional
+            Skip this fraction at the beginning of the trajectory.
+            The default is 0.0.
+        nav : int, optional
+            Number of frames to consider for the time average.
+            The default is 10.
+        ptype : float, optional
+            Particle type. The default is None.
+        **kwargs
+            Other keyword arguments are forwarded to
+            `amep.thermo.Tkin`.
+
+        '''
+        super(Tkin4, self).__init__()
+
+        self.name = 'Tkin4'
+        
+        self.__traj   = traj
+        self.__skip   = skip
+        self.__nav    = nav
+        self.__ptype  = ptype
+        self.__kwargs = kwargs
+        
+        self.__frames, self.__avg, self.__indices = average_func(
+            self.__compute,
+            self.__traj,
+            skip = self.__skip,
+            nr = self.__nav,
+            indices = True
+        )
+        
+        self.__times = self.__traj.times[self.__indices]
+
+        
+    def __compute(self, frame):
+        r'''
+        Calculation for a single frame.
+        
+        Parameters
+        ----------
+        frame : BaseFrame
+            A single frame of particle-based simulation data.
+              
+        Returns
+        -------
+        temp: float
+            Mean temperature.
+        '''
+        temp = thermo.Tkin4(
+            frame.velocities(ptype=self.__ptype),
+            frame.mass(ptype=self.__ptype),
+            **self.__kwargs
+        )
+        return temp
+
+    
+    @property
+    def frames(self):
+        r'''
+        Spatial velocity correlation function for each frame.
+
+        Returns
+        -------
+        np.ndarray
+            Function value for each frame.
+
+        '''
+        return self.__frames
+    
+    @property
+    def times(self):
+        r'''
+        Times at which the spatial velocity correlation
+        function is evaluated.
+
+        Returns
+        -------
+        np.ndarray
+            Times at which the function is evaluated.
+
+        '''
+        return self.__times
+    
+    @property
+    def avg(self):
+        r'''
+        Time-averaged spatial velocity correlation function 
+        (averaged over the given number of frames).
+
+        Returns
+        -------
+        np.ndarray
+            Time-averaged spatial velocity correlation function.
+
+        '''
+        return self.__avg
+    
+    @property
+    def indices(self):
+        r'''
+        Indices of all frames for which the spatial velocity 
+        correlation function has been evaluated.
+
+        Returns
+        -------
+        np.ndarray
+            Frame indices.
+
+        '''
+        return self.__indices
+
+class Tosc():
+    """Oscillator temperature.
+    """
+    def __init__(
+            self, traj: ParticleTrajectory, k: float,
+            skip: float = 0.0, nav: int = 10,
+            ptype: int | None = None,
+            ) -> None:
+        r'''
+        Calculates the oscillator temperature.[1]_
+        
+        References
+        ----------
+        
+        .. [1] L. Hecht, L. Caprini, H. Löwen, and B. Liebchen, 
+           How to Define Temperature in Active Systems?, J. Chem. Phys. 161, 
+           224904 (2024). https://doi.org/10.1063/5.0234370
+
+        Parameters
+        ----------
+        traj : ParticleTrajectory
+            Trajectory object with simulation data.
+        k : float
+            Strength of the harmonic confinement.
+        skip : float, optional
+            Skip this fraction at the beginning of the trajectory.
+            The default is 0.0.
+        nav : int, optional
+            Number of frames to consider for the time average.
+            The default is 10.
+        ptype : float, optional
+            Particle type. The default is None.
+        **kwargs
+            Other keyword arguments are forwarded to
+            `amep.thermo.Tkin`.
+
+        '''
+        super(Tkin4, self).__init__()
+
+        self.name = 'Tosc'
+        
+        self.__traj = traj
+        self.__skip = skip
+        self.__nav = nav
+        self.__ptype = ptype
+        self.__k = k
+        
+        self.__frames, self.__avg, self.__indices = average_func(
+            self.__compute,
+            self.__traj,
+            skip = self.__skip,
+            nr = self.__nav,
+            indices = True
+        )
+        
+        self.__times = self.__traj.times[self.__indices]
+
+        
+    def __compute(self, frame):
+        r'''
+        Calculation for a single frame.
+        
+        Parameters
+        ----------
+        frame : BaseFrame
+            A single frame of particle-based simulation data.
+              
+        Returns
+        -------
+        temp: float
+            Mean temperature.
+        '''
+        temp = thermo.Tosc(
+            frame.coords(ptype=self.__ptype),
+            self.__k
+        )
+        return temp
+
+    @property
+    def frames(self):
+        r'''
+        Spatial velocity correlation function for each frame.
+
+        Returns
+        -------
+        np.ndarray
+            Function value for each frame.
+
+        '''
+        return self.__frames
+    
+    @property
+    def times(self):
+        r'''
+        Times at which the spatial velocity correlation
+        function is evaluated.
+
+        Returns
+        -------
+        np.ndarray
+            Times at which the function is evaluated.
+
+        '''
+        return self.__times
+    
+    @property
+    def avg(self):
+        r'''
+        Time-averaged spatial velocity correlation function 
+        (averaged over the given number of frames).
+
+        Returns
+        -------
+        np.ndarray
+            Time-averaged spatial velocity correlation function.
+
+        '''
+        return self.__avg
+    
+    @property
+    def indices(self):
+        r'''
+        Indices of all frames for which the spatial velocity 
+        correlation function has been evaluated.
+
+        Returns
+        -------
+        np.ndarray
+            Frame indices.
+
+        '''
+        return self.__indices
+
+class Tconf(BaseEvaluation):
+    """Configurational temperature.
+    """
+    def __init__(
+            self, traj: ParticleTrajectory, drU, dr2U,
+            skip: float = 0.0, nav: int = 10,
+            ptype: int | None = None, **kwargs
+            ) -> None:
+        r'''
+        Calculates the configurational temperature.
+        
+        References
+        ----------
+        
+        .. [1] L. Hecht, L. Caprini, H. Löwen, and B. Liebchen, 
+           How to Define Temperature in Active Systems?, J. Chem. Phys. 161, 
+           224904 (2024). https://doi.org/10.1063/5.0234370
+           
+        .. [2] S. Saw, L. Costigliola, and J. C. Dyre, Configurational Temperature 
+           in Active Matter. I. Lines of Invariant Physics in the Phase Diagram of 
+           the Ornstein-Uhlenbeck Model, Phys. Rev. E 107, 024609 (2023).
+           https://doi.org/10.1103/PhysRevE.107.024609
+        
+        .. [3] S. Saw, L. Costigliola, and J. C. Dyre, Configurational Temperature 
+           in Active Matter. II. Quantifying the Deviation from Thermal 
+           Equilibrium, Phys. Rev. E 107, 024610 (2023).
+           https://doi.org/10.1103/PhysRevE.107.024610
+
+        Parameters
+        ----------
+        traj : ParticleTrajectory
+            Trajectory object with simulation data.
+        drU : function
+            First derivative of the potential energy function of one particle.
+            For example, one can use amep.utils.dr_wca.
+        dr2U : function
+            Second derivative of the potential energy function of one particle.
+            For example, one can use amep.utils.dr2_wca.
+        skip : float, optional
+            Skip this fraction at the beginning of the trajectory.
+            The default is 0.0.
+        nav : int, optional
+            Number of frames to consider for the time average.
+            The default is 10.
+        ptype : float, optional
+            Particle type. The default is None.
+        **kwargs
+            Other keyword arguments are forwarded to
+            `amep.thermo.Tkin`.
+
+        '''
+        super(Tconf, self).__init__()
+
+        self.name = 'Tconf'
+        
+        self.__traj   = traj
+        self.__skip   = skip
+        self.__nav    = nav
+        self.__ptype  = ptype
+        self.__kwargs = kwargs
+        self.__drU = drU
+        self.__dr2U = dr2U
+        
+        self.__frames, self.__avg, self.__indices = average_func(
+            self.__compute,
+            self.__traj,
+            skip = self.__skip,
+            nr = self.__nav,
+            indices = True
+        )
+        
+        self.__times = self.__traj.times[self.__indices]
+
+        
+    def __compute(self, frame):
+        r'''
+        Calculation for a single frame.
+        
+        Parameters
+        ----------
+        frame : BaseFrame
+            A single frame of particle-based simulation data.
+              
+        Returns
+        -------
+        temp: float
+            Mean temperature.
+        '''
+        temp = thermo.Tconf(
+            frame.coords(ptype=self.__ptype),
+            frame.box,
+            self.__drU,
+            self.__dr2U,
+            **self.__kwargs
+        )
+        return temp
+
+    
+    @property
+    def frames(self):
+        r'''
+        Spatial velocity correlation function for each frame.
+
+        Returns
+        -------
+        np.ndarray
+            Function value for each frame.
+
+        '''
+        return self.__frames
+    
+    @property
+    def times(self):
+        r'''
+        Times at which the spatial velocity correlation
+        function is evaluated.
+
+        Returns
+        -------
+        np.ndarray
+            Times at which the function is evaluated.
+
+        '''
+        return self.__times
+    
+    @property
+    def avg(self):
+        r'''
+        Time-averaged spatial velocity correlation function 
+        (averaged over the given number of frames).
+
+        Returns
+        -------
+        np.ndarray
+            Time-averaged spatial velocity correlation function.
+
+        '''
+        return self.__avg
+    
+    @property
+    def indices(self):
+        r'''
+        Indices of all frames for which the spatial velocity 
+        correlation function has been evaluated.
+
+        Returns
+        -------
+        np.ndarray
+            Frame indices.
+
+        '''
+        return self.__indices
