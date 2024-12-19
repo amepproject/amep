@@ -3683,8 +3683,7 @@ class ClusterGrowth(BaseEvaluation):
             The default is 0.0.
         nav : int, optional
             Number of frames to consider for the time average.
-            The default is 10 if None, i.e., all 
-            available time steps are used.
+            The default is 10.
         min_size : int, optional
             Consider only clusters with at least this size. If a 
             ParticleTrajectory is supplied, the minimum size is given in number
@@ -4002,8 +4001,7 @@ class MSD(BaseEvaluation):
             of the trajectory. The default is 0.0.
         nav : int or None, optional
             Number of time steps at which the mean square
-            displacement should be evaluated. The default is 10 if None, i.e., all 
-            available time steps are used.
+            displacement should be evaluated. The default is 10.
         use_nojump : bool, optional
             Forces the use of nojump coordinates. The default is False.
         pbc : bool, optional
@@ -4226,8 +4224,7 @@ class VACF(BaseEvaluation):
             of the trajectory. The default is 0.0.
         nav : int, optional
             Number of time steps at which the autocorrelation
-            function should be evaluated. The default is 10 if None, i.e., all 
-            available time steps are used.
+            function should be evaluated. The default is 10.
         direction : str, optional
             'x', 'y', 'z', or any combination of it.
             The default is 'xyz' (average over all directions).
@@ -4422,8 +4419,7 @@ class OACF(BaseEvaluation):
             of the trajectory. The default is 0.0.
         nav : int, optional
             Number of time steps at which the autocorrelation
-            function should be evaluated. The default is 10 if None, i.e., all 
-            available time steps are used.
+            function should be evaluated. The default is 10.
         direction : str, optional
             'x', 'y', 'z', or any combination of it.
             The default is 'xyz' (average over all directions).
@@ -4643,8 +4639,7 @@ class TimeCor(BaseEvaluation):
             of the trajectory. The default is 0.0.
         nav : int, optional
             Number of time steps at which the autocorrelation
-            function should be evaluated. The default is 10 if None, i.e., all 
-            available time steps are used.
+            function should be evaluated. The default is 10.
 
         Returns
         -------
