@@ -914,7 +914,6 @@ def box(axis: mpl.axes.Axes, box_boundary: np.ndarray, **kwargs) -> None:
     -------
     None.
     '''
-    warnings.simplefilter('always', PendingDeprecationWarning)
     warnings.warn("The function 'plot.box' will be removed in version 2.0.0. Please use the function 'plot.box_boundary' instead.", PendingDeprecationWarning)
     defaultKwargs = {'c': 'k', 'ls': '-', 'marker': ''}
     if 'color' in kwargs:
