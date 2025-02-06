@@ -3,8 +3,8 @@
   :align: center
 
 
-AMEP 1.1.0-dev documentation
-========================
+AMEP |release| documentation
+============================
 
 .. include:: ../../README.md
    :parser: myst_parser.sphinx_
