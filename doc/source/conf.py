@@ -7,7 +7,7 @@ https://www.sphinx-doc.org/en/master/usage/configuration.html
 https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 """
 project = 'AMEP'
-copyright = '2023-2024, Lukas Hecht, Kay-Robert Dormann, Kai Luca Spanheimer'
+copyright = '2023-2025, Lukas Hecht, Kay-Robert Dormann, Kai Luca Spanheimer'
 author = 'Lukas Hecht, Kay-Robert Dormann, Kai Luca Spanheimer'
 release = '1.1.0-dev'
 
@@ -21,7 +21,9 @@ extensions: list = [
         "sphinx.ext.duration",
         "sphinx.ext.autodoc",
         "sphinx.ext.autosummary",
-        "sphinx_new_tab_link"
+        "sphinx_new_tab_link",
+        # 'versionwarning.extension',
+        # "notfound.extension",
 ]
 
 templates_path: list = ['_templates']
@@ -32,7 +34,10 @@ autosummary_filename_map = {
         "amep.functions.Gaussian": "amep.functions.GaussianClass.rst",
         "amep.functions.Gaussian2d": "amep.functions.Gaussian2dClass.rst"
 }
-
+# notfound_urls_prefix = "/"+release+"/"
+# notfound_urls_prefix = None
+# notfound_template = "404.rst"
+# notfound_template = "custom-class-template.rst"
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
