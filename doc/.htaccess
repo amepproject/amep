@@ -1,0 +1,5 @@
+RewriteEngine On
+ErrorDocument 404 /stable/index.html
+ErrorDocument 500 /stable/index.html
+DirectoryIndex index.html
+Redirect 301 /index.html /stable/index.html
