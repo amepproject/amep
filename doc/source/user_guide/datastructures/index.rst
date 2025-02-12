@@ -1,3 +1,4 @@
+.. _datastructures_label:
 Datastructures
 ==============
 
@@ -10,4 +11,4 @@ the sections below.
 
 .. toctree::
    
-   field_data
+   simulation_data_formats

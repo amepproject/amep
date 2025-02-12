@@ -1,3 +1,4 @@
+.. _how_to_cite_label:
 ============
 How to Cite
 ============
