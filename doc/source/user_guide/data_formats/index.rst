@@ -1,4 +1,5 @@
 .. _data_formats_label:
+
 Supported data formats
 ======================
 

@@ -77,5 +77,4 @@ html_theme_options = {
         "check_switcher": True,
         "navbar_persistent": ["search-button.html", "theme-switcher.html"],
         "navbar_end": ["version-switcher.html", "icon-links.html"],
-        # "navbar_start": ["navbar_logo", "version-switcher"]
     }

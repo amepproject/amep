@@ -10,7 +10,7 @@ flowchart or in the **AMEP** publication which can be found at
 `Comput. Phys. Commun. <https://doi.org/10.1016/j.cpc.2024.109483>`_
 as open access article.
 
-All supported formats can be found in the :ref:`datastructures section<datastructures_label>`
+All supported formats can be found in the :ref:`supported data formats section<data_formats_label>`
 
 
 Benchmarks for multi-processor computations as well as the license
@@ -18,9 +18,8 @@ under which **AMEP** is published can be found at the final sections
 of the page.
 
 .. toctree::
-   :maxdepth: 1
 
-   changelog
+   data_formats/index
 
 .. toctree::
    
@@ -32,12 +31,18 @@ of the page.
 
 .. toctree::
 
-   data_formats/index
-
-.. toctree::
-
    benchmarks
+
+.. .. toctree::
+..    :maxdepth: 1
+
+..    changelog
 
 .. toctree::
 
    license
+
+.. .. include:: stuff_from_readme.md
+..    :parser: myst_parser.sphinx_
+..    :start-line: 11
+
