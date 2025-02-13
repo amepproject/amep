@@ -3,19 +3,18 @@ User Guide
 
 In this guide you can find more detailed information about **AMEP**.
 
-For the newest changes, please visit our github https://github.com/amepproject/amep
-or see the release changelog.
-More detailed information about the architecture can be found in the
-flowchart or in the **AMEP** publication which can be found at
+Detailed information about the architecture, the available features and a plethora
+of examples can be found in the **AMEP** publication which can be found at
 `Comput. Phys. Commun. <https://doi.org/10.1016/j.cpc.2024.109483>`_
-as open access article.
+as open access article. The examples can also be found on the
+`GitHub <https://github.com/amepproject/amep>`_ and as part of the :ref:`API Reference<api_reference_label>`.
 
-All supported formats can be found in the :ref:`supported data formats section<data_formats_label>`
+.. .. include:: support.md
+..    :parser: myst_parser.sphinx_
 
-
-Benchmarks for multi-processor computations as well as the license
-under which **AMEP** is published can be found at the final sections
-of the page.
+.. toctree::
+   
+   features.md
 
 .. toctree::
 
@@ -26,6 +25,10 @@ of the page.
    contribute
 
 .. toctree::
+   
+   support.md
+
+.. toctree::
 
    function_flow
 
@@ -33,16 +36,15 @@ of the page.
 
    benchmarks
 
-.. .. toctree::
-..    :maxdepth: 1
+.. toctree::
+   
+   contributors.md
 
-..    changelog
+.. toctree::
+   
+   acknowledgments.md
 
 .. toctree::
 
    license
-
-.. .. include:: stuff_from_readme.md
-..    :parser: myst_parser.sphinx_
-..    :start-line: 11
 
