@@ -1612,7 +1612,7 @@ def __sf2d_chunk_std(chunk: int, chunksize: int,
         Static structure factor.
 
     '''
-    out = np.exp(-1j*(qx*coords[0, chunk]+qy*coords[1, chunk]))
+    out = np.exp(-1j*(qx*coords[chunk, 0]+qy*coords[chunk, 1]))
     for c in coords[chunk+1:chunk + chunksize]:
         out += np.exp(-1j*(qx*c[0]+qy*c[1]))
     return out
