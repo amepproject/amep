@@ -1586,7 +1586,10 @@ def sfiso(
 
 
 @jit(nopython=True)
-def __sf2d_chunk_std(chunk, chunksize, coords, Qx, Qy):
+def __sf2d_chunk_std(chunk: int, chunksize: int,
+                     coords: np.ndarray,
+                     qx: np.ndarray, qy: np.ndarray
+                     ) -> np.ndarray:
     '''
     2d static structure factor for a chunk of particles.
 
@@ -1598,8 +1601,10 @@ def __sf2d_chunk_std(chunk, chunksize, coords, Qx, Qy):
         Size of each chunk.
     coords : np.ndarray
         Coordinate frame.
-    Q : np.ndarray
-        Wave vectors.
+    qx : np.ndarray
+        wavenumber x-component.
+    qy : np.ndarray
+        wavenumber y-component.
 
     Returns
     -------
@@ -1607,14 +1612,10 @@ def __sf2d_chunk_std(chunk, chunksize, coords, Qx, Qy):
         Static structure factor.
 
     '''
-    # slicing
-    sl = slice(chunk, chunk+chunksize)
-    # Fourier transform of microscopic density
-    rhoq = np.zeros(Qx.shape, dtype=np.complex64)
-    # loop over all particles in the given chunk
-    for c in coords[sl]:
-        rhoq += np.exp(-1j*(Qx*c[0]+Qy*c[1]))
-    return rhoq
+    out = np.exp(-1j*(qx*coords[0, chunk]+qy*coords[1, chunk]))
+    for c in coords[chunk+1:chunk + chunksize]:
+        out += np.exp(-1j*(qx*c[0]+qy*c[1]))
+    return out
 
 
 def sf2d(
@@ -1712,127 +1713,126 @@ def sf2d(
     '''
     # box dimensions
     box = box_boundary[:,1]-box_boundary[:,0]
-    
+
     # total number of particles
     if Ntot is None:
         Ntot = len(coords)
-    
+
     # check other_coords
     same = False
     if other_coords is None:
         other_coords = coords
         same = True
-        
+
     # check accuracy value (only needed for fft mode)
     if accuracy < 0.0 or accuracy > 1.0:
         raise ValueError(
-            f"amep.spatialcor.sf2d: Accuracy must be between 0.0 and 1.0. "\
+            f"amep.spatialcor.sf2d: Accuracy must be between 0.0 and 1.0. "
             f"Got {accuracy}."
-        )  
+        )
     # check mode
     if mode not in ['std', 'fft']:
         raise ValueError(
-            f"Mode '{mode}' not available. Available modes are "\
+            f"Mode '{mode}' not available. Available modes are "
             f"{['std', 'fft']}."
-        )    
+        )
     # partial particle numbers
     N = len(coords)
     Nother = len(other_coords)
-        
+
     # check njobs
     if njobs > os.cpu_count():
         njobs = os.cpu_count()
 
     # get maximum distance
     rmax = np.abs(np.max(box))
-    
+
     # smallest q value
     dq = 2*np.pi/rmax
-    
+
     # generate q values
-    q  = np.arange(dq, qmax, dq)
+    q = np.arange(dq, qmax, dq)
     qx = np.append(np.flip(-q), q)
     qy = np.append(np.flip(-q), q)
-    
-    if mode == 'std':
-        # get optimal chunk size to reduce RAM usage
-        if chunksize is None:
-            chunksize = min(
-                optimal_chunksize(Nother, N),
-                optimal_chunksize(N, Nother)
-            )
-            
-        # limit chunksize
-        if chunksize > Nother:
-            chunksize = int(Nother/njobs)
-        elif chunksize > N:
-            chunksize = int(N/njobs)
-
-        # wave vectors
-        Qx, Qy = np.meshgrid(qx, qy)
-        
-        # parallel computation of Fourier-transformed microscopic density
-        rhoq = np.zeros(Qx.shape, dtype=np.complex64)
-        rhoq_other = np.zeros(Qx.shape, dtype=np.complex64)
-        
-        results = compute_parallel(
-            __sf2d_chunk_std,
-            range(0, N, chunksize),
-            chunksize,
-            coords,
-            Qx,
-            Qy,
-            njobs = njobs,
-            verbose = verbose
-        )
-        for res in results:
-            rhoq += res
-            
-        if same:
-            rhoq_other = rhoq
-        else:
-            results = compute_parallel(
-                __sf2d_chunk_std,
-                range(0, Nother, chunksize),
-                chunksize,
-                other_coords,
-                Qx,
-                Qy,
-                njobs = njobs,
-                verbose = verbose
-            )
-            for res in results:
-                rhoq_other += res
-        S = np.real(rhoq*rhoq_other.conj())/Ntot
-        return S, Qx, Qy
-    
-    elif mode == 'fft':
+    if mode == 'fft':
         if verbose:
             _log.info(
-                "Using fft mode is experimental. It is recommended "\
+                "Using fft mode is experimental. It is recommended "
                 "to use std mode."
             )
-        dmin = 2*np.pi/2/qmax/(accuracy*10) # to match qmax and the correct q spacing (accuracy factor for better accuracy)
-        d, X, Y = coords_to_density(coords, box_boundary, dmin=dmin)
+        dmin = 2*np.pi/2/qmax/(accuracy*10)  # to match qmax and the correct q spacing (accuracy factor for better accuracy)
+        d, xs, ys = coords_to_density(coords, box_boundary, dmin=dmin)
         dother, _, _ = coords_to_density(other_coords, box_boundary, dmin=dmin)
-        S, Qx, Qy = csf2d(d, X, Y, other_dfield=dother, Ntot=Ntot, njobs=njobs)
+        sf, qx, qy = csf2d(d, xs, ys,
+                           other_dfield=dother, Ntot=Ntot, njobs=njobs)
 
-        if np.max(Qx) > qmax or np.max(Qy) > qmax:
+        if np.max(qx) > qmax or np.max(qy) > qmax:
             # only return the results for Q values in [-qmax,qmax]
-            dqx   = Qx[0,1]-Qx[0,0]
-            dqy   = Qy[1,0]-Qy[0,0]
-            qx    = np.arange(dqx, qmax, dqx)
-            qy    = np.arange(dqy, qmax, dqy)
-            
-            mask = (np.abs(Qx)<=qmax) & (np.abs(Qy)<=qmax)
-            sx   = int(2*len(qx)+1)
-            sy   = int(2*len(qy)+1)
+            dqx = qx[0, 1]-qx[0, 0]
+            dqy = qy[1, 0]-qy[0, 0]
+            qx = np.arange(dqx, qmax, dqx)
+            qy = np.arange(dqy, qmax, dqy)
 
-            S = S[mask].reshape(sx,sy)
-            Qx = Qx[mask].reshape(sx,sy)
-            Qy = Qy[mask].reshape(sx,sy)
+            mask = (np.abs(qx) <= qmax) & (np.abs(qy) <= qmax)
+            sx = int(2*len(qx)+1)
+            sy = int(2*len(qy)+1)
+
+            sf = sf[mask].reshape(sx, sy)
+            qx = qx[mask].reshape(sx, sy)
+            qy = qy[mask].reshape(sx, sy)
 
         # Modify S to exluced value for q=0 (replace it with 0)
-        position_of_q0 = S.shape[0]//2
-        S[position_of_q0, position_of_q0] = 0
-        return S, Qx, Qy
+        position_of_q0 = sf.shape[0]//2
+        sf[position_of_q0, position_of_q0] = 0
+        return sf, qx, qy
+
+    # get optimal chunk size to reduce RAM usage
+    if chunksize is None:
+        chunksize = min(
+            optimal_chunksize(Nother, N),
+            optimal_chunksize(N, Nother)
+        )
+
+    # limit chunksize
+    if chunksize > Nother:
+        chunksize = int(Nother/njobs)
+    elif chunksize > N:
+        chunksize = int(N/njobs)
+
+    # wave vectors
+    qx, qy = np.meshgrid(qx, qy)
+
+    # parallel computation of Fourier-transformed microscopic density
+    rhoq = np.zeros(qx.shape, dtype=np.complex64)
+    rhoq_other = np.zeros(qx.shape, dtype=np.complex64)
+
+    results = compute_parallel(
+        __sf2d_chunk_std,
+        range(0, N, chunksize),
+        chunksize,
+        coords,
+        qx,
+        qy,
+        njobs=njobs,
+        verbose=verbose
+    )
+    for res in results:
+        rhoq += res
+
+    if same:
+        rhoq_other = rhoq
+    else:
+        results = compute_parallel(
+            __sf2d_chunk_std,
+            range(0, Nother, chunksize),
+            chunksize,
+            other_coords,
+            qx,
+            qy,
+            njobs=njobs,
+            verbose=verbose
+        )
+        for res in results:
+            rhoq_other += res
+    sf = np.real(rhoq*rhoq_other.conj())/Ntot
+    return sf, qx, qy
