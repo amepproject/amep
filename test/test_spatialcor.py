@@ -91,3 +91,10 @@ class TestSpatialcor(unittest.TestCase):
             'same. Got a summed difference of '
             f'{np.abs(rdf_diff-rdf_kdtree).sum()}'
         )
+
+    def test_sf2d(self):
+        amep.spatialcor.sf2d(self.coords,
+                             self.box,
+                             verbose=True,
+                             mode='std',
+                             njobs=4)

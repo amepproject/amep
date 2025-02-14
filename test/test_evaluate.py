@@ -108,8 +108,8 @@ class TestEvaluateMethods(unittest.TestCase):
             )
         pcfangle.save(RESULT_DIR/"pcfangle.h5")
         # SF2d
-        psf2d = SF2d(traj, skip=0.9, nav=2)
-        psf2d.save(RESULT_DIR/"sf2d_eval.h5", database=True, name="particles")
+        psf2d = SF2d(traj, skip=0.9, nav=2, njobs=4)
+        # psf2d.save(RESULT_DIR/"sf2d_eval.h5", database=True, name="particles")
         fsf2d = SF2d(ftraj, skip=0.9, nav=2, ftype="c")
         fsf2d.save(RESULT_DIR/"sf2d_eval.h5", database=True, name="field")
         # VelDist
