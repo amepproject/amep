@@ -9,42 +9,16 @@ of examples can be found in the **AMEP** publication which can be found at
 as open access article. The examples can also be found on the
 `GitHub <https://github.com/amepproject/amep>`_ and as part of the :ref:`API Reference<api_reference_label>`.
 
-.. .. include:: support.md
-..    :parser: myst_parser.sphinx_
-
 .. toctree::
-   
+   :maxdepth: 3
+
    features.md
-
-.. toctree::
-
    data_formats/index
-
-.. toctree::
-   
    contribute
-
-.. toctree::
-   
-   support.md
-
-.. toctree::
-
+   support
    function_flow
-
-.. toctree::
-
    benchmarks
-
-.. toctree::
-   
    contributors.md
-
-.. toctree::
-   
    acknowledgments.md
-
-.. toctree::
-
    license
 

@@ -20,23 +20,23 @@ To be fast and usable on modern
 HPC (**H**\ igh **P**\ erformance **C**\ omputing) hardware,
 the methods are optimized to run also in parallel.)
 
-.. .. autosummary::
-..    :toctree: _autosummary
-..    :template: custom-module-template.rst
+.. autosummary::
+   :toctree: _autosummary
+   :template: custom-module-template.rst
 
-..     amep.base
-..     amep.cluster
-..     amep.continuum
-..     amep.evaluate
-..     amep.functions
-..     amep.load
-..     amep.order
-..     amep.pbc
-..     amep.plot
-..     amep.reader
-..     amep.spatialcor
-..     amep.statistics
-..     amep.thermo
-..     amep.timecor
-..     amep.trajectory
-..     amep.utils
+    amep.base
+    amep.cluster
+    amep.continuum
+    amep.evaluate
+    amep.functions
+    amep.load
+    amep.order
+    amep.pbc
+    amep.plot
+    amep.reader
+    amep.spatialcor
+    amep.statistics
+    amep.thermo
+    amep.timecor
+    amep.trajectory
+    amep.utils

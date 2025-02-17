@@ -36,4 +36,4 @@ e.g., for files named `field_100.txt`, `field_200.txt`, ..., use
    <field 0 2> <field 1 2> <field 2 2> <field 3 2>
    ...
 
-An exemplary dataset can be found `here <https://github.com/amepproject/amep/tree/main/examples/data>`_.
+An exemplary dataset can be found in the examples on our GitHub `<https://github.com/amepproject/amep/tree/main/examples/data>`_.
