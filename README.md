@@ -247,12 +247,12 @@ short description.
 # Data Formats
 
 **AMEP** is compatible with multiple data formats. The current version can load 
-particle-based simulation data obtained from LAMMPS (https://www.lammps.org) 
-and continuum simulation data with the following format: The main directory 
-should contain one file with data that stays constant throughout the entire 
-simulation such as the boundaries of the simulation box, the shape of the 
-underlying grid and the grid coordinates. It's standard name is `grid.txt` and 
-it should have the following form:
+particle-based simulation data obtained from LAMMPS (https://www.lammps.org), 
+HOOMD-blue, GROMACS and continuum simulation data with the following format: 
+The main directory should contain one file with data that stays constant 
+throughout the entire simulation such as the boundaries of the simulation 
+box, the shape of the underlying grid and the grid coordinates. It's standard 
+name is `grid.txt` and it should have the following form:
 ```
 BOX:
 <X_min>	<X_max>
