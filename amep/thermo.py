@@ -174,7 +174,7 @@ def Tkin4(v: np.ndarray, m: float | np.ndarray, d: int = 2):
     '''
     vmean = np.mean(v, axis=0)
     v4 = np.sum((v-vmean[None,:])**2, axis=1)**2
-    return 0.5 * m * np.sqrt(4 * v4.mean() / (d*(d+2)))
+    return np.mean(0.5 * m * np.sqrt(4 * v4 / (d*(d+2))))
 
 # =============================================================================
 # CONFIGURATIONAL TEMPERATURE

@@ -5267,7 +5267,7 @@ class Tkin(BaseEvaluation):
     @property
     def frames(self):
         r'''
-        Spatial velocity correlation function for each frame.
+        Mean kinetic temperature for each frame.
 
         Returns
         -------
@@ -5280,8 +5280,7 @@ class Tkin(BaseEvaluation):
     @property
     def times(self):
         r'''
-        Times at which the spatial velocity correlation
-        function is evaluated.
+        Times at which the mean kinetic temperature is evaluated.
 
         Returns
         -------
@@ -5294,7 +5293,7 @@ class Tkin(BaseEvaluation):
     @property
     def avg(self):
         r'''
-        Time-averaged spatial velocity correlation function 
+        Time-averaged kinetic temperature 
         (averaged over the given number of frames).
 
         Returns
@@ -5308,8 +5307,8 @@ class Tkin(BaseEvaluation):
     @property
     def indices(self):
         r'''
-        Indices of all frames for which the spatial velocity 
-        correlation function has been evaluated.
+        Indices of all frames for which the mean kinetic temperature
+        has been evaluated.
 
         Returns
         -------
@@ -5353,7 +5352,7 @@ class Tkin4(BaseEvaluation):
             Particle type. The default is None.
         **kwargs
             Other keyword arguments are forwarded to
-            `amep.thermo.Tkin`.
+            `amep.thermo.Tkin4`.
 
         '''
         super(Tkin4, self).__init__()
@@ -5402,7 +5401,7 @@ class Tkin4(BaseEvaluation):
     @property
     def frames(self):
         r'''
-        Spatial velocity correlation function for each frame.
+        Mean 4th-moment kinetic temperature for each frame.
 
         Returns
         -------
@@ -5415,8 +5414,7 @@ class Tkin4(BaseEvaluation):
     @property
     def times(self):
         r'''
-        Times at which the spatial velocity correlation
-        function is evaluated.
+        Times at which the mean 4th-moment kinetic temperature is evaluated.
 
         Returns
         -------
@@ -5429,7 +5427,7 @@ class Tkin4(BaseEvaluation):
     @property
     def avg(self):
         r'''
-        Time-averaged spatial velocity correlation function 
+        Time-averaged 4th-moment kinetic temperature 
         (averaged over the given number of frames).
 
         Returns
@@ -5443,8 +5441,8 @@ class Tkin4(BaseEvaluation):
     @property
     def indices(self):
         r'''
-        Indices of all frames for which the spatial velocity 
-        correlation function has been evaluated.
+        Indices of all frames for which the mean 4th-moment kinetic temperature
+        has been evaluated.
 
         Returns
         -------
@@ -5486,12 +5484,9 @@ class Tosc():
             The default is 10.
         ptype : float, optional
             Particle type. The default is None.
-        **kwargs
-            Other keyword arguments are forwarded to
-            `amep.thermo.Tkin`.
 
         '''
-        super(Tkin4, self).__init__()
+        super(Tosc, self).__init__()
 
         self.name = 'Tosc'
         
@@ -5535,7 +5530,7 @@ class Tosc():
     @property
     def frames(self):
         r'''
-        Spatial velocity correlation function for each frame.
+        Mean oscillator temperature for each frame.
 
         Returns
         -------
@@ -5548,8 +5543,7 @@ class Tosc():
     @property
     def times(self):
         r'''
-        Times at which the spatial velocity correlation
-        function is evaluated.
+        Times at which the mean oscillator temperature is evaluated.
 
         Returns
         -------
@@ -5562,7 +5556,7 @@ class Tosc():
     @property
     def avg(self):
         r'''
-        Time-averaged spatial velocity correlation function 
+        Time-averaged oscillator temperature
         (averaged over the given number of frames).
 
         Returns
@@ -5576,8 +5570,8 @@ class Tosc():
     @property
     def indices(self):
         r'''
-        Indices of all frames for which the spatial velocity 
-        correlation function has been evaluated.
+        Indices of all frames for which the mean oscillator temperature
+        has been evaluated.
 
         Returns
         -------
@@ -5591,7 +5585,7 @@ class Tconf(BaseEvaluation):
     """Configurational temperature.
     """
     def __init__(
-            self, traj: ParticleTrajectory, drU, dr2U,
+            self, traj: ParticleTrajectory, drU: Callable, dr2U: Callable,
             skip: float = 0.0, nav: int = 10,
             ptype: int | None = None, **kwargs
             ) -> None:
@@ -5688,7 +5682,7 @@ class Tconf(BaseEvaluation):
     @property
     def frames(self):
         r'''
-        Spatial velocity correlation function for each frame.
+        Mean configurational temperature for each frame.
 
         Returns
         -------
@@ -5701,8 +5695,7 @@ class Tconf(BaseEvaluation):
     @property
     def times(self):
         r'''
-        Times at which the spatial velocity correlation
-        function is evaluated.
+        Times at which the mean configurational temperature is evaluated.
 
         Returns
         -------
@@ -5715,7 +5708,7 @@ class Tconf(BaseEvaluation):
     @property
     def avg(self):
         r'''
-        Time-averaged spatial velocity correlation function 
+        Time-averaged configurational temperature 
         (averaged over the given number of frames).
 
         Returns
@@ -5729,8 +5722,8 @@ class Tconf(BaseEvaluation):
     @property
     def indices(self):
         r'''
-        Indices of all frames for which the spatial velocity 
-        correlation function has been evaluated.
+        Indices of all frames for which the mean configurational temperature
+        has been evaluated.
 
         Returns
         -------
