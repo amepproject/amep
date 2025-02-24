@@ -156,7 +156,7 @@ def spatialcor(
     The spatial correlation function is defined by the following equation
     in which f can be a complex-valued scalar or vector:
     
-    ..math::
+    .. math::
                 C(r) = <f(r)*f(0)> / <f(0)^2>.
     
     Parameters
