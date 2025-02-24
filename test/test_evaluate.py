@@ -17,9 +17,7 @@
 #
 # Contact: Lukas Hecht (lukas.hecht@pkm.tu-darmstadt.de)
 # =============================================================================
-"""Test units for the continuum class.
-
-Including it's main class, readers and methods."""
+"""Test units for the evaluate module."""
 import unittest
 from pathlib import Path
 from matplotlib import use

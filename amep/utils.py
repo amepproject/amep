@@ -2104,3 +2104,98 @@ def quaternion_multiply(a : np.ndarray, b : np.ndarray):
             + a[1:] * b[0]
             + np.cross(a[1:], b[1:]))
     return ab
+
+
+
+# =============================================================================
+# INTERACTION POTENTIALS
+# =============================================================================
+def wca(r: float | np.ndarray, eps: float = 10.0, sig: float = 1.0):
+    """
+    Weeks-Chandler-Anderson (WCA) potential.[1]_
+    
+    References
+    ----------
+    
+    .. [1] J. D. Weeks, D. Chandler, and H. C. Andersen, Role of Repulsive 
+       Forces in Determining the Equilibrium Structure of Simple Liquids, 
+       J. Chem. Phys. 54, 5237 (1971). https://doi.org/10.1063/1.1674820
+
+    Parameters
+    ----------
+    r : float | np.ndarray
+        Distances.
+    eps : float, optional
+        Strength of the potential. The default is 10.0.
+    sig : float, optional
+        Effective particle diameter. The default is 1.0.
+
+    Returns
+    -------
+    epot : float | np.ndarray
+        Potential energy.
+
+    """
+    rcut = 2**(1/6)*sig
+    epot = np.where(r<=rcut, 4*eps*((sig/r)**12-(sig/r)**6)+eps, 0)
+    return epot
+
+def dr_wca(r: float | np.ndarray, eps: float = 10.0, sig: float = 1.0):
+    """
+    First derivative of the Weeks-Chandler-Anderson (WCA) potential.[1]_
+    
+    References
+    ----------
+    
+    .. [1] J. D. Weeks, D. Chandler, and H. C. Andersen, Role of Repulsive 
+       Forces in Determining the Equilibrium Structure of Simple Liquids, 
+       J. Chem. Phys. 54, 5237 (1971). https://doi.org/10.1063/1.1674820
+
+    Parameters
+    ----------
+    r : float | np.ndarray
+        Distances.
+    eps : float, optional
+        Strength of the potential. The default is 10.0.
+    sig : float, optional
+        Effective particle diameter. The default is 1.0.
+
+    Returns
+    -------
+    dr : float | np.ndarray
+        First derivative.
+
+    """
+    rcut = 2**(1/6)*sig
+    dr = np.where(r<=rcut, 4*eps*(6*sig**6/r**7 - 12*sig**12/r**13), 0)
+    return dr
+
+def dr2_wca(r: float | np.ndarray, eps: float = 10.0, sig: float = 1.0):
+    """
+    Second derivative of the Weeks-Chandler-Anderson (WCA) potential.[1]_
+    
+    References
+    ----------
+    
+    .. [1] J. D. Weeks, D. Chandler, and H. C. Andersen, Role of Repulsive 
+       Forces in Determining the Equilibrium Structure of Simple Liquids, 
+       J. Chem. Phys. 54, 5237 (1971). https://doi.org/10.1063/1.1674820
+
+    Parameters
+    ----------
+    r : float | np.ndarray
+        Distances.
+    eps : float, optional
+        Strength of the potential. The default is 10.0.
+    sig : float, optional
+        Effective particle diameter. The default is 1.0.
+
+    Returns
+    -------
+    dr2 : float | np.ndarray
+        Second derivative.
+
+    """
+    rcut = 2**(1/6)*sig
+    dr2 = np.where(r<=rcut, 4*eps*(156*sig**12/r**14 - 42*sig**6/r**8), 0)
+    return dr2
