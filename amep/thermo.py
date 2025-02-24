@@ -119,7 +119,7 @@ def kintemp(
 def Tkin(v: np.ndarray, m: float | np.ndarray, d: int = 2):
     '''
     Kinetic temperature based on the second moment of the velocity distribution
-    and averaged over all particles.[1]_
+    and averaged over all particles. [1]_
     
     References
     ----------
@@ -149,7 +149,7 @@ def Tkin(v: np.ndarray, m: float | np.ndarray, d: int = 2):
 def Tkin4(v: np.ndarray, m: float | np.ndarray, d: int = 2):   
     '''
     Kinetic temperature based on the 4th moment of the velocity distribution
-    and averaged over all particles.[1]_
+    and averaged over all particles. [1]_
     
     References
     ----------
@@ -184,6 +184,8 @@ def Tconf(
         rcut: float = 1.122, pbc: bool = True):
     """
     Calculates the configurational temperature averaged over all particles.
+
+    Also see Refs. [1]_, [2]_ and [3]_.
     
     References
     ----------
@@ -275,7 +277,7 @@ def Tconf(
 # =====================================================================
 def Tosc(coords: np.ndarray, k: float):
     """
-    Oscillator temperature averaged over all particles.[1]_
+    Oscillator temperature averaged over all particles. [1]_
     
     References
     ----------

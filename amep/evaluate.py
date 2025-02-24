@@ -5198,7 +5198,7 @@ class Tkin(BaseEvaluation):
             ) -> None:
         r'''
         Calculates the kinetic temperature based on the second moment of the
-        velocity distribution.[1]_
+        velocity distribution. [1]_
         
         References
         ----------
@@ -5332,7 +5332,7 @@ class Tkin4(BaseEvaluation):
             ) -> None:
         r'''
         Calculates the kinetic temperature based on the 4th moment of the
-        velocity distribution.[1]_
+        velocity distribution. [1]_
         
         References
         ----------
@@ -5464,7 +5464,7 @@ class Tosc():
             ptype: int | None = None,
             ) -> None:
         r'''
-        Calculates the oscillator temperature.[1]_
+        Calculates the oscillator temperature. [1]_
         
         References
         ----------
@@ -5594,6 +5594,8 @@ class Tconf(BaseEvaluation):
             ) -> None:
         r'''
         Calculates the configurational temperature.
+
+        For more details, see Refs. [1]_, [2]_ and [3]_.
         
         References
         ----------

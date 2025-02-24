@@ -2112,7 +2112,7 @@ def quaternion_multiply(a : np.ndarray, b : np.ndarray):
 # =============================================================================
 def wca(r: float | np.ndarray, eps: float = 10.0, sig: float = 1.0):
     """
-    Weeks-Chandler-Anderson (WCA) potential.[1]_
+    Weeks-Chandler-Anderson (WCA) potential. [1]_
     
     References
     ----------
@@ -2142,7 +2142,7 @@ def wca(r: float | np.ndarray, eps: float = 10.0, sig: float = 1.0):
 
 def dr_wca(r: float | np.ndarray, eps: float = 10.0, sig: float = 1.0):
     """
-    First derivative of the Weeks-Chandler-Anderson (WCA) potential.[1]_
+    First derivative of the Weeks-Chandler-Anderson (WCA) potential. [1]_
     
     References
     ----------
@@ -2172,7 +2172,7 @@ def dr_wca(r: float | np.ndarray, eps: float = 10.0, sig: float = 1.0):
 
 def dr2_wca(r: float | np.ndarray, eps: float = 10.0, sig: float = 1.0):
     """
-    Second derivative of the Weeks-Chandler-Anderson (WCA) potential.[1]_
+    Second derivative of the Weeks-Chandler-Anderson (WCA) potential. [1]_
     
     References
     ----------
