@@ -104,7 +104,7 @@ def isf(start, frame, k):
 
         F_{\text{s}}(k,t)=\frac{1}{N}\left\langle\sum_{j=1}^{N}\frac{\sin\left(k\cdot\left|\vec{r}_j\left(t_0+t\right)-\vec{r}_j\left(t_0\right)\right|\right)}{k\cdot\left|\vec{r}_j\left(t_0+t\right)-\vec{r}_j\left(t_0\right)\right|}\right\rangle_{t_0}.
 
-    that can be obtained via taking the mean over all directions of $\vec{k}$.
+    that can be obtained via taking the mean over all directions of :math:`\vec{k}`.
     A detailed derivation can be found in Ref. [1]_.
 
     References
