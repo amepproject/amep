@@ -15,8 +15,10 @@ preferred-citation:
       orcid: "https://orcid.org/0000-0002-9619-4991"
     - family-names: "Dormann"
       given-names: "Kay-Robert"
+      orcid: "https://orcid.org/0009-0009-1735-5709"
     - family-names: "Spanheimer"
       given-names: "Kai Luca"
+      orcid: "https://orcid.org/0009-0008-4936-4047"
     - family-names: "Ebrahimi"
       given-names: "Mahdieh"
     - family-names: "Cordts"
@@ -29,7 +31,9 @@ preferred-citation:
       given-names: "Benno"
       orcid: "https://orcid.org/0000-0002-7647-6430"
   title: "AMEP: The Active Matter Evaluation Package for Python"
-  year: 2024
-  doi: "10.48550/arXiv.2404.16533"
-  journal: "arXiv"
-  url: "https://arxiv.org/abs/2404.16533"
+  doi: "10.1016/j.cpc.2024.109483"
+  journal: "Computer Physics Communication"
+  year: 2025
+  volume: 309
+  pages: 109483
+  url: "https://doi.org/10.1016/j.cpc.2024.109483"

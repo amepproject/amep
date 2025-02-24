@@ -72,7 +72,8 @@ def traj(
         the simulation directory is used. For `mode='h5amep'`, `savedir`
         is ignored. The default is None.
     mode : str, optional
-        Loading mode. Available modes are 'lammps', 'fields', and 'h5amep'.
+        Loading mode. Available modes are 'lammps', 'fields', 'hoomd',
+        'gromacs' and 'h5amep'.
         The default is 'lammps'.
     reload : bool, optional
         If True, all dump files will be loaded again, otherwise it will be

@@ -1,0 +1,5 @@
+RewriteEngine On
+DirectoryIndex index.html
+ErrorDocument 404 https://amepproject.de
+ErrorDocument 500 https://amepproject.de
+Redirect 301 /index.html /stable/index.html

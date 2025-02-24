@@ -541,7 +541,8 @@ def mirror_points(
 def pbc_diff(
         v1: np.ndarray, v2: np.ndarray, box_boundary: np.ndarray,
         pbc: bool = True) -> np.ndarray:
-    r"""Calculates the difference vector(s) between v1 and v2 considering 
+    r"""
+    Calculates the difference vector(s) between v1 and v2 considering 
     periodic boundary conditions.
 
     Parameters
@@ -550,7 +551,7 @@ def pbc_diff(
         First vector.
     v2 : np.ndarray
         Second vector. 
-   box_boundary : np.ndarray of shape (3,2)
+    box_boundary : np.ndarray of shape (3,2)
         Boundary of the simulation box in the form of
         `np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]])`.
     pbc : bool, optional

@@ -30,28 +30,30 @@ the following formulation:
 
 *Data analysis for this publication utilized the AMEP library [1].*
 
-> [1] L. Hecht, K.-R. Dormann, K. L. Spanheimer, M. Ebrahimi, M. Cordts, S. Mandal, 
->     A. K. Mukhopadhyay, and B. Liebchen, AMEP: The Active Matter Evaluation Package for Python, 
->     *arXiv [Cond-Mat.Soft]* (2024). Available at: http://arxiv.org/abs/2404.16533.
+> [1] Hecht L., Dormann, K.-R., Spanheimer, K. L., Ebrahimi, M., Cordts, M., Mandal, S., 
+>     Mukhopadhyay, A. K. & Liebchen, B. (2025). "AMEP: The Active Matter Evaluation Package for Python", 
+>     *Comput. Phys. Commun., 309*, 109483. https://doi.org/10.1016/j.cpc.2024.109483
 
-The pre-print is freely available on [arXiv](https://arxiv.org/abs/2404.16533). To cite this reference, 
-you can use the following BibTeX entry:
+
+The publication is available as open access at [Comput. Phys. Commun.](https://doi.org/10.1016/j.cpc.2024.109483).
+To cite this reference, you can use the following BibTeX entry:
 
 ```bibtex
-@misc{hecht2024amep,
+@article{hecht2025amep,
     title = {AMEP: The Active Matter Evaluation Package for Python}, 
     author = {Lukas Hecht and 
-              Kay-Robert Dormann and 
-              Kai Luca Spanheimer and 
-              Mahdieh Ebrahimi and 
-              Malte Cordts and 
-              Suvendu Mandal and 
-              Aritra K. Mukhopadhyay and 
-              Benno Liebchen},
-    year = {2024},
-    eprint = {2404.16533},
-    archivePrefix = {arXiv},
-    primaryClass = {cond-mat.soft}
+                Kay-Robert Dormann and 
+                Kai Luca Spanheimer and 
+                Mahdieh Ebrahimi and 
+                Malte Cordts and 
+                Suvendu Mandal and 
+                Aritra K. Mukhopadhyay and 
+                Benno Liebchen},
+    journal = {Computer Physics Communications},
+    year = {2025},
+    volume = {309},
+    pages = {109483},
+    doi = {https://doi.org/10.1016/j.cpc.2024.109483}
 }
 ```
 
@@ -245,12 +247,12 @@ short description.
 # Data Formats
 
 **AMEP** is compatible with multiple data formats. The current version can load 
-particle-based simulation data obtained from LAMMPS (https://www.lammps.org) 
-and continuum simulation data with the following format: The main directory 
-should contain one file with data that stays constant throughout the entire 
-simulation such as the boundaries of the simulation box, the shape of the 
-underlying grid and the grid coordinates. It's standard name is `grid.txt` and 
-it should have the following form:
+particle-based simulation data obtained from LAMMPS (https://www.lammps.org), 
+HOOMD-blue, GROMACS and continuum simulation data with the following format: 
+The main directory should contain one file with data that stays constant 
+throughout the entire simulation such as the boundaries of the simulation 
+box, the shape of the underlying grid and the grid coordinates. It's standard 
+name is `grid.txt` and it should have the following form:
 ```
 BOX:
 <X_min>	<X_max>
