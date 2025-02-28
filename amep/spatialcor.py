@@ -207,6 +207,8 @@ def spatialcor(
     np.ndarray of shape (ndists,), dytpe float
         Distances.
 
+    
+
     Examples
     --------
     >>> import amep
@@ -1259,6 +1261,13 @@ def __sf_iso_chunk_std(chunk, chunksize, coords, other_coords, q, twod):
     -------
     np.ndarray
         Structure factor for the given chunk.
+
+    Important Notes
+    --------
+    For calculating the structure factor in standard simulations, the minimum wave vector is given by
+    $qmin=2 pi/LX$, where $LX$ is the simulation box size. If $qmin$ is chosen to be smaller than this value, 
+    artificial structural correlations may appear due to the finite size of the simulation box. This issue is 
+    effectively handled by AMEP. We mention this here to raise awareness among users.      
 
     '''
     # max. memory in bytes
