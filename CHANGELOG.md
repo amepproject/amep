@@ -3,9 +3,46 @@
 All notable changes to **AMEP** will be documented in this file. **AMEP** 
 adheres to [semantic versioning](https://semver.org/).
 
+## AMEP 1.1.0 (xx Mar 2024)
+
+### New features
+
+* added GROMACS reader (KD)
+* added HOOMD-blue GSD reader (KD)
+* added general distribution function `evaluate.Dist` (KD)
+* added functionality for `frame.data` to accept lists (KD)
+* simplified plot style selection in `plot.style` (KD)
+* unified naming in plot (transition of `plot.box` to `plot.box_boundary`) (ME)
+* unified functionality and documentation in `evaluate` (ME)
+* major website restructure (KD, KS, LH)
+* added information on website for supported data types and more (KD)
+* AMEP publication now out (see "How to Cite" on amepproject.de)
+* added temperature calculations for multiple definitions `evaluate` (LH)
+
+### Bug fixes
+
+* documentation improvements (KD, KS, LH, ME)
+* bug in `utils.average_func` fixed (KD, LH)
+* bug in `frame.data` fixed (KD)
+* bugs relating to `evaluate.ClusterGrowth` fixed (KD)
+* bug in `utils.detect2peaks` related to borders fixed (KD)
+* bug in `cluster.identify` not returning single-particle-"clusters" fixed (KD)
+* bug in `evaluate.PCFangle` fixed (KD, LH)
+* bugs relating to `cluster.gyration_tensor` fixed (KD, LH)
+
+### Contributors
+
+* Lukas Hecht (LH)
+* Kay-Robert Dormann (KD)
+* Kai Luca Spanheimer (KS)
+* Mahdieh Ebrahimi (ME)
+* Mahdieh Ebrahimi ()
+
+
+
 ## AMEP 1.0.3 (22 Oct 2024)
 
-### Bug fixes:
+### Bug fixes
 
 * documentation improvements (ME, KS, KD, LH)
 * bug fix related to `trajectory.add_particle_info` and `trajectory.get_particle_info` (KD, KS)
@@ -14,7 +51,7 @@ adheres to [semantic versioning](https://semver.org/).
 * bug in `evaluate.VelDist` related to default value of number of bins fixed (KD)
 * faster tests - now based on example data (KS, LH, KD)
 
-### Contributors:
+### Contributors
 
 * Lukas Hecht (LH)
 * Kay-Robert Dormann (KD)
@@ -25,12 +62,12 @@ adheres to [semantic versioning](https://semver.org/).
 
 ## AMEP 1.0.2 (22 Mai 2024)
 
-### Bug fixes:
+### Bug fixes
 
 * `fps` can now be set by the user in `amep.plot.animate_trajectory`
 * bug in `amep.evaluate.MSD` related to incorrect data availability checks fixed
 
-### Contributors:
+### Contributors
 
 * Lukas Hecht
 
@@ -38,14 +75,14 @@ adheres to [semantic versioning](https://semver.org/).
 
 ## AMEP 1.0.1 (22 Apr 2024)
 
-### Bug fixes:
+### Bug fixes
 
 * bug related to physical times not getting updated when timestep of trajectory object was changed fixed (LH)
 * incompatibility with Python 3.12 related to distutils fixed (LH)
 * bug in watershed cluster detection related to bubble detection fixed (KS)
 * some minor issues in documentation fixed (LH)
 
-### Contributors:
+### Contributors
 
 * Lukas Hecht (LH)
 * Kai Luca Spanheimer (KS)
@@ -58,7 +95,7 @@ of continuum simulation data, fixes various bugs of version 0.5.0, and provides
 useful new features. It is also the first version that can be installed via 
 conda and pip.
 
-### New features:
+### New features
 
 * gyration tensor and inertia tensor added to `amep.continuum.cluster_properties` (LH)
 * new modes for `amep.evaluate.ClusterGrowth` (KS)
@@ -69,7 +106,7 @@ conda and pip.
 * physical time added to continuum data format (KS)
 * parallelized calculation of distance matrix (ME, LH)
 
-### Bug fixes:
+### Bug fixes
 
 * `traj.animate` colorbar bug fixed (LH)
 * loading trajectories bug when loading process interrupted fixed (LH, KD)
@@ -98,13 +135,13 @@ conda and pip.
 * minor bugs in `amep.plot.particles` fixed (KD)
 * bug in `amep.order.voronoi_density` related to QhullError fixed (KD)
 * problem with repeated indices in `amep.utils.average_func` fixed (LH)
-* missing integration limits in `amep.utils.domain_length´ added (LH)
+* missing integration limits in `amep.utils.domain_length` added (LH)
 * incorrect calculation of moments in `amep.statistics.binder_cumulant` fixed (LH, LW)
 * bug in `amep.pbc.kdtree` related to an error occured when particles are exactly at the border of the simulation box fixed (LH)
 * new plot styles are now installed when installing **AMEP** via pip (KS)
 * `amep.plot.format_axis` improved (LH, ME)
 
-### Deprecation and removals:
+### Deprecation and removals
 
 * `local_density` in module `order` replaced by the three functions `local_number_density`, `local_mass_density`, and `local_packing_fraction` (LH)
 * `amep.plot.savefig` removed (LH, KD)
@@ -113,7 +150,7 @@ conda and pip.
 * all functions now take the box boundary as an input instead of the box length (LH)
 * `amep.continuum.cluster` replaced by `amep.continuum.identify_clusters` and `amep.continuum.cluster_properties` (AM)
 
-### Contributors:
+### Contributors
 
 * Lukas Hecht (LH)
 * Kay-Robert Dormann (KD)
@@ -133,7 +170,7 @@ storage methods for evaluation results. Furthermore, the parallelization of
 methods has been made robust and has been successfully tested on different HPC 
 hardware.
 
-### New features:
+### New features
 
 * progress bar (LH)
 * cluster algorithm for particles of different sizes (LH)
@@ -161,7 +198,7 @@ hardware.
 * number of next neighbors from Voronoi diagrams (KD)
 * plot fields (AM)
 
-### Bug fixes:
+### Bug fixes
 
 * `amep.plot.format_axis` improved (LH)
 * hexagonal order parameter calculation improved (SM)
@@ -188,7 +225,7 @@ hardware.
 * getting data from evaluate objects improved (MC, LH)
 * local density calculation now possible for particles of different size (LH)
 
-### Contributors:
+### Contributors
 
 * Lukas Hecht (LH)
 * Kay-Robert Dormann (KD)
@@ -208,7 +245,7 @@ efficiently use the new HDF5-based data format. The loading of the data has
 been improved significantly and is robust against data loss. With this version, 
 it is also possible to install **AMEP** via `pip`.
 
-### New features:
+### New features
 
 * `pip` support added (KS)
 * possibility to add insets to a plot implemented (KS)
@@ -221,7 +258,7 @@ it is also possible to install **AMEP** via `pip`.
 * general evaluation function added (KD)
 * `frame.get_torque` implemented (LH)
 
-### Bug fixes:
+### Bug fixes
 
 * bug in adding scripts to trajectory objects fixed (LH)
 * `time_average` improved (KD)
@@ -230,7 +267,7 @@ it is also possible to install **AMEP** via `pip`.
 * bug in `MSD` fixed - now checks if required data available (LH)
 * data loading backend improved (KD, LH)
 
-### Contributors:
+### Contributors
 
 * Lukas Hecht (LH)
 * Kay-Robert Dormann (KD)
@@ -243,21 +280,21 @@ it is also possible to install **AMEP** via `pip`.
 This is the new **AMEP** version which includes full HDF5 support and uses 
 HDF5 files in the backend.
 
-### New features:
+### New features
 
 * new backend with full HDF5 support
 * velocity autocorrelation function added
 * orientational autocorrelation function added
 
-### Bug fixes:
+### Bug fixes
 
 * improved calculation of structure factors
 
-### Deprecation and removals:
+### Deprecation and removals
 
 * loading of previous `.pkl` trajectory file format not supported anymore
 
-### Contributors:
+### Contributors
 
 * Lukas Hecht
 
@@ -265,7 +302,7 @@ HDF5 files in the backend.
 
 ## AMEP 0.2.0 (21 Oct 2022)
 
-### New features:
+### New features
 
 * fast mode for 2d structure factor implemented
 * `replace_frame` added to BaseTrajectory
@@ -280,14 +317,14 @@ HDF5 files in the backend.
 * cluster-resolved calculation of the number of next neighbors added
 * `ClusterFraction` added
 
-### Bug fixes:
+### Bug fixes
 
 * small bug fixed in `pbc.pbc_points`
 * bug in `traj.get_forces()` fixed
 * bug in loading LAMMPS data fixed
 * saving results of evaluate objects now possible with user-defined file name
 
-### Contributors:
+### Contributors
 
 * Lukas Hecht
 
@@ -297,7 +334,7 @@ HDF5 files in the backend.
 
 This version includes small bug fixes and improvements.
 
-### Contributors:
+### Contributors
 
 * Lukas Hecht
 
