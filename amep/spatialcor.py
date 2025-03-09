@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # =============================================================================
-# Copyright (C) 2023-2024 Lukas Hecht and the AMEP development team.
+# Copyright (C) 2023-2025 Lukas Hecht and the AMEP development team.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -156,7 +156,7 @@ def spatialcor(
     The spatial correlation function is defined by the following equation
     in which f can be a complex-valued scalar or vector:
     
-    ..math::
+    .. math::
                 C(r) = <f(r)*f(0)> / <f(0)^2>.
     
     Parameters
@@ -1217,7 +1217,7 @@ def pcf_angle(
     
     R,T = np.meshgrid(r,t)
 
-    return res, R, T
+    return res.T, R, T
 
 
 # =============================================================================
@@ -1379,7 +1379,11 @@ def sfiso(
     where :math:`N` is the number of particles [1]_.
 
     Mode 'fft' only works in 2D!!!
-
+    
+    The minimum wave vector is fixed to :math:`2\pi/L`, where :math:`L` is the
+    box length.
+    
+    
     References
     ----------
 
@@ -1635,7 +1639,7 @@ def sf2d(
         S(\vec{q}) = \frac{1}{N} \left\langle\sum_{j=1}^{N}\sum_{k=1}^{N}\exp\left\lbrace-i\vec{q}\cdot(\vec{r}_j-\vec{r}_k)\right\rbrace\right\rangle\\
                    = \frac{1}{N} \left\langle\sum_{j=1}^{N}\left\lvert\exp\left\lbrace-i\vec{q}\cdot\vec{r}_j\right\rbrace\right\rvert^2\right\rangle,
 
-    where $\rho(\vec{q})$ is the Fourier transform of the particle number
+    where :math:`\rho(\vec{q})` is the Fourier transform of the particle number
     density (see Ref. [1]_ for further information).
 
     S(0,0) is set to 0

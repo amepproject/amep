@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # =============================================================================
-# Copyright (C) 2023-2024 Lukas Hecht and the AMEP development team.
+# Copyright (C) 2023-2025 Lukas Hecht and the AMEP development team.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@ observables from simulation data of particle-based and continuum simulations.
 # IMPORT MODULES
 # =============================================================================
 from packaging.version import Version
+from collections.abc import Callable
 import warnings
 import numpy as np
 
@@ -74,9 +75,9 @@ class Function(BaseEvaluation):
         skip: float, default=0.0
             Skip this fraction at the beginning of
             the trajectory.
-        nav: int, default=10
-            number of frames to consider for
-            the time average.
+        nav: int, optional
+            Number of frames to consider for the time average.
+            The default is 10.
         **kwargs: Keyword Arguments
             General python keyword arguments to be
             forwarded to the function f.
@@ -439,8 +440,8 @@ class RDF(BaseEvaluation):
             Skip this fraction at the beginning of the trajectory. The default
             is 0.0.
         nav : int, optional
-            Maximum number of frames to consider for the time average. The
-            default is 10.
+            Number of frames to consider for the time average.
+            The default is 10.
         ptype : float, optional
             Particle type. The default is None.
         other : float, optional
@@ -629,8 +630,8 @@ class PCF2d(BaseEvaluation):
             Skip this fraction at the beginning of the trajectory. The default
             is 0.0.
         nav : int, optional
-            Maximum number of frames to consider for the time average. The
-            default is 10.
+            Number of frames to consider for the time average.
+            The default is 10.
         ptype : float or None, optional
             Particle type. The default is None.
         other : float or None, optional
@@ -864,8 +865,8 @@ class PCFangle(BaseEvaluation):
             Skip this fraction at the beginning of the trajectory. The default
             is 0.0.
         nav : int, optional
-            Maximum number of frames to consider for the time average. The
-            default is 10.
+            Number of frames to consider for the time average.
+            The default is 10.
         ptype : float or None, optional
             Particle type. The default is None.
         other : float or None, optional
@@ -1082,9 +1083,9 @@ class SF2d(BaseEvaluation):
         skip : float, optional
             Skip this fraction at the beginning of
             the trajectory. The default is 0.0.
-        nav : int, optional 
-            Max. number of frames to consider for
-            the time average. The default is 10.
+        nav : int, optional
+            Number of frames to consider for the time average.
+            The default is 10.
         ptype : float, optional
             Particle type. The default is None.
         other : float, optional
@@ -1407,7 +1408,7 @@ class SFiso(BaseEvaluation):
             S_{2D}(q) = \frac{1}{N}\left\langle\sum_{m,l=1}^N J_0(qr_{ml}\right\rangle
 
         with :math:`r_{ml}=|\vec{r}_m-\vec{r}_l|` and the Bessel function
-        of the first kind $J_0(x)$.
+        of the first kind :math:`J_0(x)`.
         See also Ref. [1]_ for further information on the
         static structure factor.
 
@@ -1425,7 +1426,7 @@ class SFiso(BaseEvaluation):
             Skip this fraction at the beginning of the trajectory.
             The default is 0.0.
         nav : int, optional
-            Max. number of frames to consider for the time average.
+            Number of frames to consider for the time average.
             The default is 10.
         qmax : float, optional
             Maximum wave number to consider. This value is ignored if a
@@ -1714,7 +1715,7 @@ class PosOrderCor(BaseEvaluation):
         .. math::
             C_{\vec{k}_0}(r) = <\exp(i\vec{k}_0\cdot (\vec{r}_j-\vec{r}_l))>
 
-        with $r=|\vec{r}_j-\vec{r}_l|$ (see Ref. [1]_ for further information).
+        with :math:`r=|\vec{r}_j-\vec{r}_l|` (see Ref. [1]_ for further information).
         As shown in Ref. [2]_, this can be rewritten as
 
         .. math::
@@ -1753,8 +1754,8 @@ class PosOrderCor(BaseEvaluation):
             Skip this fraction at the beginning of
             the trajectory. The default is 0.0.
         nav : int, optional
-            Max. number of frames to consider for
-            the time average. The default is 10.
+            Number of frames to consider for the time average.
+            The default is 10.
         k0 : list, optional
             list of k vectors (each has to be a
             np.ndarray of shape (1,3); the z component
@@ -1982,8 +1983,8 @@ class HexOrderCor(BaseEvaluation):
             Skip this fraction at the beginning of the trajectory. The default
             is 0.0.
         nav : int, optional
-            Maximum number of frames to consider for the time average. The
-            default is 10.
+            Number of frames to consider for the time average.
+            The default is 10.
         ptype : float, optional
             Particle type. The default is None.
         other : float, optional
@@ -2204,7 +2205,8 @@ class LDdist(BaseEvaluation):
             Skip this fraction at the beginning of the trajectory.
             The default is 0.0.
         nav : int, optional
-            Number of frames to use for the average. The default is 10.
+            Number of frames to consider for the time average.
+            The default is 10.
         nbins : int
             Number of bins for the histogram. The default is 50.
         xmin : float, optional
@@ -2583,7 +2585,8 @@ class Psi6dist(BaseEvaluation):
             Skip this fraction at the beginning of the trajectory. 
             The default is 0.0.
         nav : int, optional
-            Number of frames to use for the average. The default is 10.
+            Number of frames to consider for the time average.
+            The default is 10.
         nbins : int, optional
             Number of bins. The default is 50.
         ptype : float, optional
@@ -2777,7 +2780,8 @@ class VelDist(BaseEvaluation):
             Skip this fraction at the beginning of the trajectory.
             The default is 0.0.
         nav : int, optional
-            Number of frames to use for the average. The default is 10.
+            Number of frames to consider for the time average.
+            The default is 10.
         nbins : int, optional
             Number of bins. The default is 50.
         ptype : float, optional
@@ -3072,6 +3076,211 @@ class VelDist(BaseEvaluation):
         return self.__indices
 
 
+
+class Dist(BaseEvaluation):
+    """General distribution.
+    """
+    
+    def __init__(
+            self, traj: ParticleTrajectory | FieldTrajectory,
+            keys: str | list[str, ...], func: Callable | None = None, skip: float = 0.0,
+            nav: int = 10, nbins: int = 50, ptype: float | None = None,
+            ftype: str | None = None, logbins: bool = False,
+            xmin: float | None = None, xmax: float | None = None,
+            **kwargs):
+        r'''
+        Calculate the distribution of a user-defined key or keys.
+
+        Namely the components :math:`v_x, v_y, v_z`
+        as well as the magnitude :math:`v` of the velocity 
+        and its square :math:`v^2`. It also
+        takes an average over several frames (= time average).
+
+        Parameters
+        ----------
+        traj : Traj
+            Trajectory object.
+        skip : float, optional
+            Skip this fraction at the beginning of the trajectory.
+            The default is 0.0.
+        keys : str, list(str)
+        name keys, func=None, ...todo...
+        xmin : float | None, optional
+            Minimum value for the histogram. If None, then the
+            minimum value of the last frame will be used
+        xmax : float | None, optional
+            Maximum value for the histogram. If None, then the
+            maximum value of the last frame will be used
+        nav : int, optional
+            Number of frames to consider for the time average.
+            The default is 10.
+        nbins : int, optional
+            Number of bins. The default is None.
+        ptype : float, optional
+            Particle type. The default is None.
+
+        Returns
+        -------
+        None
+        
+        Examples
+        --------
+        >>> import amep
+        >>> path="/home/dormann/Documents/git_amep/examples/data/lammps.h5amep"
+        >>> traj= amep.load.traj(path)
+        >>> # distribution of the absolute velocity
+        >>> dist=amep.evaluate.Dist(traj, "v*", func=np.linalg.norm, axis=1, skip=0.5, logbins=True)
+        >>> # save results in hdf5 format
+        >>> dist.save("./eval/dist-eval.h5", name="velocitydistribution")
+
+        >>> fig,axs=amep.plot.new()
+        >>> axs.plot(dist.x, dist.xdist)
+        >>> axs.set_xlabel("Velocity")
+        >>> axs.set_ylabel("P(Velocity)")
+        >>> axs.semilogx()
+        >>> fig.savefig("/home/dormann/Documents/git_amep/doc/source/_static/images/evaluate/evaluate-Dist.png")
+
+        >>> # more examples:
+        >>> # distribution of the x-position
+        >>> dist=amep.evaluate.Dist(traj, "x", skip=0.5, logbins=True)
+        >>> # distribution of the angular velocity
+        >>> dist=amep.evaluate.Dist(traj, "omega*", func=np.linalg.norm, axis=1, skip=0.5, logbins=True)
+
+        .. image:: /_static/images/evaluate/evaluate-Dist.png
+          :width: 400
+          :align: center
+
+        '''
+        super(Dist, self).__init__()
+        
+        if func is None:
+            func = lambda x: x
+        
+        self.name = "dist"
+        
+        self.__traj  = traj
+        self.__keys  = keys
+        self.__skip  = skip
+        self.__nav   = nav
+        self.__nbins = nbins
+        self.__ptype = ptype
+        self.__xmin  = xmin
+        self.__xmax  = xmax
+        self.__func  = func
+        self.__logbins = logbins
+        self.__kwargs = kwargs
+
+        if self.__xmin is None or self.__xmax is None:
+            if isinstance(traj, FieldTrajectory):
+                minmaxdata=self.__traj[-1].data(self.__keys, ftype=self.__ftype)
+            else:
+                minmaxdata=self.__traj[-1].data(self.__keys, ptype=self.__ptype)
+            minmaxdata = func(minmaxdata, **kwargs)
+        if self.__xmin is None:
+            self.__xmin = np.min(minmaxdata)
+            
+        if self.__xmax is None:
+            self.__xmax = np.max(minmaxdata)
+
+        self.__frames, res, self.__indices = average_func(
+            self.__compute, np.arange(self.__traj.nframes), skip=self.__skip,
+            nr=self.__nav, indices=True)
+        
+        self.__times  = self.__traj.times[self.__indices]
+        self.__xdist  = res[0]
+        self.__x      = res[1]
+        
+    def __compute(self, ind):
+        r'''
+        Calculation for a single frame,
+
+        Parameters
+        ----------
+        ind : int
+            Frame index.
+
+        Returns
+        -------
+        hist : np.ndarray
+            Histogram.
+        bins : np.ndarray
+            Bin positions. Same shape as hist.
+        '''
+        data=self.__traj[ind].data(self.__keys, ptype=self.__ptype)
+        data=self.__func(data, **self.__kwargs)
+
+        keyhist, keybins = distribution(
+            data, nbins=self.__nbins, xmin=self.__xmin, xmax=self.__xmax, logbins=self.__logbins)
+        
+        return keyhist, keybins
+    
+    @property
+    def xdist(self):
+        r'''
+        Time-averaged distribution of the magnitude of the velocity.
+
+        Returns
+        -------
+        np.ndarray
+            Distribution of the magnitude of the velocity.
+        '''
+        return self.__xdist
+    
+    @property
+    def x(self):
+        r'''
+        Magnitude of the velocities.
+
+        Returns
+        -------
+        np.ndarray
+            Magnitude of the velocities.
+
+        '''
+        return self.__x
+    
+    @property
+    def frames(self):
+        r'''
+        VelDist for each frame.
+
+        Returns
+        -------
+        np.ndarray
+            VelDist for each frame.
+
+        '''
+        return self.__frames
+    
+    @property
+    def times(self):
+        r'''
+        Times at which the VelDist is evaluated.
+
+        Returns
+        -------
+        np.ndarray
+            Times at which the VelDist is evaluated.
+
+        '''
+        return self.__times
+    
+    @property
+    def indices(self):
+        r'''
+        Indices of all frames for which the VelDist has been
+        evaluated.
+
+        Returns
+        -------
+        np.ndarray
+            Frame indices.
+
+        '''
+        return self.__indices
+
+
+
 # =============================================================================
 # CLUSTER ANALYSIS
 # =============================================================================
@@ -3120,7 +3329,7 @@ class ClusterSizeDist(BaseEvaluation):
             Skip this fraction at the beginning of the trajectory.
             The default is 0.0.
         nav : int, optional
-            Maximum number of frames to consider for the average.
+            Number of frames to consider for the time average.
             The default is 10.
         include_single : bool, optional
             If True, single-particle clusters are included in the histogram.
@@ -3442,7 +3651,7 @@ class ClusterGrowth(BaseEvaluation):
 
     def __init__(
             self, traj: ParticleTrajectory | FieldTrajectory,
-            skip: float = 0.0, nav: int | None = None,
+            skip: float = 0.0, nav: int | None = 10,
             min_size: int = 0,
             ptype: int | None = None, ftype: str | list | None = None,
             mode: str = "largest", use_density: bool = True,
@@ -3473,8 +3682,8 @@ class ClusterGrowth(BaseEvaluation):
             Skip this fraction at the beginning of the trajectory.
             The default is 0.0.
         nav : int, optional
-            Total number of time steps (frames) to consider.
-            The default is None.
+            Number of frames to consider for the time average.
+            The default is 10.
         min_size : int, optional
             Consider only clusters with at least this size. If a 
             ParticleTrajectory is supplied, the minimum size is given in number
@@ -3517,9 +3726,9 @@ class ClusterGrowth(BaseEvaluation):
         >>> axs.plot(clg.times, clg.frames, label="largest")
         >>> clg = amep.evaluate.ClusterGrowth(traj, mode="mean")
         >>> axs.plot(clg.times, clg.frames, label="mean")
-        >>> clg = amep.evaluate.ClusterGrowth(ptraj, mode="mean", min_size=20)
+        >>> clg = amep.evaluate.ClusterGrowth(traj, mode="mean", min_size=20)
         >>> axs.plot(clg.times, clg.frames, label="mean min 20")
-        >>> clg = amep.evaluate.ClusterGrowth(ptraj, mode="weighted mean")
+        >>> clg = amep.evaluate.ClusterGrowth(traj, mode="weighted mean")
         >>> axs.plot(clg.times, clg.frames, label="weighted mean")
         >>> axs.loglog()
         >>> axs.legend()
@@ -3564,7 +3773,7 @@ class ClusterGrowth(BaseEvaluation):
 
         if nav is None:
             nav = self.__traj.nframes
-            
+
         # check mode
         if self.__mode not in ["largest", "mean", "weighted mean"]:
             raise ValueError(
@@ -3633,8 +3842,8 @@ class ClusterGrowth(BaseEvaluation):
         
         # if no clusters are detected
         if len(values) == 0:
-            values = 0.0
-            weights = 1.0
+            values = [0.0]
+            weights = [1.0]
         else:
             weights = values
         
@@ -3692,8 +3901,8 @@ class ClusterGrowth(BaseEvaluation):
             
         # case if there is no cluster
         if len(values) == 0:
-            values = 0.0
-            weights = 1.0
+            values = [0.0]
+            weights = [1.0]
         else:
             weights = values
         
@@ -3772,7 +3981,7 @@ class MSD(BaseEvaluation):
     
     def __init__(
             self, traj: ParticleTrajectory, ptype: int | None = None,
-            skip: float = 0.0, nav: int | None = None,
+            skip: float = 0.0, nav: int | None = 10,
             use_nojump: bool = False, pbc: bool = True) -> None:
         r'''
         Calculates the mean-square displacement over time. If periodic boundary
@@ -3792,8 +4001,7 @@ class MSD(BaseEvaluation):
             of the trajectory. The default is 0.0.
         nav : int or None, optional
             Number of time steps at which the mean square
-            displacement should be evaluated. The default is None, i.e., all 
-            available time steps are used.
+            displacement should be evaluated. The default is 10.
         use_nojump : bool, optional
             Forces the use of nojump coordinates. The default is False.
         pbc : bool, optional
@@ -3998,7 +4206,7 @@ class VACF(BaseEvaluation):
 
     def __init__(
             self, traj: ParticleTrajectory, ptype: int | None = None,
-            skip: float = 0.0, nav: int or None = None,
+            skip: float = 0.0, nav: int | None = 10,
             direction: str = 'xyz') -> None:
         r'''
         Calculate the velocity autocorrelation function.
@@ -4016,7 +4224,7 @@ class VACF(BaseEvaluation):
             of the trajectory. The default is 0.0.
         nav : int, optional
             Number of time steps at which the autocorrelation
-            function should be evaluated. The default is None.
+            function should be evaluated. The default is 10.
         direction : str, optional
             'x', 'y', 'z', or any combination of it.
             The default is 'xyz' (average over all directions).
@@ -4195,7 +4403,7 @@ class OACF(BaseEvaluation):
     """Orientational autocorrelation function.
     """
 
-    def __init__(self, traj, ptype=None, skip=0.0, nav=None, direction='xyz'):
+    def __init__(self, traj, ptype=None, skip=0.0, nav: int | None = 10, direction='xyz'):
         r'''
         Calculate the orientational autocorrelation function
         averaged over all particles of the given type.
@@ -4211,7 +4419,7 @@ class OACF(BaseEvaluation):
             of the trajectory. The default is 0.0.
         nav : int, optional
             Number of time steps at which the autocorrelation
-            function should be evaluated. The default is None.
+            function should be evaluated. The default is 10.
         direction : str, optional
             'x', 'y', 'z', or any combination of it.
             The default is 'xyz' (average over all directions).
@@ -4398,7 +4606,7 @@ class TimeCor(BaseEvaluation):
     quantity.
     """
 
-    def __init__(self, traj, *args, ptype=None, skip=0.0, nav=None):
+    def __init__(self, traj, *args, ptype=None, skip=0.0, nav: int | None = 10):
         r'''
         Calculate the autocorrelation function.
         Averages over all particles of the given type.
@@ -4431,7 +4639,7 @@ class TimeCor(BaseEvaluation):
             of the trajectory. The default is 0.0.
         nav : int, optional
             Number of time steps at which the autocorrelation
-            function should be evaluated. The default is None.
+            function should be evaluated. The default is 10.
 
         Returns
         -------
@@ -4588,9 +4796,9 @@ class EkinTot(BaseEvaluation):
         skip : float, default=0.0
             Skip this fraction at the beginning of
             the trajectory.
-        nav : int, default=10
-            number of frames to consider for
-            the time average.
+        nav : int, optional
+            Number of frames to consider for the time average.
+            The default is 10.
         mass : float or np.ndarray
             Mass(es) of the particles.
         inertia : float or np.ndarray
@@ -4737,9 +4945,9 @@ class EkinTrans(BaseEvaluation):
         skip : float, default=0.0
             Skip this fraction at the beginning of
             the trajectory.
-        nav : int, default=10
-            number of frames to consider for
-            the time average.
+        nav : int, optional
+            Number of frames to consider for the time average.
+            The default is 10.
         **kwargs : Keyword Arguments
             General python keyword arguments to be
             forwarded to the function f
@@ -4879,9 +5087,9 @@ class EkinRot(BaseEvaluation):
         skip : float, default=0.0
             Skip this fraction at the beginning of
             the trajectory.
-        nav : int, default=10
-            number of frames to consider for
-            the time average.
+        nav : int, optional
+            Number of frames to consider for the time average.
+            The default is 10.
         **kwargs : Keyword Arguments
             General python keyword arguments to be
             forwarded to the function f
@@ -4967,6 +5175,560 @@ class EkinRot(BaseEvaluation):
         r'''
         Indices of all frames for which the rotational kinetic energy has been
         evaluated.
+
+        Returns
+        -------
+        np.ndarray
+            Frame indices.
+
+        '''
+        return self.__indices
+    
+    
+# =============================================================================
+# TEMPERATURES
+# =============================================================================
+class Tkin(BaseEvaluation):
+    """Kinetic temperature based on the second moment of the velocity
+    distribution.
+    """
+    def __init__(
+            self, traj: ParticleTrajectory, skip: float = 0.0, nav: int = 10,
+            ptype: int | None = None, **kwargs
+            ) -> None:
+        r'''
+        Calculates the kinetic temperature based on the second moment of the
+        velocity distribution. [1]_
+        
+        References
+        ----------
+        
+        .. [1] L. Hecht, L. Caprini, H. Löwen, and B. Liebchen, 
+           How to Define Temperature in Active Systems?, J. Chem. Phys. 161, 
+           224904 (2024). https://doi.org/10.1063/5.0234370
+
+        Parameters
+        ----------
+        traj : ParticleTrajectory
+            Trajectory object with simulation data.
+        skip : float, optional
+            Skip this fraction at the beginning of the trajectory.
+            The default is 0.0.
+        nav : int, optional
+            Number of frames to consider for the time average.
+            The default is 10.
+        ptype : float, optional
+            Particle type. The default is None.
+        **kwargs
+            Other keyword arguments are forwarded to
+            `amep.thermo.Tkin`.
+
+        '''
+        super(Tkin, self).__init__()
+
+        self.name = 'Tkin'
+        
+        self.__traj   = traj
+        self.__skip   = skip
+        self.__nav    = nav
+        self.__ptype  = ptype
+        self.__kwargs = kwargs
+        
+        self.__frames, self.__avg, self.__indices = average_func(
+            self.__compute,
+            self.__traj,
+            skip = self.__skip,
+            nr = self.__nav,
+            indices = True
+        )
+        
+        self.__times = self.__traj.times[self.__indices]
+
+        
+    def __compute(self, frame):
+        r'''
+        Calculation for a single frame.
+        
+        Parameters
+        ----------
+        frame : BaseFrame
+            A single frame of particle-based simulation data.
+              
+        Returns
+        -------
+        temp: float
+            Mean temperature.
+        '''
+        temp = thermo.Tkin(
+            frame.velocities(ptype=self.__ptype),
+            frame.mass(ptype=self.__ptype),
+            **self.__kwargs
+        )
+        return temp
+
+    
+    @property
+    def frames(self):
+        r'''
+        Mean kinetic temperature for each frame.
+
+        Returns
+        -------
+        np.ndarray
+            Function value for each frame.
+
+        '''
+        return self.__frames
+    
+    @property
+    def times(self):
+        r'''
+        Times at which the mean kinetic temperature is evaluated.
+
+        Returns
+        -------
+        np.ndarray
+            Times at which the function is evaluated.
+
+        '''
+        return self.__times
+    
+    @property
+    def avg(self):
+        r'''
+        Time-averaged kinetic temperature 
+        (averaged over the given number of frames).
+
+        Returns
+        -------
+        np.ndarray
+            Time-averaged spatial velocity correlation function.
+
+        '''
+        return self.__avg
+    
+    @property
+    def indices(self):
+        r'''
+        Indices of all frames for which the mean kinetic temperature
+        has been evaluated.
+
+        Returns
+        -------
+        np.ndarray
+            Frame indices.
+
+        '''
+        return self.__indices
+
+class Tkin4(BaseEvaluation):
+    """Kinetic temperature based on the 4th moment of the velocity
+    distribution.
+    """
+    def __init__(
+            self, traj: ParticleTrajectory, 
+            skip: float = 0.0, nav: int = 10,
+            ptype: int | None = None, **kwargs
+            ) -> None:
+        r'''
+        Calculates the kinetic temperature based on the 4th moment of the
+        velocity distribution. [1]_
+        
+        References
+        ----------
+        
+        .. [1] L. Hecht, L. Caprini, H. Löwen, and B. Liebchen, 
+           How to Define Temperature in Active Systems?, J. Chem. Phys. 161, 
+           224904 (2024). https://doi.org/10.1063/5.0234370
+
+        Parameters
+        ----------
+        traj : ParticleTrajectory
+            Trajectory object with simulation data.
+        skip : float, optional
+            Skip this fraction at the beginning of the trajectory.
+            The default is 0.0.
+        nav : int, optional
+            Number of frames to consider for the time average.
+            The default is 10.
+        ptype : float, optional
+            Particle type. The default is None.
+        **kwargs
+            Other keyword arguments are forwarded to
+            `amep.thermo.Tkin4`.
+
+        '''
+        super(Tkin4, self).__init__()
+
+        self.name = 'Tkin4'
+        
+        self.__traj   = traj
+        self.__skip   = skip
+        self.__nav    = nav
+        self.__ptype  = ptype
+        self.__kwargs = kwargs
+        
+        self.__frames, self.__avg, self.__indices = average_func(
+            self.__compute,
+            self.__traj,
+            skip = self.__skip,
+            nr = self.__nav,
+            indices = True
+        )
+        
+        self.__times = self.__traj.times[self.__indices]
+
+        
+    def __compute(self, frame):
+        r'''
+        Calculation for a single frame.
+        
+        Parameters
+        ----------
+        frame : BaseFrame
+            A single frame of particle-based simulation data.
+              
+        Returns
+        -------
+        temp: float
+            Mean temperature.
+        '''
+        temp = thermo.Tkin4(
+            frame.velocities(ptype=self.__ptype),
+            frame.mass(ptype=self.__ptype),
+            **self.__kwargs
+        )
+        return temp
+
+    
+    @property
+    def frames(self):
+        r'''
+        Mean 4th-moment kinetic temperature for each frame.
+
+        Returns
+        -------
+        np.ndarray
+            Function value for each frame.
+
+        '''
+        return self.__frames
+    
+    @property
+    def times(self):
+        r'''
+        Times at which the mean 4th-moment kinetic temperature is evaluated.
+
+        Returns
+        -------
+        np.ndarray
+            Times at which the function is evaluated.
+
+        '''
+        return self.__times
+    
+    @property
+    def avg(self):
+        r'''
+        Time-averaged 4th-moment kinetic temperature 
+        (averaged over the given number of frames).
+
+        Returns
+        -------
+        np.ndarray
+            Time-averaged spatial velocity correlation function.
+
+        '''
+        return self.__avg
+    
+    @property
+    def indices(self):
+        r'''
+        Indices of all frames for which the mean 4th-moment kinetic temperature
+        has been evaluated.
+
+        Returns
+        -------
+        np.ndarray
+            Frame indices.
+
+        '''
+        return self.__indices
+
+class Tosc():
+    """Oscillator temperature.
+    """
+    def __init__(
+            self, traj: ParticleTrajectory, k: float,
+            skip: float = 0.0, nav: int = 10,
+            ptype: int | None = None,
+            ) -> None:
+        r'''
+        Calculates the oscillator temperature. [1]_
+        
+        References
+        ----------
+        
+        .. [1] L. Hecht, L. Caprini, H. Löwen, and B. Liebchen, 
+           How to Define Temperature in Active Systems?, J. Chem. Phys. 161, 
+           224904 (2024). https://doi.org/10.1063/5.0234370
+
+        Parameters
+        ----------
+        traj : ParticleTrajectory
+            Trajectory object with simulation data.
+        k : float
+            Strength of the harmonic confinement.
+        skip : float, optional
+            Skip this fraction at the beginning of the trajectory.
+            The default is 0.0.
+        nav : int, optional
+            Number of frames to consider for the time average.
+            The default is 10.
+        ptype : float, optional
+            Particle type. The default is None.
+
+        '''
+        super(Tosc, self).__init__()
+
+        self.name = 'Tosc'
+        
+        self.__traj = traj
+        self.__skip = skip
+        self.__nav = nav
+        self.__ptype = ptype
+        self.__k = k
+        
+        self.__frames, self.__avg, self.__indices = average_func(
+            self.__compute,
+            self.__traj,
+            skip = self.__skip,
+            nr = self.__nav,
+            indices = True
+        )
+        
+        self.__times = self.__traj.times[self.__indices]
+
+        
+    def __compute(self, frame):
+        r'''
+        Calculation for a single frame.
+        
+        Parameters
+        ----------
+        frame : BaseFrame
+            A single frame of particle-based simulation data.
+              
+        Returns
+        -------
+        temp: float
+            Mean temperature.
+        '''
+        temp = thermo.Tosc(
+            frame.coords(ptype=self.__ptype),
+            self.__k
+        )
+        return temp
+
+    @property
+    def frames(self):
+        r'''
+        Mean oscillator temperature for each frame.
+
+        Returns
+        -------
+        np.ndarray
+            Function value for each frame.
+
+        '''
+        return self.__frames
+    
+    @property
+    def times(self):
+        r'''
+        Times at which the mean oscillator temperature is evaluated.
+
+        Returns
+        -------
+        np.ndarray
+            Times at which the function is evaluated.
+
+        '''
+        return self.__times
+    
+    @property
+    def avg(self):
+        r'''
+        Time-averaged oscillator temperature
+        (averaged over the given number of frames).
+
+        Returns
+        -------
+        np.ndarray
+            Time-averaged spatial velocity correlation function.
+
+        '''
+        return self.__avg
+    
+    @property
+    def indices(self):
+        r'''
+        Indices of all frames for which the mean oscillator temperature
+        has been evaluated.
+
+        Returns
+        -------
+        np.ndarray
+            Frame indices.
+
+        '''
+        return self.__indices
+
+class Tconf(BaseEvaluation):
+    """Configurational temperature.
+    """
+    def __init__(
+            self, traj: ParticleTrajectory, drU: Callable, dr2U: Callable,
+            skip: float = 0.0, nav: int = 10,
+            ptype: int | None = None, **kwargs
+            ) -> None:
+        r'''
+        Calculates the configurational temperature.
+
+        For more details, see Refs. [1]_, [2]_ and [3]_.
+        
+        References
+        ----------
+        
+        .. [1] L. Hecht, L. Caprini, H. Löwen, and B. Liebchen, 
+           How to Define Temperature in Active Systems?, J. Chem. Phys. 161, 
+           224904 (2024). https://doi.org/10.1063/5.0234370
+           
+        .. [2] S. Saw, L. Costigliola, and J. C. Dyre, Configurational Temperature 
+           in Active Matter. I. Lines of Invariant Physics in the Phase Diagram of 
+           the Ornstein-Uhlenbeck Model, Phys. Rev. E 107, 024609 (2023).
+           https://doi.org/10.1103/PhysRevE.107.024609
+        
+        .. [3] S. Saw, L. Costigliola, and J. C. Dyre, Configurational Temperature 
+           in Active Matter. II. Quantifying the Deviation from Thermal 
+           Equilibrium, Phys. Rev. E 107, 024610 (2023).
+           https://doi.org/10.1103/PhysRevE.107.024610
+
+        Parameters
+        ----------
+        traj : ParticleTrajectory
+            Trajectory object with simulation data.
+        drU : function
+            First derivative of the potential energy function of one particle.
+            For example, one can use amep.utils.dr_wca.
+        dr2U : function
+            Second derivative of the potential energy function of one particle.
+            For example, one can use amep.utils.dr2_wca.
+        skip : float, optional
+            Skip this fraction at the beginning of the trajectory.
+            The default is 0.0.
+        nav : int, optional
+            Number of frames to consider for the time average.
+            The default is 10.
+        ptype : float, optional
+            Particle type. The default is None.
+        **kwargs
+            Other keyword arguments are forwarded to
+            `amep.thermo.Tkin`.
+
+        '''
+        super(Tconf, self).__init__()
+
+        self.name = 'Tconf'
+        
+        self.__traj   = traj
+        self.__skip   = skip
+        self.__nav    = nav
+        self.__ptype  = ptype
+        self.__kwargs = kwargs
+        self.__drU = drU
+        self.__dr2U = dr2U
+        
+        self.__frames, self.__avg, self.__indices = average_func(
+            self.__compute,
+            self.__traj,
+            skip = self.__skip,
+            nr = self.__nav,
+            indices = True
+        )
+        
+        self.__times = self.__traj.times[self.__indices]
+
+        
+    def __compute(self, frame):
+        r'''
+        Calculation for a single frame.
+        
+        Parameters
+        ----------
+        frame : BaseFrame
+            A single frame of particle-based simulation data.
+              
+        Returns
+        -------
+        temp: float
+            Mean temperature.
+        '''
+        temp = thermo.Tconf(
+            frame.coords(ptype=self.__ptype),
+            frame.box,
+            self.__drU,
+            self.__dr2U,
+            **self.__kwargs
+        )
+        return temp
+
+    
+    @property
+    def frames(self):
+        r'''
+        Mean configurational temperature for each frame.
+
+        Returns
+        -------
+        np.ndarray
+            Function value for each frame.
+
+        '''
+        return self.__frames
+    
+    @property
+    def times(self):
+        r'''
+        Times at which the mean configurational temperature is evaluated.
+
+        Returns
+        -------
+        np.ndarray
+            Times at which the function is evaluated.
+
+        '''
+        return self.__times
+    
+    @property
+    def avg(self):
+        r'''
+        Time-averaged configurational temperature 
+        (averaged over the given number of frames).
+
+        Returns
+        -------
+        np.ndarray
+            Time-averaged spatial velocity correlation function.
+
+        '''
+        return self.__avg
+    
+    @property
+    def indices(self):
+        r'''
+        Indices of all frames for which the mean configurational temperature
+        has been evaluated.
 
         Returns
         -------

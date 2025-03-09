@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # =============================================================================
-# Copyright (C) 2023-2024 Lukas Hecht and the AMEP development team.
+# Copyright (C) 2023-2025 Lukas Hecht and the AMEP development team.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -541,7 +541,8 @@ def mirror_points(
 def pbc_diff(
         v1: np.ndarray, v2: np.ndarray, box_boundary: np.ndarray,
         pbc: bool = True) -> np.ndarray:
-    r"""Calculates the difference vector(s) between v1 and v2 considering 
+    r"""
+    Calculates the difference vector(s) between v1 and v2 considering 
     periodic boundary conditions.
 
     Parameters
@@ -550,7 +551,7 @@ def pbc_diff(
         First vector.
     v2 : np.ndarray
         Second vector. 
-   box_boundary : np.ndarray of shape (3,2)
+    box_boundary : np.ndarray of shape (3,2)
         Boundary of the simulation box in the form of
         `np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]])`.
     pbc : bool, optional
@@ -596,7 +597,8 @@ def pbc_diff_rect(v1, v2, box_boundary):
         v = v1 - v2
         
     # fold distance vectors back into the box
-    v = fold(v, box_boundary)
+    # must fold with respect to center of box
+    v = fold(v, box_boundary-np.mean(box_boundary, axis=1)[:,None])
     return v
 
 
@@ -635,20 +637,23 @@ def kdtree(
         # get center of the simulation box
         center = np.mean(box_boundary, axis=1)
         
-        # fold coords back into box (to avoid errors)
-        coords = fold(coords, box_boundary)
-        
         # shift all coordinates to be within [0,L_i), i=x,y,z
         # (this is required by the KDTree algorithm)
         coords = coords + box/2. - center
+        
+        # fold coords back into box (to avoid errors)
+        coords = fold(coords, box_boundary-box_boundary[:,0][:,None])
         
         # shift particles at the right border to the left border
         # to avoid errors occuring if a particle is placed at L_i
         coords[coords[:,0]==box[0],0]=0
         coords[coords[:,1]==box[1],1]=0
         coords[coords[:,2]==box[2],2]=0
+        # should not be done for fields! all right boundaries will
+        # be shifted to the left and would be double-occupied!
 
     return KDTree(coords, boxsize=box)
+
 
 # =============================================================================
 # CALCULATION OF PAIRWISE DISTANCES

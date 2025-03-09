@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # =============================================================================
-# Copyright (C) 2023-2024 Lukas Hecht and the AMEP development team.
+# Copyright (C) 2023-2025 Lukas Hecht and the AMEP development team.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@ from typing import Callable, Iterable
 from os.path import abspath, dirname, join
 from pathlib import Path
 import warnings
+warnings.simplefilter('always', PendingDeprecationWarning)
 import shutil
 import numpy as np
 import matplotlib as mpl
@@ -44,7 +45,7 @@ import matplotlib.pyplot as plt
 from scipy.spatial import Voronoi, voronoi_plot_2d
 from matplotlib.ticker import MultipleLocator
 from matplotlib.ticker import NullFormatter
-from matplotlib.patches import Rectangle, FancyBboxPatch, ConnectionPatch, Circle
+from matplotlib.patches import Rectangle, FancyBboxPatch, ConnectionPatch, Circle, FancyArrow
 from matplotlib.collections import LineCollection, PatchCollection
 from matplotlib.colors import to_rgba, ListedColormap
 from matplotlib.animation import FuncAnimation
@@ -73,6 +74,10 @@ def style(style_name: str = "", mpl_default: bool = False) -> None:
     r'''
     Set the plot style.
 
+    .. note:: Deprecates in 2.0.0
+          `mpl_default: bool` will be removed in an upcoming major release. Please use "matplotlib".
+          "amep_latex" and "amep_standard" will be removed. Please use "latex" and "standard" instead.
+
     Parameters
     ----------
     style_name : str, optional
@@ -80,6 +85,9 @@ def style(style_name: str = "", mpl_default: bool = False) -> None:
         styles, one can choose the AMEP styles `'amep_latex'` and 
         `'amep_standard'`. The AMEP styles are used per default when AMEP is
         imported.
+        Please switch to the modes "latex", "standard" for AMEP-styles and
+        "matplotlib" for the default matplotlib style. Any other 'style_name'
+        is forwarded to 'matplotlib.pyplot.style.use(style_name)'.
     mpl_default : bool, optional
         Determines whether to apply a style or revert
         to the default pyplot style. The default is False.
@@ -89,14 +97,27 @@ def style(style_name: str = "", mpl_default: bool = False) -> None:
     None.
     '''
     if not mpl_default:
+        style=""
         if style_name in ('amep_latex', 'amep_standard'):
-            path = join(abspath(dirname(__file__)),
+            warnings.warn("The options <mpl_default: bool>, 'amep_latex' and 'amep_standard' will be removed in an upcoming major release. Please use the modes 'matplotlib', 'latex' and 'standard' instead.", PendingDeprecationWarning)
+            style = join(abspath(dirname(__file__)),
                         './styles/',
                         style_name + '.mplstyle')
-            plt.style.use(path)
+        elif style_name=="latex":
+            style = join(abspath(dirname(__file__)),
+                        './styles/',
+                        'amep_latex.mplstyle')
+        elif style_name=="standard":
+            style = join(abspath(dirname(__file__)),
+                        './styles/',
+                        'amep_standard.mplstyle')
+        elif style_name=="matplotlib":
+            style = "default"
         else:
-            plt.style.use(style_name)
+            style = style_name
+        plt.style.use(style)
     else:
+        warnings.warn("The options <mpl_default: bool>, 'amep_latex' and 'amep_standard' will be removed in an upcoming major release. Please use the modes 'matplotlib', 'latex' and 'standard' instead.", PendingDeprecationWarning)
         mpl.rcParams.update(mpl.rcParamsDefault)
         plt.style.use('default')
 
@@ -893,6 +914,7 @@ def box(axis: mpl.axes.Axes, box_boundary: np.ndarray, **kwargs) -> None:
     -------
     None.
     '''
+    warnings.warn("The function 'plot.box' will be removed in version 2.0.0. Please use the function 'plot.box_boundary' instead.", PendingDeprecationWarning)
     defaultKwargs = {'c': 'k', 'ls': '-', 'marker': ''}
     if 'color' in kwargs:
         # either 'c' or 'color' can be given, not both
@@ -906,6 +928,40 @@ def box(axis: mpl.axes.Axes, box_boundary: np.ndarray, **kwargs) -> None:
     axis.plot([box_boundary[0,1],box_boundary[0,1]], box_boundary[1], **kwargs)
     axis.plot(box_boundary[0], [box_boundary[1,0],box_boundary[1,0]], **kwargs)
     axis.plot(box_boundary[0], [box_boundary[1,1],box_boundary[1,1]], **kwargs)
+
+
+def box_boundary(axis: mpl.axes.Axes, box_boundary: np.ndarray, **kwargs) -> None:
+    r'''
+    Adds the simulation box to the given axis.
+
+    Parameters
+    ----------
+    axis : AxisSubplot
+        Matplotlib.pyplot AxisSubplot object.
+    box_boundary : np.ndarray of shape (3,2)
+        Boundary of the simulation box in the form of
+        `np.array([[xmin, xmax], [ymin, ymax], [zmin, zmax]])`.
+    **kwargs : 
+        Forwarded to axis.plot.
+
+    Returns
+    -------
+    None.
+    '''
+    defaultKwargs = {'c': 'k', 'ls': '-', 'marker': ''}
+    if 'color' in kwargs:
+        # either 'c' or 'color' can be given, not both
+        kwargs['c'] = kwargs['color']
+        del kwargs['color']
+    if 'linestyle' in kwargs:
+        kwargs['ls'] = kwargs['linestyle']
+        del kwargs['linestyle']
+    kwargs = defaultKwargs | kwargs
+    axis.plot([box_boundary[0,0],box_boundary[0,0]], box_boundary[1], **kwargs)
+    axis.plot([box_boundary[0,1],box_boundary[0,1]], box_boundary[1], **kwargs)
+    axis.plot(box_boundary[0], [box_boundary[1,0],box_boundary[1,0]], **kwargs)
+    axis.plot(box_boundary[0], [box_boundary[1,1],box_boundary[1,1]], **kwargs)
+
 
 
 def particles(
@@ -1829,3 +1885,56 @@ def voronoi(axs: mpl.axes.Axes, vor: Voronoi, **kwargs):
     else:
         raise Exception("amep.plot.voronoi: Cannot plot 3d data.")
     plt.show()
+
+def draw_arrow(fig, x: float, y: float, dx: float, dy: float, **kwargs):
+    r"""Draws an arrow on a Matplotlib figure.
+
+    This function uses the `FancyArrow` class to draw an arrow on a Matplotlib 
+    figure at a specified position, with a given displacement. The arrow is 
+    added directly to the figure object.
+
+    Parameters
+    ----------
+    fig : matplotlib.figure.Figure
+        The Matplotlib figure object on which the arrow will be drawn.
+    x : float
+        The starting x-coordinate of the arrow, in figure coordinates (0 to 1).
+    y : float
+        The starting y-coordinate of the arrow, in figure coordinates (0 to 1).
+    dx : float
+        The horizontal displacement (change in x) of the arrow, in figure coordinates.
+    dy : float
+        The vertical displacement (change in y) of the arrow, in figure coordinates.
+    **kwargs
+        Additional keyword arguments passed to `matplotlib.patches.FancyArrow`, 
+        such as `color`, `width`, `head_width`, and `head_length`.
+
+    Returns
+    -------
+    None.
+
+    Notes
+    -----
+    The arrow's position and size are specified in figure coordinates. Figure 
+    coordinates range from 0 to 1, where (0, 0) represents the bottom-left 
+    corner and (1, 1) represents the top-right corner of the figure.
+
+    Examples
+    --------
+    >>> fig, axs = amep.plot.new(figsize=(3, 3))
+    >>> x=0.2
+    >>> y=0.2
+    >>> dx=0.5
+    >>> dy=0.5
+    >>> amep.plot.draw_arrow(
+    ...     fig, x, y, dx, dy, color="blue", alpha=0.8, width=0.05,
+    ...     head_width=0.1, head_length=0.03
+    ... )
+    >>> 
+
+    """
+    arrow = FancyArrow(
+        x, y, dx, dy, transform=fig.transFigure,
+        length_includes_head=True, **kwargs
+    )
+    fig.add_artist(arrow) 

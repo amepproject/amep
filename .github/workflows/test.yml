@@ -55,7 +55,7 @@ jobs:
         working-directory: ./doc
         run: |
           make html
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: generated-site
           path: ./doc/build/html

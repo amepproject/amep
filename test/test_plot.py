@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # =============================================================================
-# Copyright (C) 2023-2024 Lukas Hecht and the AMEP development team.
+# Copyright (C) 2023-2025 Lukas Hecht and the AMEP development team.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -69,6 +69,20 @@ class TestPlotMethods(unittest.TestCase):
         plot.set_locators(axe)
         fig.savefig(PLOT_DIR/"test_locators.pdf")
         close(fig2)
+        
+    def test_draw_arrow(self):
+        """Test the amep.plot.draw_arrow method"""
+        fig, axs = plot.new(figsize=(3,3))
+        x = 0.2
+        y = 0.2
+        dx = 0.5
+        dy = 0.5
+        plot.draw_arrow(
+            fig, x, y, dx, dy, color="blue", alpha=0.8, width=0.05,
+            head_width=0.1, head_length=0.03
+        )
+        fig.savefig(PLOT_DIR/"test_draw_arrow.pdf")
+        close(fig)
 
     def test_format_axis(self):
         """Testing the format axis function"""
@@ -128,7 +142,7 @@ class TestPlotMethods(unittest.TestCase):
                                if isinstance(traj, ParticleTrajectory)])
         out_particles = PLOT_DIR/"particle_vid.gif"
         plot.animate_trajectory(f_trajectory, out_field, ftype="c", nth=10)
-        plot.animate_trajectory(p_trajectory, out_particles, nth=50)
+        plot.animate_trajectory(p_trajectory, out_particles, nth=20)
 
     def test_ll_video(self):
         """Test the low level video interface."""

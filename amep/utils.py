@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # =============================================================================
-# Copyright (C) 2023-2024 Lukas Hecht and the AMEP development team.
+# Copyright (C) 2023-2025 Lukas Hecht and the AMEP development team.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -136,9 +136,9 @@ def average_func(
     N = len(data)   # number of time steps
 
     if(nr == None or nr > N - skip * N):
-        nr = int(N-skip*N)
+        nr = max(1,int(N-skip*N))
 
-    evaluated_indices = np.linspace(skip*N, N-1, nr, dtype=int)
+    evaluated_indices = np.array(np.ceil(np.linspace(skip*N, N-1, nr)), dtype=int)
     func_result = [func(x, **kwargs) for x in tqdm(data[evaluated_indices])]
     evaluated = np.array(func_result)
     if indices:
@@ -959,6 +959,11 @@ def detect2peaks(
     Detects the two highest peaks in the given data after smoothing it
     with a running average. Includes also global maxima at the boundaries.
 
+    Notes
+    -----
+    This method only produces correct results if there are at most two
+        peaks present! Please check the behavior in your individual case.
+
     Parameters
     ----------
     xdata : np.ndarray
@@ -983,7 +988,7 @@ def detect2peaks(
     avydata : np.ndarray
         Averaged y values.
     avxdata : np.ndarray
-        Averaged x values (same shape as avxdata).
+        Averaged x values (same shape as avydata).
     
     Examples
     --------
@@ -1021,6 +1026,12 @@ def detect2peaks(
     # smooth data with running mean
     avxdata = runningmean(xdata, nav, mode='valid')
     avydata = runningmean(ydata, nav, mode='valid')
+
+    # detecting maxima at the borders
+    # adding "virtual" points at the beginning and end of data
+    dx=avxdata[1]-avxdata[0]
+    avxdata=np.concatenate(([avxdata[0]-dx], avxdata, [avxdata[-1]+dx]))
+    avydata=np.concatenate(([np.min(avydata)], avydata, [np.min(avydata)]))
     
     # determine peaks in averaged data
     ind, other = signal.find_peaks(avydata, height=height, distance=distance, width=width)
@@ -1053,7 +1064,8 @@ def detect2peaks(
             high = [np.max(avxdata[ind[largest]]),\
                     avydata[ind[largest]][np.argmax(avxdata[ind[largest]])]] # high x peak
 
-    return low, high, avydata, avxdata
+    # remove virtual points in avxdata and avydata
+    return low, high, avydata[1:-1], avxdata[1:-1]
 
 
 
@@ -1301,7 +1313,8 @@ def domain_length(
 
         L(t) = 2\pi\frac{\int_{q_{\rm min}}^{q_{\rm max}}{\rm d}q\,S(q,t)}{\int_{q_{\rm min}}^{q_{\rm max}}{\rm d}q\,qS(q,t)}
 
-    and has been used in Refs. [1]_ [2]_ [3]_ [4]_ for example.
+    where :math:`q=n \frac{2\pi}{L}` with :math:`n\in \mathbb{N}` and box legth :math:`L`.
+    It has been used in Refs. [1]_ [2]_ [3]_ [4]_ for example.
 
     References
     ----------
@@ -1344,6 +1357,7 @@ def domain_length(
     l: float
         Domain length as inverse expectation value of q.
 
+    
     Examples
     --------
     >>> import amep
@@ -2006,3 +2020,184 @@ def optimal_chunksize(
     # additionally we add some buffer
     chunksize = int((maxmem-buffer)*8e9/bit_per_element/number_of_elements)
     return chunksize
+
+
+def quaternion_rotate(quat: np.ndarray, vec: np.ndarray):
+    r'''
+    Calculates the 3d vector rotated by the quaternion.
+
+    Notes
+    -----
+    Method from http://people.csail.mit.edu/bkph/articles/Quaternions.pdf
+
+    Parameters
+    ----------
+    quat : np.ndarray
+        4d quaternion the vector `vec` will be rotated with.
+        Shapes (4,) or (N,4,) allowed.
+    vec : np.ndarray
+        3d vector that will be rotated by the quaternion `quat`.
+        Shapes (3,) or (N,3,) allowed.
+
+    Returns
+    -------
+    np.ndarray
+        Rotated 3d vector.
+
+    '''
+    if len(np.shape(quat))==2:
+        return ((quat[:,0] * quat[:,0] - np.sum(quat[:,1:]*quat[:,1:], axis=1))[:,None] * vec 
+            + 2 * quat[:,0,None] * np.cross(quat[:,1:], vec) 
+            + 2 * np.sum(quat[:,1:]*vec, axis=1)[:,None] * quat[:,1:])
+    return ((quat[0] * quat[0] - np.dot(quat[1:], quat[1:])) * vec 
+        + 2 * quat[0] * np.cross(quat[1:], vec) 
+        + 2 * np.dot(quat[1:], vec) * quat[1:])
+
+
+def quaternion_conjugate(quat : np.ndarray):
+    r'''
+    Calculates the conjugated quaternion.
+
+    Parameters
+    ----------
+    quat : np.ndarray
+        4d quaternion that will be conjugated.
+        Shapes (4,) or (N,4,) allowed.
+
+    Returns
+    -------
+    np.ndarray
+        Conjugated quaternion.
+
+    '''
+    return quat*np.array([1,-1,-1,-1])
+
+
+def quaternion_multiply(a : np.ndarray, b : np.ndarray):
+    r'''
+    Calculates the multiplication of two quaternions.
+    Quaternion multiplication is not commutative.
+
+    Parameters
+    ----------
+    a : np.ndarray
+        4d quaternion.
+        Shapes (4,) or (N,4,) allowed.
+    b : np.ndarray
+        4d quaternion.
+        Shapes (4,) or (N,4,) allowed.
+
+    Returns
+    -------
+    np.ndarray
+        Multiplied quaternion.
+        Shapes (4,) or (N,4,) respectively to input.
+
+    '''
+    ab=np.empty(np.shape(a))
+    if len(np.shape(a))==2:
+        ab[:,0]=((a[:,0] * b[:,0]) - np.sum(a[:,1:]*b[:,1:], axis=1))
+        ab[:,1:]=(a[:,0,None] * b[:,1:]
+                + a[:,1:] * b[:,0,None]
+                + np.cross(a[:,1:], b[:,1:]))
+        return ab
+    ab[0]=(a[0] * b[0] - np.dot(a[1:], b[1:]))
+    ab[1:]=(a[0] * b[1:]
+            + a[1:] * b[0]
+            + np.cross(a[1:], b[1:]))
+    return ab
+
+
+
+# =============================================================================
+# INTERACTION POTENTIALS
+# =============================================================================
+def wca(r: float | np.ndarray, eps: float = 10.0, sig: float = 1.0):
+    """
+    Weeks-Chandler-Anderson (WCA) potential. [1]_
+    
+    References
+    ----------
+    
+    .. [1] J. D. Weeks, D. Chandler, and H. C. Andersen, Role of Repulsive 
+       Forces in Determining the Equilibrium Structure of Simple Liquids, 
+       J. Chem. Phys. 54, 5237 (1971). https://doi.org/10.1063/1.1674820
+
+    Parameters
+    ----------
+    r : float | np.ndarray
+        Distances.
+    eps : float, optional
+        Strength of the potential. The default is 10.0.
+    sig : float, optional
+        Effective particle diameter. The default is 1.0.
+
+    Returns
+    -------
+    epot : float | np.ndarray
+        Potential energy.
+
+    """
+    rcut = 2**(1/6)*sig
+    epot = np.where(r<=rcut, 4*eps*((sig/r)**12-(sig/r)**6)+eps, 0)
+    return epot
+
+def dr_wca(r: float | np.ndarray, eps: float = 10.0, sig: float = 1.0):
+    """
+    First derivative of the Weeks-Chandler-Anderson (WCA) potential. [1]_
+    
+    References
+    ----------
+    
+    .. [1] J. D. Weeks, D. Chandler, and H. C. Andersen, Role of Repulsive 
+       Forces in Determining the Equilibrium Structure of Simple Liquids, 
+       J. Chem. Phys. 54, 5237 (1971). https://doi.org/10.1063/1.1674820
+
+    Parameters
+    ----------
+    r : float | np.ndarray
+        Distances.
+    eps : float, optional
+        Strength of the potential. The default is 10.0.
+    sig : float, optional
+        Effective particle diameter. The default is 1.0.
+
+    Returns
+    -------
+    dr : float | np.ndarray
+        First derivative.
+
+    """
+    rcut = 2**(1/6)*sig
+    dr = np.where(r<=rcut, 4*eps*(6*sig**6/r**7 - 12*sig**12/r**13), 0)
+    return dr
+
+def dr2_wca(r: float | np.ndarray, eps: float = 10.0, sig: float = 1.0):
+    """
+    Second derivative of the Weeks-Chandler-Anderson (WCA) potential. [1]_
+    
+    References
+    ----------
+    
+    .. [1] J. D. Weeks, D. Chandler, and H. C. Andersen, Role of Repulsive 
+       Forces in Determining the Equilibrium Structure of Simple Liquids, 
+       J. Chem. Phys. 54, 5237 (1971). https://doi.org/10.1063/1.1674820
+
+    Parameters
+    ----------
+    r : float | np.ndarray
+        Distances.
+    eps : float, optional
+        Strength of the potential. The default is 10.0.
+    sig : float, optional
+        Effective particle diameter. The default is 1.0.
+
+    Returns
+    -------
+    dr2 : float | np.ndarray
+        Second derivative.
+
+    """
+    rcut = 2**(1/6)*sig
+    dr2 = np.where(r<=rcut, 4*eps*(156*sig**12/r**14 - 42*sig**6/r**8), 0)
+    return dr2

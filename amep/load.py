@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # =============================================================================
-# Copyright (C) 2023-2024 Lukas Hecht and the AMEP development team.
+# Copyright (C) 2023-2025 Lukas Hecht and the AMEP development team.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ simulation data or evaluation results.
 import os
 import h5py
 
-from .reader import LammpsReader, H5amepReader, ContinuumReader
+from .reader import LammpsReader, H5amepReader, ContinuumReader, HOOMDReader, GROMACSReader
 from .trajectory import ParticleTrajectory,FieldTrajectory
 from .base import TRAJFILENAME, BaseEvalData, BaseDatabase, LOADMODES
 from .base import check_path, get_module_logger
@@ -72,7 +72,8 @@ def traj(
         the simulation directory is used. For `mode='h5amep'`, `savedir`
         is ignored. The default is None.
     mode : str, optional
-        Loading mode. Available modes are 'lammps', 'fields', and 'h5amep'.
+        Loading mode. Available modes are 'lammps', 'fields', 'hoomd',
+        'gromacs' and 'h5amep'.
         The default is 'lammps'.
     reload : bool, optional
         If True, all dump files will be loaded again, otherwise it will be
@@ -107,11 +108,19 @@ def traj(
     ... )
     >>> 
 
+    Example for loading GROMACS data:
+
+    >>> path = "examples/data/gromacs/"
+    >>> traj=amep.load.traj(directory=path, mode="gromacs", reload=True)
+
+    Example for loading HOOMD data
+
+    >>> path="examples/data/hoomd/"
+    >>> traj=amep.load.traj(directory=path, mode="hoomd", reload=True)
     
     Example for loading continuum data:
 
     >>> traj = amep.load.traj("/examples/data/continuum/", mode="field", dumps="field_*")
-
 
     Fix for working with remote files and insufficient access rights:
     This can be solved by saving the h5amep file locally while
@@ -181,7 +190,7 @@ def traj(
     mode = mode.lower()
     if mode not in LOADMODES:
         raise KeyError(
-            f'''amep.load.traj: mode {mode} does not exist.
+            f'''amep.load.traj: mode \'{mode}\' does not exist.
                 Available modes are {LOADMODES}.'''
         )
         
@@ -226,6 +235,26 @@ def traj(
             **kwargs
         )
         return FieldTrajectory(reader)
+    elif mode == 'hoomd':
+        reader = HOOMDReader(
+            directory,
+            savedir,
+            trajfile = trajfile,
+            deleteold = deleteold,
+            verbose = verbose,
+            **kwargs
+        )
+        return ParticleTrajectory(reader)
+    elif mode == 'gromacs':
+        reader = GROMACSReader(
+            directory,
+            savedir,
+            trajfile = trajfile,
+            deleteold = deleteold,
+            verbose = verbose,
+            **kwargs
+        )
+        return ParticleTrajectory(reader)
 
     # here one has to check both the amep version with which the file has been
     # created (reader.version) and the data type (particles or fields) -

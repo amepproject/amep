@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # =============================================================================
-# Copyright (C) 2023-2024 Lukas Hecht and the AMEP development team.
+# Copyright (C) 2023-2025 Lukas Hecht and the AMEP development team.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -104,7 +104,7 @@ def isf(start, frame, k):
 
         F_{\text{s}}(k,t)=\frac{1}{N}\left\langle\sum_{j=1}^{N}\frac{\sin\left(k\cdot\left|\vec{r}_j\left(t_0+t\right)-\vec{r}_j\left(t_0\right)\right|\right)}{k\cdot\left|\vec{r}_j\left(t_0+t\right)-\vec{r}_j\left(t_0\right)\right|}\right\rangle_{t_0}.
 
-    that can be obtained via taking the mean over all directions of $\vec{k}$.
+    that can be obtained via taking the mean over all directions of :math:`\vec{k}`.
     A detailed derivation can be found in Ref. [1]_.
 
     References
