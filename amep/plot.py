@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # =============================================================================
-# Copyright (C) 2023-2024 Lukas Hecht and the AMEP development team.
+# Copyright (C) 2023-2025 Lukas Hecht and the AMEP development team.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ import matplotlib.pyplot as plt
 from scipy.spatial import Voronoi, voronoi_plot_2d
 from matplotlib.ticker import MultipleLocator
 from matplotlib.ticker import NullFormatter
-from matplotlib.patches import Rectangle, FancyBboxPatch, ConnectionPatch, Circle
+from matplotlib.patches import Rectangle, FancyBboxPatch, ConnectionPatch, Circle, FancyArrow
 from matplotlib.collections import LineCollection, PatchCollection
 from matplotlib.colors import to_rgba, ListedColormap
 from matplotlib.animation import FuncAnimation
@@ -1833,9 +1833,9 @@ def voronoi(axs: mpl.axes.Axes, vor: Voronoi, **kwargs):
 def draw_arrow(fig, x: float, y: float, dx: float, dy: float, **kwargs):
     r"""Draws an arrow on a Matplotlib figure.
 
-    This function uses the `FancyArrow` class to draw an arrow on a Matplotlib figure 
-    at a specified position, with a given displacement. The arrow is added directly 
-    to the figure's artist list.
+    This function uses the `FancyArrow` class to draw an arrow on a Matplotlib 
+    figure at a specified position, with a given displacement. The arrow is 
+    added directly to the figure object.
 
     Parameters
     ----------
@@ -1849,47 +1849,36 @@ def draw_arrow(fig, x: float, y: float, dx: float, dy: float, **kwargs):
         The horizontal displacement (change in x) of the arrow, in figure coordinates.
     dy : float
         The vertical displacement (change in y) of the arrow, in figure coordinates.
-    **kwargs : dict, optional
+    **kwargs
         Additional keyword arguments passed to `matplotlib.patches.FancyArrow`, 
         such as `color`, `width`, `head_width`, and `head_length`.
 
     Returns
     -------
-    None
-        This function modifies the figure in-place by adding the arrow as an artist.
+    None.
 
     Notes
     -----
     The arrow's position and size are specified in figure coordinates. Figure 
-    coordinates range from 0 to 1, where (0, 0) represents the bottom-left corner 
-    and (1, 1) represents the top-right corner of the figure.
+    coordinates range from 0 to 1, where (0, 0) represents the bottom-left 
+    corner and (1, 1) represents the top-right corner of the figure.
 
     Examples
     --------
-    1) simple example
     >>> fig, axs = amep.plot.new(figsize=(3, 3))
     >>> x=0.2
     >>> y=0.2
     >>> dx=0.5
     >>> dy=0.5
-    >>> amep.plot.draw_arrow(fig, x, y, dx, dy, color="blue", alpha=0.8, width=0.05, head_width=0.1, head_length=0.03)
+    >>> amep.plot.draw_arrow(
+    ...     fig, x, y, dx, dy, color="blue", alpha=0.8, width=0.05,
+    ...     head_width=0.1, head_length=0.03
+    ... )
+    >>> 
 
-
-
-    2) advanced example
-    >>> import amep
-    >>> import numpy as np
-    >>> start_points = [(0.2, 0.2), (0.4, 0.4), (0.6, 0.6), (0.8, 0.8)]
-    >>> displacements = [(0.1, 0.05), (-0.05, 0.1), (0.05, -0.05), (-0.1, -0.1)]
-    >>> fig, axs = amep.plot.new(figsize=(3, 3))
-    >>> for (x, y), (dx, dy) in zip(start_points, displacements):
-    >>>     amep.plot.draw_arrow(fig, x, y, dx, dy, color="blue", alpha=0.8, width=0.005, head_width=0.02, head_length=0.03)
-    >>> plt.show()
-
-    See Also
-    --------
-    matplotlib.patches.FancyArrow : Used to create the arrow object.
     """
-
-    arrow = FancyArrow(x, y, dx, dy, transform=fig.transFigure, length_includes_head=True, **kwargs)
+    arrow = FancyArrow(
+        x, y, dx, dy, transform=fig.transFigure,
+        length_includes_head=True, **kwargs
+    )
     fig.add_artist(arrow) 
