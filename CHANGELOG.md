@@ -3,7 +3,7 @@
 All notable changes to **AMEP** will be documented in this file. **AMEP** 
 adheres to [semantic versioning](https://semver.org/).
 
-## AMEP 1.1.0 (xx Mar 2024)
+## AMEP 1.1.0 (9 Mar 2024)
 
 ### New features
 
@@ -16,8 +16,9 @@ adheres to [semantic versioning](https://semver.org/).
 * unified functionality and documentation in `evaluate` (ME)
 * major website restructure (KD, KS, LH)
 * added information on website for supported data types and more (KD)
-* AMEP publication now out (see "How to Cite" on amepproject.de)
-* added temperature calculations for multiple definitions `evaluate` (LH)
+* AMEP publication now out (see "How to Cite" at amepproject.de)
+* added temperature calculations for multiple definitions in `evaluate` (LH)
+* added `plot.draw_arrow` (SM, LH)
 
 ### Bug fixes
 
@@ -29,6 +30,7 @@ adheres to [semantic versioning](https://semver.org/).
 * bug in `cluster.identify` not returning single-particle-"clusters" fixed (KD)
 * bug in `evaluate.PCFangle` fixed (KD, LH)
 * bugs relating to `cluster.gyration_tensor` fixed (KD, LH)
+* bug related to mode `'largest'` in `evaluate.ClusterGrowth` fixed (LH)
 
 ### Contributors
 
@@ -36,7 +38,7 @@ adheres to [semantic versioning](https://semver.org/).
 * Kay-Robert Dormann (KD)
 * Kai Luca Spanheimer (KS)
 * Mahdieh Ebrahimi (ME)
-* Mahdieh Ebrahimi ()
+* Suvendu Mandal (SM)
 
 
 
