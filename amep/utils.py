@@ -1301,7 +1301,8 @@ def domain_length(
 
         L(t) = 2\pi\frac{\int_{q_{\rm min}}^{q_{\rm max}}{\rm d}q\,S(q,t)}{\int_{q_{\rm min}}^{q_{\rm max}}{\rm d}q\,qS(q,t)}
 
-    and has been used in Refs. [1]_ [2]_ [3]_ [4]_ for example.
+    where :math:`q=n \frac{2\pi}{L}` with :math:`n\in \mathbb{N}` and box legth :math:`L`.
+    It has been used in Refs. [1]_ [2]_ [3]_ [4]_ for example.
 
     References
     ----------
@@ -1344,10 +1345,6 @@ def domain_length(
     l: float
         Domain length as inverse expectation value of q.
 
-    Notes
-    -------
-    Here, qmin is set to the default value 2*np.pi/boxsize. Please check also the 2D isotropic static structure factor (amep.spatialcor.sfiso).
-    
     
     Examples
     --------
