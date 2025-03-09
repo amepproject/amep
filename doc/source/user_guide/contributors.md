@@ -2,7 +2,7 @@
 The following people contributed to **AMEP**:
 
 - Lukas Hecht (creator and lead developer)
-- Kay-Robert Dormann (developer)
+- Kay-Robert Dormann (lead developer)
 - Kai Luca Spanheimer (developer)
 - Aritra Mukhopadhyay (developer)
 - Mahdieh Ebrahimi (developer)
