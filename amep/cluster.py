@@ -383,10 +383,10 @@ def radius_of_gyration(
     
     Notes:
     ------
-    For a cluster composed of $n$ particles of masses $m_i, i=1,2, \ldots, n$, 
-    located at fixed distances $s_i$ from the centre of mass, the radius of gyration is 
-    the square-root of the mass average of $s_i^2$ over all mass elements, i.e.,
-    $R_g=\left(\sum_{i=1}^n m_i s_i^2 / \sum_{i=1}^n m_i\right)^{1 / 2}$
+    For a cluster composed of :math:`n` particles of masses :math:`m_i, i=1,2, \ldots, n`, 
+    located at fixed distances :math:`s_i` from the centre of mass, the radius of gyration is 
+    the square-root of the mass average of :math:`s_i^2` over all mass elements, i.e.,
+    :math:`R_g=\left(\sum_{i=1}^n m_i s_i^2 / \sum_{i=1}^n m_i\right)^{1 / 2}`.
     
     Parameters:
     -----------

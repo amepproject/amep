@@ -155,7 +155,7 @@ def sf2d(
     .. math::
         S(\vec{q}) = <\rho(\vec{q})\rho(\vec{-q})>= <|\rho(\vec{q})|^2>,
 
-    where $\rho(\vec{q})$ is the Fourier transform of the particle number
+    where :math:`\rho(\vec{q})` is the Fourier transform of the particle number
     density (see Ref. [1]_ [2]_ [3]_ for further information).
 
     .. [1] Hansen, J.-P., & McDonald, I. R. (2006). Theory of Simple Liquids

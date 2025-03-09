@@ -1408,7 +1408,7 @@ class SFiso(BaseEvaluation):
             S_{2D}(q) = \frac{1}{N}\left\langle\sum_{m,l=1}^N J_0(qr_{ml}\right\rangle
 
         with :math:`r_{ml}=|\vec{r}_m-\vec{r}_l|` and the Bessel function
-        of the first kind $J_0(x)$.
+        of the first kind :math:`J_0(x)`.
         See also Ref. [1]_ for further information on the
         static structure factor.
 
@@ -1715,7 +1715,7 @@ class PosOrderCor(BaseEvaluation):
         .. math::
             C_{\vec{k}_0}(r) = <\exp(i\vec{k}_0\cdot (\vec{r}_j-\vec{r}_l))>
 
-        with $r=|\vec{r}_j-\vec{r}_l|$ (see Ref. [1]_ for further information).
+        with :math:`r=|\vec{r}_j-\vec{r}_l|` (see Ref. [1]_ for further information).
         As shown in Ref. [2]_, this can be rewritten as
 
         .. math::
