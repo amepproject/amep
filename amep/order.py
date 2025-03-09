@@ -1378,8 +1378,8 @@ def psi_k(
         \Psi_k(\vec{r}_j) = \frac{1}{k} \sum_{n=1}^k\exp(ik\theta_{jn}),
 
     where the sum goes over the k nearest neighbors of the particle at
-    position $\vec{r}_j$. The value of $\theta_{jn}$ is equal to the angle
-    between the connection line from $\vec{r}_j$ to $\vec{r}_n$ and the
+    position :math:`\vec{r}_j`. The value of :math:`\theta_{jn}` is equal to the angle
+    between the connection line from :math:`\vec{r}_j` to :math:`\vec{r}_n` and the
     x axis. See also Refs. [1]_ [2]_ [3]_ for further information.
 
     References:
