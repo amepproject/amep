@@ -1379,7 +1379,11 @@ def sfiso(
     where :math:`N` is the number of particles [1]_.
 
     Mode 'fft' only works in 2D!!!
-
+    
+    The minimum wave vector is fixed to :math:`2\pi/L`, where :math:`L` is the
+    box length.
+    
+    
     References
     ----------
 
