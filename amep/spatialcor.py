@@ -1380,8 +1380,10 @@ def sfiso(
 
     Mode 'fft' only works in 2D!!!
     
-    Here, qmin is set to the default value 2*np.pi/boxsize. 
-
+    The minimum wave vector is fixed to :math:`2\pi/L`, where :math:`L` is the
+    box length.
+    
+    
     References
     ----------
 
