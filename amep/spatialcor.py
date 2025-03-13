@@ -1702,7 +1702,7 @@ def sf2d(
     >>> fig, axs = amep.plot.new(figsize=(3.7,3))
     >>> mp = amep.plot.field(axs, sxy, qx, qy)
     >>> cax = amep.plot.add_colorbar(
-    ...     fig, axs, mp, label=r'$S(q_x, q_y$'
+    ...     fig, axs, mp, label=r'$S(q_x, q_y)$'
     ... )
     >>> axs.set_xlabel(r'$q_x$')
     >>> axs.set_ylabel(r'$q_y$')
