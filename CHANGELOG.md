@@ -3,6 +3,18 @@
 All notable changes to **AMEP** will be documented in this file. **AMEP** 
 adheres to [semantic versioning](https://semver.org/).
 
+## AMEP 1.1.1-dev
+
+### Bug fixes
+
+* documentation improvements (MM)
+
+### Contributors
+
+* Muhammed Muhsin A. (MM)
+
+
+
 ## AMEP 1.1.0 (9 Mar 2024)
 
 ### New features

@@ -1,13 +1,18 @@
 [
     {
-        "name": "v1.1.0 (development)",
-        "version": "1.1.0-dev",
+        "name": "v1.1.1 (development)",
+        "version": "1.1.1-dev",
         "url": "https://amepproject.de/dev/"
     },
     {
-        "name": "v1.0.3 (stable)",
-        "version": "1.0.3",
+        "name": "v1.1.0 (stable)",
+        "version": "1.1.0",
         "url": "https://amepproject.de/stable/"
+    },
+    {
+        "name": "v1.0.3",
+        "version": "1.0.3",
+        "url": "https://amepproject.de/v1.0.3/"
     },
     {
         "name": "v1.0.2",
