@@ -146,7 +146,7 @@ def spatialcor(
         pbc: bool = True) -> tuple[np.ndarray, np.ndarray]:
     r'''
     Calculates the spatial correlation function of the values for atoms 
-    at positions given by coords. Distances are calculated by the cKDTree
+    at positions given by `coords`. Distances are calculated by the cKDTree
     algorithm.
 
     Notes
@@ -154,10 +154,10 @@ def spatialcor(
     Works only for 2D systems in this version.
     
     The spatial correlation function is defined by the following equation
-    in which f can be a complex-valued scalar or vector:
+    in which :math:`f` can be a complex-valued scalar or vector:
     
     .. math::
-                C(r) = <f(r)*f(0)> / <f(0)^2>.
+                C(r) = \langle f(r)*f(0)\rangle / \langle f(0)^2\rangle.
     
     Parameters
     ----------
@@ -435,14 +435,14 @@ def rdf(
     Notes
     -----
     The radial pair-distribution function between two particle species
-    i and j is defined by (see Refs. [1]_ [2]_)
+    :math:`i` and :math:`j` is defined by (see Refs. [1]_ [2]_)
 
     .. math::
                 g_{ij}(r) = \frac{1}{\rho_j N_i}\sum\limits_{k\in S_i}
                             \sum\limits_{\substack{l\in S_j \\ l\neq k}}
                             \left\langle\frac{\delta\left(r-\left|\vec{r}_k(t)-\vec{r}_l(t)\right|\right)}{4\pi r^2}\right\rangle_t
 
-    For i=j we have
+    For :math:`i=j` we have
 
     .. math::
                 g(r) = \frac{1}{\rho N}\sum\limits_{k}\sum\limits_{l\neq k}
@@ -492,7 +492,7 @@ def rdf(
     Returns
     -------
     gr : np.ndarray
-        g(r) (1D array of floats)
+        :math:`g(r)` (1D array of floats)
     r : np.ndarray
         distances (1D array of floats)
         
@@ -746,7 +746,7 @@ def pcf2d(
     Notes
     -----
     The 2D pair correlation function between the particles themselfes, i.e.,
-    for i=j, is defined by
+    for :math:`i=j`, is defined by
 
     .. math::
                g(x,y) = \frac{1}{\rho N}\sum\limits_{i=1}^{N}
@@ -805,7 +805,7 @@ def pcf2d(
     Returns
     -------
     np.ndarray
-        g(x,y) (2D array of floats)
+        :math:`g(x,y)` (2D array of floats)
     np.ndarray
         x coordinate values (1D array of floats)
     np.ndarray
@@ -1642,7 +1642,7 @@ def sf2d(
     where :math:`\rho(\vec{q})` is the Fourier transform of the particle number
     density (see Ref. [1]_ for further information).
 
-    S(0,0) is set to 0
+    :math:`S(0,0)` is set to :math:`0`
 
     References
     ----------

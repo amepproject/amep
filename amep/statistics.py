@@ -45,7 +45,7 @@ def binder_cumulant(data: np.ndarray) -> float:
 
     Notes
     -----
-    The Binder cumulant of a quantity x is defined by
+    The Binder cumulant of a quantity :math:`x` is defined by
 
     .. math::
         

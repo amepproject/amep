@@ -598,7 +598,7 @@ class PCF2d(BaseEvaluation):
             ptype: int | None = None, other: int | None = None,
             **kwargs) -> None:
         r'''
-        Calculate the two-dimensional pair correlation function g(x,y).
+        Calculate the two-dimensional pair correlation function :math:`g(x,y)`.
         
         Implemented for a 2D system.
         Takes the time average over several time steps.
@@ -813,7 +813,7 @@ class PCFangle(BaseEvaluation):
             ptype: int | None = None, other: int | None = None,
             **kwargs) -> None:
         r'''
-        Calculate the two-dimensional pair correlation function g(r,theta).
+        Calculate the two-dimensional pair correlation function :math:`g(r,\theta)`.
 
         Implemented for a 2D system.
         Takes the time average over several time steps.
@@ -1405,7 +1405,7 @@ class SFiso(BaseEvaluation):
             S_{3D}(q) = \frac{1}{N}\left\langle\sum_{m,l=1}^N\frac{\sin(qr_{ml})}{qr_{ml}}\right\rangle
 
         .. math::
-            S_{2D}(q) = \frac{1}{N}\left\langle\sum_{m,l=1}^N J_0(qr_{ml}\right\rangle
+            S_{2D}(q) = \frac{1}{N}\left\langle\sum_{m,l=1}^N J_0(qr_{ml})\right\rangle
 
         with :math:`r_{ml}=|\vec{r}_m-\vec{r}_l|` and the Bessel function
         of the first kind :math:`J_0(x)`.
@@ -1706,14 +1706,14 @@ class PosOrderCor(BaseEvaluation):
         r'''
         Calculate the positional order correlation function.
 
-        Based on the pair correlation function g(r,theta).
+        Based on the pair correlation function :math:`g(r,\theta)`.
 
         Notes
         -----
         The positional order correlation function is defined as
 
         .. math::
-            C_{\vec{k}_0}(r) = <\exp(i\vec{k}_0\cdot (\vec{r}_j-\vec{r}_l))>
+            C_{\vec{k}_0}(r) = \langle\exp(i\vec{k}_0\cdot (\vec{r}_j-\vec{r}_l))\rangle
 
         with :math:`r=|\vec{r}_j-\vec{r}_l|` (see Ref. [1]_ for further information).
         As shown in Ref. [2]_, this can be rewritten as
@@ -1942,15 +1942,15 @@ class HexOrderCor(BaseEvaluation):
         .. math::
             \Psi_6(\vec{r}_j)=\frac{1}{N_j}\sum_{k=1}^{N_j}\exp(i6\theta_{jk})
 
-        where the sum goes over the six next neighbors of particle j.
+        where the sum goes over the six next neighbors of particle :math:`j`.
         The angle :math:`\theta_{jk}` denotes the angle between the vector
-        that connects particle j with its k-th nearest neighbor and
+        that connects particle :math:`j` with its :math:`k`-th nearest neighbor and
         the x-axis. The hexagonal order correlation function is then
         defined by
 
         .. math::
-            g_6(r=|\vec{r}_j-\vec{r}_i|)=<\Psi_6(\vec{r}_j)\Psi_6(\vec{r}_i)> /
-            <\Psi_6^2(\vec{r}_j)>.
+            g_6(r=|\vec{r}_j-\vec{r}_i|)=\langle\Psi_6(\vec{r}_j)\Psi_6(\vec{r}_i)\rangle /
+            \langle\Psi_6^2(\vec{r}_j)\rangle.
 
         See Refs. [1]_ [2]_ [3]_ for further information.
 
@@ -2768,9 +2768,9 @@ class VelDist(BaseEvaluation):
         bins are used. Therefore `v2min`:math:`\ge 0`
         needs to be ensured. For the maximum value,
         `vmax` is used as :math:`3v_{max}^2`.
-        Analogously for the maximum of :math:'v',
+        Analogously for the maximum of :math:`v`,
         where :math:`\sqrt{3v_{max}}` is used. For the minimum
-        of :math:'v', the square root of `v2min` is used.
+        of :math:`v`, the square root of `v2min` is used.
 
         Parameters
         ----------
@@ -3310,8 +3310,8 @@ class ClusterSizeDist(BaseEvaluation):
         .. math::
             p(m) = m \frac{n_m}{N},
 
-        where m is the cluster size, n_m the number of clusters with size m,
-        and N the total number of particles. See Ref. [1]_ for further
+        where :math:`m` is the cluster size, :math:`n_m` the number of clusters with size :math:`m`,
+        and :math:`N` the total number of particles. See Ref. [1]_ for further
         information.
 
         References
