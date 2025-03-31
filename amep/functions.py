@@ -72,7 +72,7 @@ def gaussian(
     Returns
     -------
     np.ndarray
-        g(x)
+        :math:`g(x)`
 
     Examples
     --------

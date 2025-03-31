@@ -1186,9 +1186,9 @@ def k_nearest_neighbors(
         k: int = 1, pbc : bool = True,
         rmax : float = np.inf, enforce_nd: int | None = None) -> np.ndarray:
     r'''
-    Calculates the k nearest neighbors and returns the number of nearest
-    neighbors (can be different from k if a distance cutoff is given),
-    the k nearest-neighbor distances, and the k nearest-neighbor indices.
+    Calculates the :math:`k` nearest neighbors and returns the number of nearest
+    neighbors (can be different from :math:`k` if a distance cutoff is given),
+    the :math:`k` nearest-neighbor distances, and the :math:`k` nearest-neighbor indices.
 
     Parameters
     ----------
@@ -1363,21 +1363,21 @@ def psi_k(
         other_coords: np.ndarray | None = None,
         rmax: float = 1.122, k: int = 6, pbc: bool = True) -> np.ndarray:
     r'''
-    Calculates the k-atic bond order parameter for an entire 2D system.
+    Calculates the :math:`k`-atic bond order parameter for an entire 2D system.
 
-    In a first step, the indexes of the first k next neighbors of each
+    In a first step, the indexes of the first :math:`k` next neighbors of each
     atom is calculated with the KDTree algorithm and with periodic
     boundary conditions appplied with pbc_points.
 
 
     Notes
     -----
-    The k-atic order parameter is defined by
+    The :math:`k`-atic order parameter is defined by
 
     .. math::
         \Psi_k(\vec{r}_j) = \frac{1}{k} \sum_{n=1}^k\exp(ik\theta_{jn}),
 
-    where the sum goes over the k nearest neighbors of the particle at
+    where the sum goes over the :math:`k` nearest neighbors of the particle at
     position :math:`\vec{r}_j`. The value of :math:`\theta_{jn}` is equal to the angle
     between the connection line from :math:`\vec{r}_j` to :math:`\vec{r}_n` and the
     x axis. See also Refs. [1]_ [2]_ [3]_ for further information.
@@ -1422,7 +1422,7 @@ def psi_k(
     Returns
     -------
     np.ndarray
-        k-atic order parameter of each particle (1D array of
+        :math:`k`-atic order parameter of each particle (1D array of
         complex numbers).
 
     Examples

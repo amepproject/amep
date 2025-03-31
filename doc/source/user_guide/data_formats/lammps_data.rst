@@ -22,8 +22,8 @@ Or for reduced informations in the dump files, only positions and velocities:
     dump myDump all custom ${savesnap} dump*.txt id x y vx vy
     dump_modify myDump sort id
 
-We reccommend to always sort by id. Unsorted data causes many analyses to return wrong results.
-Currently, we also reccommend to save the id, type, mass and radius, especially if the particles
+We recommend to always sort by id. Unsorted data causes many analyses to return wrong results.
+Currently, we also recommend to save the id, type, mass and radius, especially if the particles
 are not identical and have different properties.
 Missing information in the dump files can also be added in **AMEP** with the following lines:
 
