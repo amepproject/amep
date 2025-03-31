@@ -130,12 +130,12 @@ def amep_plot_defaults():
     None.
     '''
     if shutil.which('latex'):
-        style('amep_latex')
+        style('latex')
     else:
         _log.info(
             "Could not find a LaTeX distribution - using amep standard style."
         )
-        style('amep_standard')
+        style('standard')
 
 # set plot style
 amep_plot_defaults()
