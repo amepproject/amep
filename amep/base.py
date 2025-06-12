@@ -1141,6 +1141,7 @@ class BaseField:
     def box(self)->np.ndarray:
         '''
         Box boundaries of the simulation.
+        
         Returns
         -------
         boxe : np.ndarray

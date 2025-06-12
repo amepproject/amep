@@ -54,7 +54,7 @@ def coords_to_density(
     r"""
     Convert the particle coordinates into a 2D density field.
 
-    With size gridsize^2 by calculating a 2D histogram of the
+    With size `gridsize`:math:`{}^2` by calculating a 2D histogram of the
     x and y coordinates of the particles.
 
     Notes
@@ -153,7 +153,7 @@ def sf2d(
     The static structure factor is defined by
 
     .. math::
-        S(\vec{q}) = <\rho(\vec{q})\rho(\vec{-q})>= <|\rho(\vec{q})|^2>,
+        S(\vec{q}) = \langle\rho(\vec{q})\rho(\vec{-q})\rangle= \langle|\rho(\vec{q})|^2\rangle,
 
     where :math:`\rho(\vec{q})` is the Fourier transform of the particle number
     density (see Ref. [1]_ [2]_ [3]_ for further information).
@@ -172,7 +172,7 @@ def sf2d(
        https://doi.org/10.1038/ncomms5351
 
 
-    S(0,0) is set to 0
+    :math:`S(0,0)` is set to :math:`0`
 
     Parameters
     ----------
@@ -421,9 +421,9 @@ def gkde(
     -----
     The Kernel Density Estimation (KDE) method uses a continuous kernel
     function, which needs to be normalized to one. In KDE, a kernel function
-    k of width h is placed at each position of the particles. Then, all kernel
+    :math:`k` of width :math:`h` is placed at each position of the particles. Then, all kernel
     functions are summed to get the final density estimate. There two
-    "parameters": the form of the kernel function k and its width.
+    "parameters": the form of the kernel function :math:`k` and its width.
 
     This method is nicely described on page 13 ff. in Ref. [1]_.
 

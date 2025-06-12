@@ -3,6 +3,21 @@
 All notable changes to **AMEP** will be documented in this file. **AMEP** 
 adheres to [semantic versioning](https://semver.org/).
 
+## AMEP 1.1.1
+
+### Bug fixes
+
+* documentation improvements (MM)
+* incorrect numpy version requirements (KD)
+* removed deprecation warning on import (KD)
+
+### Contributors
+
+* Muhammed Muhsin A. (MM)
+* Kay-Robert Dormann (KD)
+
+
+
 ## AMEP 1.1.0 (9 Mar 2024)
 
 ### New features

@@ -388,7 +388,7 @@ def profile(
 # =============================================================================
 def unit_vector_2D(theta: float | np.ndarray) -> np.ndarray:
     r'''
-    Generates 2D unit vectors in the x-y plane with angle theta to the x axis.
+    Generates 2D unit vectors in the x-y plane with angle `theta` to the x axis.
 
     Parameters
     ----------
@@ -1140,7 +1140,7 @@ def sq_from_gr(
 
     Notes
     -----
-    The relation between g(r) and S(q) is given by (here in 3D; see Ref. [1]_
+    The relation between :math:`g(r)` and :math:`S(q)` is given by (here in 3D; see Ref. [1]_
     for further information)
 
     .. math::
@@ -1167,8 +1167,8 @@ def sq_from_gr(
     twod : bool, default=True
         If True, the slightly different formula for the two-dimensional case
         is used (which includes a Bessel function and can be derived by
-        using zylindrical coordinates and calculating the angular integral by
-        setting w.l.o.g. q parallel to e_x.)
+        using cylindrical coordinates and calculating the angular integral by
+        setting w.l.o.g. :math:`q` parallel to :math:`e_x`.)
 
     Returns
     -------
