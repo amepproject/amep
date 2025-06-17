@@ -1841,7 +1841,7 @@ def create_video(
     fig.set_layout_engine(layout_engine)
     
     # animation = VideoClip(make_frame_func, duration=duration)
-    anim = FuncAnimation(fig, update_frame_func, frames=data, **kwargs)
+    anim = FuncAnimation(fig, update_frame_func, frames=data)
 
     with tqdm(total = len(data)) as pbar:
         anim.save(
