@@ -1491,7 +1491,10 @@ def animate_trajectory(
         painter: object | None = None,
         title: str = '', figsize: tuple[float, float] | None = None,
         start: float = 0.0, stop: float = 1.0, nth: int = 1, fps: int = 10,
-        verbose: bool = False, **kwargs) -> None:
+        verbose: bool = False, 
+        repeat: bool = True, repeat_delay: int = 0,
+        cache_frame_data: bool = False,
+        **kwargs) -> None:
     r'''Create a video from a trajectory.
 
     Quick video writeout. Just takes a trajectory and animates it.
@@ -1558,8 +1561,21 @@ def animate_trajectory(
         The frames per second of the video. The default is 10.
     verbose : bool, optional
         If True, runtime information is printed. The default is False.
+    repeat : bool, optional
+        Whether to repeat video automatically.
+        Will be passed to `matplotlib.ainmation.FuncAnimation`.
+        Default is True.
+    repeat_delay : bool, optional
+        Time after which to repeat video.
+        Will be passed to `matplotlib.ainmation.FuncAnimation`.
+        Default is 0.
+    cache_frame_data : bool, optional
+        Matplotlib: "Whether frame data is cached. Disabling cache might
+        be helpful when frames contain large objects."
+        Will be passed to `matplotlib.ainmation.FuncAnimation`.
+        Default is False.
     **kwargs
-        All additional keyword arguments are forwared to `amep.plot.particles`
+        All additional keyword arguments are forwarded to `amep.plot.particles`
         if a ParticleTrajectory is provided and to `amep.plot.field` if a
         FieldTrajectory is provided.
 
@@ -1730,7 +1746,10 @@ def animate_trajectory(
         int(stop*trajectory.nframes),
         nth
     )
-    anim = FuncAnimation(fig, animate, frames = indices)
+    anim = FuncAnimation(fig, animate, frames = indices, 
+                        repeat = repeat, 
+                        repeat_delay = repeat_delay, 
+                        cache_frame_data = cache_frame_data)
     with tqdm(total = len(indices)) as pbar:
         anim.save(
             outfile,
