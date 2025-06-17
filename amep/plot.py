@@ -33,7 +33,7 @@ https://matplotlib.org/stable/tutorials/introductory/customizing.html.
 # IMPORT MODULES
 # =============================================================================
 from typing import Callable, Iterable
-from os.path import abspath, dirname, join
+from os.path import abspath, dirname, join, splitext
 from pathlib import Path
 import warnings
 warnings.simplefilter('always', PendingDeprecationWarning)
@@ -48,7 +48,7 @@ from matplotlib.ticker import NullFormatter
 from matplotlib.patches import Rectangle, FancyBboxPatch, ConnectionPatch, Circle, FancyArrow
 from matplotlib.collections import LineCollection, PatchCollection
 from matplotlib.colors import to_rgba, ListedColormap
-from matplotlib.animation import FuncAnimation
+from matplotlib.animation import FuncAnimation, PillowWriter, FFMpegWriter
 from tqdm.autonotebook import tqdm
 
 from .trajectory import FieldTrajectory, ParticleTrajectory
@@ -1491,9 +1491,7 @@ def animate_trajectory(
         painter: object | None = None,
         title: str = '', figsize: tuple[float, float] | None = None,
         start: float = 0.0, stop: float = 1.0, nth: int = 1, fps: int = 10,
-        verbose: bool = False, 
-        repeat: bool = True, repeat_delay: int = 0,
-        cache_frame_data: bool = False,
+        verbose: bool = False, loop: bool | int = None,
         **kwargs) -> None:
     r'''Create a video from a trajectory.
 
@@ -1561,14 +1559,10 @@ def animate_trajectory(
         The frames per second of the video. The default is 10.
     verbose : bool, optional
         If True, runtime information is printed. The default is False.
-    repeat : bool, optional
-        Whether to repeat video automatically.
+    loop : bool | int, optional
+        How often to repeat video automatically.
         Will be passed to `matplotlib.ainmation.FuncAnimation`.
-        Default is True.
-    repeat_delay : bool, optional
-        Time after which to repeat video.
-        Will be passed to `matplotlib.ainmation.FuncAnimation`.
-        Default is 0.
+        Default is .
     cache_frame_data : bool, optional
         Matplotlib: "Whether frame data is cached. Disabling cache might
         be helpful when frames contain large objects."
@@ -1746,14 +1740,24 @@ def animate_trajectory(
         int(stop*trajectory.nframes),
         nth
     )
-    anim = FuncAnimation(fig, animate, frames = indices, 
-                        repeat = repeat, 
-                        repeat_delay = repeat_delay, 
-                        cache_frame_data = cache_frame_data)
+    anim = FuncAnimation(fig, animate, frames = indices)
+
+    # Select writer and pass number of loops if set by user.
+    ext = splitext(outfile)[1].lower()
+    if ext == ".gif":
+        metadata = {}
+        if loop is not None:
+            metadata["loop"] = loop
+        writer = PillowWriter(fps=fps, metadata=metadata)
+    elif ext == ".mp4":
+        writer = FFMpegWriter(fps=fps)
+    else:
+        raise ValueError(f"Unsupported format: {ext}")
+
     with tqdm(total = len(indices)) as pbar:
         anim.save(
             outfile,
-            fps = fps,
+            writer = writer,
             progress_callback = lambda frameindex, nframes: pbar.update()
         )
     plt.close(fig)
