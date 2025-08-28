@@ -42,8 +42,9 @@ from gsd import hoomd
 from chemfiles import Trajectory
 
 from tqdm.autonotebook import tqdm
-from .base import BaseReader, TRAJFILENAME, COMPRESSION, SHUFFLE, FLETCHER
-from .base import DTYPE, get_class_logger
+from .core.helpers import  get_class_logger
+from .core.baseConfig import COMPRESSION, SHUFFLE, FLETCHER, DTYPE, TRAJFILENAME
+from .base import BaseReader  
 from .utils import quaternion_rotate, quaternion_conjugate, quaternion_multiply
 
 warnings.simplefilter('always', UserWarning)

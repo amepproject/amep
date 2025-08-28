@@ -40,7 +40,9 @@ from scipy.signal import convolve2d
 from scipy import special, signal
 
 from .functions import gaussian2d, gaussian
-from .base import MAXMEM, get_module_logger
+from .core.helpers import get_module_logger
+from .core.baseConfig import MAXMEM
+
 from tqdm.autonotebook import tqdm
 from concurrent.futures import ProcessPoolExecutor
 

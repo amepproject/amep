@@ -880,13 +880,13 @@ class TestHelperFunctions(unittest.TestCase):
     """Test generation and base utilities of the Function object."""
     def test_check_path(self):
         """"""
-        self.assertRaises(ValueError, amep.base.check_path,
+        self.assertRaises(ValueError, amep.core.helpers.check_path,
                           "file.txt", ".csv")
-        self.assertRaises(FileNotFoundError, amep.base.check_path,
+        self.assertRaises(FileNotFoundError, amep.core.helpers.check_path,
                           "not_there/file.txt", ".txt")
-        self.assertEqual(amep.base.check_path("../test", ""),
+        self.assertEqual(amep.core.helpers.check_path("../test", ""),
                          ("..", "test"))
-        self.assertEqual(amep.base.check_path("../test", ".csv"),
+        self.assertEqual(amep.core.helpers.check_path("../test", ".csv"),
                          ("../test", ""))
-        self.assertEqual(amep.base.check_path("test.csv", ".csv"),
+        self.assertEqual(amep.core.helpers.check_path("test.csv", ".csv"),
                          (os.getcwd(), "test.csv"))

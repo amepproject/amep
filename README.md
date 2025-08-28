@@ -315,6 +315,7 @@ The following people contributed to **AMEP**:
 - Mahdieh Ebrahimi (developer)
 - Suvendu Mandal (developer)
 - Benno Liebchen (planning)
+- Zino Belkadi (developer)
 - Lukas Walter (former developer)
 - Malte Cordts (former developer)
 

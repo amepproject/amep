@@ -35,8 +35,14 @@ import shutil
 import warnings
 import inspect
 import logging
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field 
+from enum import Enum
+from io import StringIO
+from contextlib import redirect_stdout
+from datetime import datetime
 
-from typing import Collection, Iterable, Sequence
+from typing import Collection, Iterable, Sequence, Optional, Union, Any, Dict, List, Tuple
 from  io import StringIO
 from contextlib import redirect_stdout
 from tqdm import TqdmExperimentalWarning
@@ -48,132 +54,13 @@ import scipy.odr as ODR
 from pathlib import Path
 from datetime import datetime
 from ._version import __version__
-
+from .core.baseConfig import ROOTGROUPS,  COMPRESSION, SHUFFLE,FLETCHER,DTYPE, KEYS, KEYASSIGN, GRIDKEYS
+from .core.helpers import check_path
+from .core.baseInterface import ReaderInterface
 warnings.simplefilter('always', UserWarning)
 warnings.filterwarnings("ignore", category=TqdmExperimentalWarning)
-# =============================================================================
-# UTILITIES
-# =============================================================================
-def check_path(path: str, extension: str) -> tuple[str, str]:
-    r"""
-    Checks if the directory of a given path exists and separates between
-    directory and file name.
-
-    Parameters
-    ----------
-    path : str
-        Path to check.
-    extension : str
-        File extension of the given path.
-
-    Raises
-    ------
-    ValueError
-        Raised if an invalid file extension has been identified.
-    FileNotFoundError
-        Raised if the directory does not exist.
-
-    Returns
-    -------
-    directory : str
-        Directory of the given path.
-    filename : str
-        File name in the given path.
-
-    """
-    # normalize path
-    path = os.path.normpath(path)
-    
-    # get extension
-    _, file_extension = os.path.splitext(path)
-    
-    # check extension
-    if file_extension == extension:
-        # split into directory and filename
-        directory, filename = os.path.split(path)
-        # set directory to current working directory if empty
-        if directory == '':
-            directory = os.getcwd()
-    elif file_extension == '':
-        directory = os.path.normpath(path)
-        filename  = ''
-    else:
-        raise ValueError(
-            f'''Incorrect file extension. Got {file_extension} instead
-            of {extension}.'''
-        )
-
-    if os.path.exists(directory):
-        return directory, filename
-    else:
-        raise FileNotFoundError(f'No such directory: {directory}')
 
 
-# =============================================================================
-# CONSTANTS
-# =============================================================================
-ROOTGROUPS = [
-    'params',
-    'scripts',
-    'info',
-    'frames',
-    'amep'
-]
-TRAJFILENAME = 'traj.h5amep'
-COMPRESSION = 'lzf'
-SHUFFLE = True
-FLETCHER = True
-DTYPE = np.float32
-KEYS = {
-    'coords': ['x', 'y', 'z'],
-    'uwcoords': ['xu', 'yu', 'zu'],
-    'njcoords': ['njx', 'njy', 'njz'],
-    'forces': ['fx', 'fy', 'fz'],
-    'omegas': ['omegax', 'omegay', 'omegaz'],
-    'orientations': ['mux', 'muy', 'muz'],
-    'velocities': ['vx', 'vy', 'vz'],
-    'angmom': ['angmomx', 'angmomy', 'angmomz']
-}
-KEYASSIGN    = {            # ['key',Index]
-    'x' : ['coords',0],
-    'y' : ['coords',1],
-    'z' : ['coords',2],
-    'xu' : ['uwcoords',0],
-    'yu' : ['uwcoords',1],
-    'zu' : ['uwcoords',2],
-    'njx' : ['njcoords',0],
-    'njy' : ['njcoords',1],
-    'njz' : ['njcoords',2],
-    'fx' : ['forces',0],
-    'fy' : ['forces',1],
-    'fz' : ['forces',2],
-    'omegax' : ['omegas',0],
-    'omegay' : ['omegas',1],
-    'omegaz' : ['omegas',2],
-    'mux' : ['orientations',0],
-    'muy' : ['orientations',1],
-    'muz' : ['orientations',2],
-    'vx' : ['velocities',0],
-    'vy' : ['velocities',1],
-    'vz' : ['velocities',2],
-    'angmomx': ['angmom', 0],
-    'angmomy': ['angmom', 1],
-    'angmomz': ['angmom', 2]
-}
-GRIDKEYS = [
-    'X',
-    'Y',
-    'Z'
-]
-LOADMODES = [
-    'lammps',
-    'h5amep',
-    'field',
-    'hoomd',
-    'gromacs'
-]
-# maximum RAM usage in GB per CPU (used for parallelized methods)
-MAXMEM = 1
 
 # logger format and level
 LOGGERFORMAT = "%(levelname)s:%(name)s.%(funcName)s: %(message)s"
@@ -186,122 +73,74 @@ LOGGINGLEVEL = "INFO"
 # set default format
 logging.basicConfig(format=LOGGERFORMAT)
 
-def get_module_logger(mod_name):
-    r"""
-    Creates a module logger.
 
-    Parameters
-    ----------
-    mod_name : str
-        Module name. Always use `__name__`.
-
-    Returns
-    -------
-    logger : logging.Logger
-        Logger object.
-
-    """
-    # create logger
-    logger = logging.getLogger(mod_name)
-
-    # set logging level
-    logger.setLevel(LOGGINGLEVEL)
-
-    return logger
-
-
-def get_class_logger(mod_name, class_name):
-    r"""
-    Creates a class logger.
-
-    Parameters
-    ----------
-    mod_name : str
-        Module name. Always use `__name__`.
-    class_name : str
-        Class name. Always use `self.__class__.__name__`.
-
-    Returns
-    -------
-    logger : logging.Logger
-        Logger object.
-
-    """
-    # create logger
-    logger = logging.getLogger(mod_name + "." + class_name)
-
-    # set logging level
-    logger.setLevel(LOGGINGLEVEL)
-
-    return logger
 
 
 # =============================================================================
 # READER BASE CLASS
 # =============================================================================
-class BaseReader:
+@dataclass
+class BaseReader(ReaderInterface):
     """
     Base class to read simulation data from output files and to convert it into
     the hdf5 file format.
+    
+    Implements the ReaderInterface abstract base class.
     """
-    def __init__(
-            self, savedir: str, start: float, stop: float,
-            nth: int, filename: str) -> None:
-        r"""
-        Initializes a BaseReader object.
+    savedir: str
+    start: Optional[float] = 0.0
+    stop: Optional[float] = 1.0
+    nth: Optional[int] = 1
+    filename: str = "trajectory.h5amep"
+    
+    _filename: Path = field(init=False, repr=False)
+    _savedir: str = field(init=False, repr=False)
 
-        Parameters
-        ----------
-        savedir : str
-            Directory in which the .h5amep file is created.
-        start : int
-            Start reading the trajectory data from this fraction of the
-            trajectory.
-        stop : int
-            Stop reading the trajectory data from this fraction of the 
-            trajectory.
-        nth : int
-            Read each nth frame.
-        filename : str
-            Name of the trajectory file that is created. Needs to be an
-            .h5amep file.
-
-        Returns
-        -------
-        None
-
+    def __post_init__(self) -> None:
         """
-        # filename of the hdf5 trajectory file
-        self.filename = filename
-        # check if temporary file exists and delete before creating a new one
-        if "#temp#" in filename and os.path.exists(os.path.join(savedir, self.filename)):
-            os.remove(os.path.join(savedir, self.filename))
-        # create hdf5 file with default groups
-        with h5py.File(os.path.join(savedir, self.filename), 'a') as root:
+        Post-initialization to set up the HDF5 file and validate parameters.
+        """
+        # Set filename using property
+        self._filename = Path(self.filename)
+        self._savedir = self.savedir
+        
+        # Check if temporary file exists and delete before creating a new one
+        if "#temp#" in self.filename and os.path.exists(os.path.join(self.savedir, self.filename)):
+            os.remove(os.path.join(self.savedir, self.filename))
+        
+        # Create hdf5 file with default groups
+        with h5py.File(os.path.join(self.savedir, self.filename), 'a') as root:
             # ROOT Level (define groups)
             for g in ROOTGROUPS:
                 if g not in root.keys():
                     root.create_group(g)
-
-            # add amep version to h5amep file if file is new
+            
+            # Add amep version to h5amep file if file is new
             if 'version' not in root['amep'].attrs.keys():
                 root['amep'].attrs['version'] = __version__
-
-        self.savedir = savedir
-        # check loading configuration
-        self.start = 0.0
-        if start is not None:
-            if 0.0 <= start < 1.0:
-                self.start = start
-        self.stop = 1.0
-        if stop is not None:
-            if 0.0 < stop <= 1.0 and stop > start:
-                self.stop = stop
-
-        if nth is not None:
-            self.nth = int(nth)
+        
+        # Validate and set loading configuration
+        if self.start is not None:
+            if 0.0 <= self.start < 1.0:
+                self._set_start(self.start)
+            else:
+                self._set_start(0.0)
         else:
-            self.nth = 1
+            self._set_start(0.0)
+        
+        if self.stop is not None:
+            if 0.0 < self.stop <= 1.0 and self.stop > self.start:
+                self._set_stop(self.stop)
+            else:
+                self._set_stop(1.0)
+        else:
+            self._set_stop(1.0)
+        
+        if self.nth is not None:
+            self._set_nth(int(self.nth))
+        else:
+            self._set_nth(1)
+
 
     @property
     def start(self):

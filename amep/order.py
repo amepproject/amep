@@ -36,7 +36,7 @@ import numpy as np
 from scipy import spatial
 from .pbc import pbc_points, mirror_points
 from .utils import dimension
-from .base import get_module_logger
+from .core.helpers import get_module_logger
 
 # logger setup
 _log = get_module_logger(__name__)

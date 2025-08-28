@@ -35,8 +35,10 @@ import h5py
 
 from .reader import LammpsReader, H5amepReader, ContinuumReader, HOOMDReader, GROMACSReader
 from .trajectory import ParticleTrajectory,FieldTrajectory
-from .base import TRAJFILENAME, BaseEvalData, BaseDatabase, LOADMODES
-from .base import check_path, get_module_logger
+from .base import BaseEvalData, BaseDatabase
+from .core.baseConfig import COMPRESSION, SHUFFLE, FLETCHER, DTYPE, TRAJFILENAME, LOADMODES
+
+from .core.helpers import check_path, get_module_logger
 
 # logger setup
 _log = get_module_logger(__name__)

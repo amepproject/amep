@@ -43,8 +43,8 @@ from .utils import unit_vector_3D, dimension, compute_parallel, optimal_chunksiz
 from .pbc import pbc_points, pbc_diff, distances, kdtree, fold
 from .continuum import coords_to_density
 from .continuum import sf2d as csf2d
-from .base import MAXMEM, get_module_logger
-
+from .core.helpers import get_module_logger
+from .core.baseConfig import MAXMEM
 # logger setup
 _log = get_module_logger(__name__)
 

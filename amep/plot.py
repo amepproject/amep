@@ -52,7 +52,7 @@ from matplotlib.animation import FuncAnimation
 from tqdm.autonotebook import tqdm
 
 from .trajectory import FieldTrajectory, ParticleTrajectory
-from .base import get_module_logger
+from .core.helpers import get_module_logger
 
 # logger setup
 _log = get_module_logger(__name__)

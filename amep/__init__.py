@@ -49,6 +49,10 @@ from . import timecor
 from . import trajectory
 from . import reader
 from . import base
+from . import core
+#from core.baseConfig import *
+#from core.baseInterface import *
+#from core.helpers import *
 from ._version import __version__
 
 __author__  = 'Lukas Hecht'
@@ -71,4 +75,8 @@ __all__ = [
     'trajectory',
     'reader',
     'base',
+    'core',
+    #"baseConfig",
+    #"baseInterface",
+    #"helpers"
 ]

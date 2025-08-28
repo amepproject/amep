@@ -37,7 +37,7 @@ from scipy.spatial import KDTree
 from scipy.spatial.distance import pdist, cdist
 from warnings import warn
 from .utils import dimension, compute_parallel
-from .base import get_module_logger
+from .core.helpers import get_module_logger
 
 # logger setup
 _log = get_module_logger(__name__)
