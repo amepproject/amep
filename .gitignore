@@ -38,7 +38,8 @@ dist/
 config/
 .mypy-cache/
 build/
-
+.venv/
+.gitignore
 # Test and example directories and files
 test/data
 test/.coverage
