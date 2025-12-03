@@ -1,25 +1,38 @@
-Authors of AMEP
-===============
+Contributors
+============
 
 AMEP was originally written by Lukas Hecht.
+
+Maintainers
+-----------
 
 The project is currently maintained by the AMEP development team consisting of
 
 - Lukas Hecht
-- Kay-Robert Dormann
+- Kay-Robert Dormann (lead)
 - Kai Luca Spanheimer
 - Aritra Mukhopadhyay
-- Mahdieh Ebrahimi
-
-All contributing authors are listed in this file below. The CHANGELOG
-shows individual code contributions.
 
 
-Chronological list of authors
------------------------------
+Contributors (Chronological)
+----------------------------
 
-2022
+All contributors are listed below. The CHANGELOG shows individual code contributions.
+
+2025
+  - Kay-Robert Dormann
   - Lukas Hecht
+  - Kai Luca Spanheimer
+  - Muhammed Muhsin A.
+
+2024
+  - Lukas Hecht
+  - Kay-Robert Dormann
+  - Kai Luca Spanheimer
+  - Aritra Mukhopadhyay
+  - Mahdieh Ebrahimi
+  - Suvendu Mandal
+  - Benno Liebchen
   
 2023
   - Lukas Hecht
@@ -31,17 +44,6 @@ Chronological list of authors
   - Benno Liebchen
   - Malte Cordts
   - Lukas Walter
-  
-2024
-  - Lukas Hecht
-  - Kay-Robert Dormann
-  - Kai Luca Spanheimer
-  - Aritra Mukhopadhyay
-  - Mahdieh Ebrahimi
-  - Suvendu Mandal
-  - Benno Liebchen
 
-  2025
-  - Kay-Robert Dormann
+2022
   - Lukas Hecht
-  - Kai Luca Spanheimer

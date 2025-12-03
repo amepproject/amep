@@ -3,8 +3,8 @@
 Getting Started
 ===============
 
-Below you can find everything that is needed to start using **AMEP** for 
-analyzing your simulation data. The installation guide explains how **AMEP** 
+Below you can find everything that is needed to start using AMEP for 
+analyzing your simulation data. The installation guide explains how AMEP 
 can be installed and the examples serve as an easy starting point. 
 
 
@@ -12,7 +12,7 @@ can be installed and the examples serve as an easy starting point.
 Installation
 ============
 
-The **AMEP** library can be installed via ``pip``, ``conda``, or by manually 
+The AMEP library can be installed via ``pip``, ``conda``, or by manually 
 adding the ``amep`` directory to your Python path. Installation via ``pip`` or 
 ``conda`` is recommended. To use all plot animation features, please 
 additionally install FFmpeg (https://ffmpeg.org/) on your machine (see below).
@@ -21,7 +21,7 @@ additionally install FFmpeg (https://ffmpeg.org/) on your machine (see below).
 Installation via pip
 --------------------
 
-**AMEP** can be simply installed from `PyPI <https://pypi.org/project/amep/>`_ 
+AMEP can be simply installed from `PyPI <https://pypi.org/project/amep/>`_ 
 via 
 
 .. code-block:: bash
@@ -33,7 +33,7 @@ via
 Installation via conda
 ----------------------
 
-**AMEP** can be simply installed from 
+AMEP can be simply installed from 
 `conda-forge <https://anaconda.org/conda-forge/amep>`_ via 
 
 .. code-block:: bash
@@ -44,6 +44,7 @@ Installation via conda
 -------------------
 Manual installation
 -------------------
+
 Before installing AMEP manually, ensure that your Python environment fulfills 
 the required specifications as published together with each release.
 If your Python environment is set up, download the latest version from
@@ -66,14 +67,37 @@ to the ``.bash_profile file`` (Linux only). If you use the Anaconda distribution
 you can alternatively add the ``amep`` directory to ``Lib/site-packages`` in the Anaconda installation path.
 
 
+------------------
+Python environment
+------------------
+
+For system cleanliness and easy dependency management, we recommend to use
+virtual environments as a good practice using Python. You can create and 
+activate one by following the `official Python instructions <https://docs.python.org/3/library/venv.html>`_.
+Here are the instructions for Linux or macOS (for Microsoft Windows you 
+may adapt the path formatting to the Windows specific style).
+
+```bash
+python3 -m venv amepenv
+source amepenv/bin/activate
+```
+
+Depending on you Python installation, you may need to use `python3` or `python`.
+The virtual environment `amepenv` will be created in the directory you have 
+your terminal running. Follow the official instructions linked above for more
+details.
+
+
 ------
 FFmpeg
 ------
-**AMEP** provides the possibility to animate plots and trajectories. 
-**To enable all animation features, FFmpeg must be installed on the device on** 
-**which you run AMEP**. FFmpeg is not automatically installed when you install 
-**AMEP**. Please visit https://ffmpeg.org/download.html to download FFmpeg and 
-to get further information on how to install FFmpeg on your machine.
+
+AMEP provides the possibility to animate plots and trajectories. 
+To enable all animation features, *FFmpeg must be installed on the device on which you run AMEP*.
+FFmpeg is not automatically installed when you install 
+AMEP. Please visit the `FFmpeg download <https://ffmpeg.org/download.html>`_ 
+page to download FFmpeg and to get further information on how to install 
+FFmpeg on your machine.
 
 
 
@@ -81,7 +105,7 @@ to get further information on how to install FFmpeg on your machine.
 Examples
 ========
 
-The following examples serve as a starting point for everyone who uses **AMEP** for the first time. The examples are based on the data available at https://github.com/amepproject/amep/tree/main/examples/data:
+The following examples serve as a starting point for everyone who uses AMEP for the first time. The examples are based on the data available at https://github.com/amepproject/amep/tree/main/examples/data:
 
 `Download zip <https://download-directory.github.io/?url=https://github.com/amepproject/amep/tree/main/examples/data>`_
 
@@ -90,7 +114,7 @@ In the first example, we analyze simulation data from a LAMMPS simulation of act
 ----------------------------------------------------------
 Example 1: Particle-based data (active Brownian particles)
 ----------------------------------------------------------
-First, we import **AMEP** and NumPy:
+First, we import AMEP and NumPy:
 
 .. code-block:: python
 

@@ -2,9 +2,9 @@
 
 Support
 =======
-If you need support for using **AMEP**, we recommend to use our 
-`GitHub discussions <https://github.com/amepproject/amep/discussions>`_ page. 
-If you find a bug, please create an `issue <https://github.com/amepproject/amep/issues>`_.
+If you need support for using AMEP, please feel free to contact us either 
+directly on our `GitHub discussions <https://github.com/amepproject/amep/discussions>`_ 
+page. If you find a bug or inconsistency, please create an `issue <https://github.com/amepproject/amep/issues>`_.
 
 Creating issues
 ---------------

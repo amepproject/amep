@@ -1,5 +1,9 @@
+.. _contributors_label:
+.. include:: ../../../CONTRIBUTORS.md
+   :parser: myst_parser.sphinx_
+
 # Contributors/Authors
-The following people contributed to **AMEP**:
+The following people contributed to AMEP:
 
 - Lukas Hecht (creator and lead developer)
 - Kay-Robert Dormann (lead developer)
@@ -10,3 +14,8 @@ The following people contributed to **AMEP**:
 - Benno Liebchen (planning)
 - Lukas Walter (former developer)
 - Malte Cordts (former developer)
+
+
+.. .. include:: ../../README.md
+..    :parser: myst_parser.sphinx_
+..    :start-line: 11
