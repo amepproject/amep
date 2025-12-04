@@ -6,7 +6,7 @@ authors = [
     {name = "Lukas Hecht", email = "lukas.hecht@pkm.tu-darmstadt.de"},
     {name = "Kay-Robert Dormann", email = "kay-robert.dormann@pkm.tu-darmstadt.de"}
 ]
-description = "Active Matter Evaluation Package for data analysis of active matter simulations"
+description = "Data analysis package for active and soft matter simulations"
 readme = "README.md"
 requires-python = ">=3.10"
 keywords = [
