@@ -3670,9 +3670,7 @@ class ClusterGrowth(BaseEvaluation):
            https://doi.org/10.1103/PhysRevLett.110.055701
 
         .. [2] C. B. Caporusso, L. F. Cugliandolo, P. Digregorio, G. Gonnella, 
-           D. Levis, and A. Suma, Dynamics of Motility-Induced Clusters: 
-           Coarsening beyond Ostwald Ripening, Phys. Rev. Lett. 131, 
-           068201 (2023). https://doi.org/10.1103/PhysRevLett.131.068201
+           D. Levis, and A. Suma, Dynamics of Motility-Induced Clusters: Coarsening beyond Ostwald Ripening, Phys. Rev. Lett. 131, 068201 (2023). https://doi.org/10.1103/PhysRevLett.131.068201
 
         Parameters
         ----------
