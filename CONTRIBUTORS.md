@@ -8,7 +8,6 @@ Maintainers
 
 The project is currently maintained by the AMEP development team consisting of
 
-- Lukas Hecht
 - Kay-Robert Dormann (lead)
 - Kai Luca Spanheimer
 - Aritra Mukhopadhyay
