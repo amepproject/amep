@@ -77,10 +77,10 @@ activate one by following the `official Python instructions <https://docs.python
 Here are the instructions for Linux or macOS (for Microsoft Windows you 
 may adapt the path formatting to the Windows specific style).
 
-```bash
-python3 -m venv amepenv
-source amepenv/bin/activate
-```
+.. code-block:: bash
+
+   python3 -m venv amepenv
+   source amepenv/bin/activate
 
 Depending on you Python installation, you may need to use `python3` or `python`.
 The virtual environment `amepenv` will be created in the directory you have 
