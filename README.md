@@ -189,10 +189,12 @@ For more detailed examples, check the [examples](https://github.com/amepproject/
 directory and check out our homepage [amepproject.de](https://amepproject.de).
 
 
-# Exemplary table of functionalities
+# Feature overview
 
 The following table is a subset of functions and methods implemented in AMEP.
-It does not cover all analysis methods and may only be seen as a exemplary list.
+It does not cover all analysis methods and shall only be seen as a exemplary list.
+Please go to our [API Reference](https://amepproject.de/stable/api.html) for the
+complete documentation of AMEP and its implemented features.
 
 | Observable | Particles | Fields |
 |:-----------|:---------:|:------:|
