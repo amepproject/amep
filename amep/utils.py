@@ -43,6 +43,17 @@ from .functions import gaussian2d, gaussian
 from .base import MAXMEM, get_module_logger
 from tqdm.autonotebook import tqdm
 from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+# Avoid deprecation warnings of multiprocessing by selecting safer start method.
+import multiprocessing
+multiprocessing.set_start_method("spawn", force=True)
+# could do this for safe error catching when method was set before
+# try:
+#     multiprocessing.set_start_method("spawn", force=True)
+# except RuntimeError:
+#     pass
+
 
 # logger setup
 _log = get_module_logger(__name__)
@@ -73,7 +84,9 @@ def traj_slice(N: int, skip: float, nr_averages: int) -> slice:
 
 def average_func(
         func: callable, data: list | np.ndarray, skip: float = 0.0,
-        nr: int = 10, indices: bool = False, **kwargs):
+        nr: int = 10, indices: bool = False, 
+        max_workers: int | None = 1,
+        **kwargs):
     r'''
     Compute the average of a certain function.
     
@@ -92,6 +105,11 @@ def average_func(
     indices : bool, default=False
         If True, the list indices that the averaging function used are returned
         as last output!
+    max_workers : int | None, optional
+        Number of maximum parallel threads. Will be forwarded to
+        `concurrent.futures.ThreadPoolExecutor`. `None` uses all
+        available CPU cores. Negative numbers will be translated
+        to `AVAILABLE_CPUS + max_workers`.
     **kwargs: Keyword Arguments
         keyword arguments that are put to func
 
@@ -139,7 +157,32 @@ def average_func(
         nr = max(1,int(N-skip*N))
 
     evaluated_indices = np.array(np.ceil(np.linspace(skip*N, N-1, nr)), dtype=int)
-    func_result = [func(x, **kwargs) for x in tqdm(data[evaluated_indices])]
+    # keep previous implementation for safe backwards compatibility
+    if max_workers==1:
+        # kept for backwards compatibility
+        func_result = [func(x, **kwargs) for x in tqdm(data[evaluated_indices])]
+    else:
+        # parallel computation
+        
+        # easy setting of number of used cpu cores:
+        # concurrent.futures automatically interprets `None` as `os.process_cpu_count()`
+        if max_workers is not None and max_workers<0:
+            if os.process_cpu_count() + max_workers > 0:
+                max_workers=os.process_cpu_count() + max_workers
+            else:
+                raise ValueError(f"Only {os.process_cpu_count()} CPU cores available. Please adjust `max_workers`.")
+        
+        # set up parallel computation with multi threading
+        func_result = [None] * len(evaluated_indices)
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {executor.submit(func, x, **kwargs): i for i, x in enumerate(data[evaluated_indices])}
+            # gather results
+            with tqdm(total=len(futures)) as pbar:
+                for future in as_completed(futures):
+                    i = futures[future] # get original index
+                    func_result[i] = future.result()
+                    pbar.update(1)
+
     evaluated = np.array(func_result)
     if indices:
         return evaluated, np.mean(evaluated, axis=0), evaluated_indices
