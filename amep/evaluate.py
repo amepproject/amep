@@ -823,6 +823,10 @@ class PCFangle(BaseEvaluation):
         mean orientation points along the :math:`x`-axis
         (see Ref. [1]_ for details).
 
+        Per default, it is assumed that the system has periodic boundary
+        conditions (keyword `pbc=True`). Please adjust as needed.
+        The keyword `pbc` is forwarded to `amep.spatialcor.pcf_angle`.
+
         Notes
         -----
         The angle-dependent pair correlation function is defined by
