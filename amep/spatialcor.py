@@ -1013,8 +1013,8 @@ def __dhist_angle(
 
 def pcf_angle(
         coords: np.ndarray, box_boundary: np.ndarray, 
-        other_coords: np.ndarray | None = None, ndbins: int | None = None,
-        nabins: int | None = None, rmax: int | None = None,
+        other_coords: np.ndarray | None = None, ndbins: int = 500,
+        nabins: int = 100, rmax: float | None = None,
         psi: np.ndarray | None = None, njobs: int = 1, pbc: bool = True,
         verbose: bool = False, chunksize: int | None = None
         ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -1070,9 +1070,9 @@ def pcf_angle(
         Coordinate frame of the other species to which the pair correlation
         is calculated. The default is None (uses coords).
     ndbins : int or None, optional
-        Number of distance bins. The default is None.
+        Number of distance bins. The default is 500.
     nabins : int or None, optional
-        Number of angle bins. The default is None.
+        Number of angle bins. The default is 100.
     rmax : float or None, optional
         Maximum distance to consider. The default is None.
     psi : np.ndarray of shape (2,) or None, optional
@@ -1082,7 +1082,7 @@ def pcf_angle(
         :math:`\psi=(Re(\Psi_6),Im(\Psi_6))`, where :math:`\Psi_6` is the mean
         hexagonal order parameter of the whole system. The default is None.
     njobs : int, optional
-        Number of jobs used for parallel computing.The default is 1.
+        Number of jobs used for parallel computing. The default is 1.
         Rule of thumb: Check how many your system has available with
 
         >>> import os
@@ -1153,6 +1153,7 @@ def pcf_angle(
     # calculate angle with respect to this unit vector
     e = np.array([1.,0.,0.]) 
 
+    # keeping this for backwards-compatibility
     if ndbins is None:
         ndbins = 500
     if nabins is None:
