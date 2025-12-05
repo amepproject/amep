@@ -825,7 +825,8 @@ class PCFangle(BaseEvaluation):
 
         Per default, it is assumed that the system has periodic boundary
         conditions (keyword `pbc=True`). Please adjust as needed.
-        The keyword `pbc` is forwarded to `amep.spatialcor.pcf_angle`.
+        The keyword `pbc` is forwarded to `amep.spatialcor.pcf_angle` via
+        `**kwargs`.
 
         Notes
         -----
