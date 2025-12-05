@@ -811,6 +811,7 @@ class PCFangle(BaseEvaluation):
     def __init__(
             self, traj: ParticleTrajectory, skip: float = 0.0, nav: int = 10,
             ptype: int | None = None, other: int | None = None,
+            max_workers: int | None = 1,
             **kwargs) -> None:
         r'''
         Calculate the two-dimensional pair correlation function :math:`g(r,\theta)`.
@@ -872,6 +873,9 @@ class PCFangle(BaseEvaluation):
         other : float or None, optional
             Other particle type (to calculate the correlation between
             different particle types). The default is None.
+        max_workers : int | None, optional
+            Number of parallel workers. Will be forwarded to
+            utils.average_func.
         **kwargs
             All other keyword arguments are forwarded to
             `amep.spatialcor.pcf_angle`.
@@ -913,11 +917,13 @@ class PCFangle(BaseEvaluation):
         self.__nav    = nav
         self.__ptype  = ptype
         self.__other  = other
+        self.__max_workers  = max_workers
         self.__kwargs = kwargs
         
         self.__frames, res, self.__indices = average_func(
             self.__compute, self.__traj, skip = self.__skip,
-            nr = self.__nav, indices = True
+            nr = self.__nav, indices = True,
+            max_workers=self.__max_workers
         )
             
         self.__times = self.__traj.times[self.__indices]
@@ -3982,7 +3988,9 @@ class MSD(BaseEvaluation):
     def __init__(
             self, traj: ParticleTrajectory, ptype: int | None = None,
             skip: float = 0.0, nav: int | None = 10,
-            use_nojump: bool = False, pbc: bool = True) -> None:
+            use_nojump: bool = False, pbc: bool = True,
+            max_workers: int | None = 1
+            ) -> None:
         r'''
         Calculates the mean-square displacement over time. If periodic boundary
         conditions are applied, the unwrapped coordinates are used if they are
@@ -4009,6 +4017,9 @@ class MSD(BaseEvaluation):
             coordinates are used for the calculation. If those are not 
             available, nojump coordinates will be used instead. The default is
             False.
+        max_workers : int | None, optional
+            Number of parallel workers. Will be forwarded to
+            utils.average_func.
 
         Returns
         -------
@@ -4058,6 +4069,7 @@ class MSD(BaseEvaluation):
         self.__skip = skip
         self.__nav = nav
         self.__pbc = pbc
+        self.__max_workers = max_workers
         self.__use_nojump = use_nojump
         
         if self.__nav is None:
@@ -4096,7 +4108,8 @@ class MSD(BaseEvaluation):
         # calculation
         self.__frames, self.__avg, self.__indices = average_func(
             self.__compute, self.__traj, skip=self.__skip,
-            nr=self.__nav, indices=True
+            nr=self.__nav, indices=True,
+            max_workers=self.__max_workers
         )
         self.__times = self.__traj.times[self.__indices]
 
