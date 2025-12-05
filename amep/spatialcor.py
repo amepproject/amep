@@ -975,17 +975,17 @@ def __dhist_angle(
     for n in np.arange(len(other_coords))[sl]:
         # calculate distance vectors
         if same:
-            # diff = pbc_diff(
-            #     other_coords[n],
-            #     coords[np.arange(len(coords)) != n], # exclude the particle itself
-            #     box_boundary,
-            #     pbc=pbc
-            # )
-            # exclude the particle itself
-            diff = other_coords[n] - coords[np.arange(len(coords)) != n]
+            diff = pbc_diff(
+                other_coords[n],
+                coords[np.arange(len(coords)) != n], # exclude the particle itself
+                box_boundary,
+                pbc=pbc
+            )
+            # # exclude the particle itself
+            # diff = other_coords[n] - coords[np.arange(len(coords)) != n]
         else:
-            # diff = pbc_diff(other_coords[n], coords, box_boundary, pbc=pbc)
-            diff = other_coords[n] - coords
+            diff = pbc_diff(other_coords[n], coords, box_boundary, pbc=pbc)
+            # diff = other_coords[n] - coords
         
         # get distances
         dist = (diff**2).sum(axis=1)**0.5
@@ -1160,7 +1160,7 @@ def pcf_angle(
         nabins = 100
 
     if rmax is None:
-        rmax = max(box_boundary[:,1]-box_boundary[:,0])//2
+        rmax = max(box_boundary[:,1]-box_boundary[:,0])/2
         
     # angle to rotate (to orient x-axis along mean sample orientation)
     angle = 0.0
