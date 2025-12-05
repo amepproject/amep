@@ -875,7 +875,7 @@ class PCFangle(BaseEvaluation):
             different particle types). The default is None.
         max_workers : int | None, optional
             Number of parallel workers. Will be forwarded to
-            utils.average_func.
+            `utils.average_func`.
         **kwargs
             All other keyword arguments are forwarded to
             `amep.spatialcor.pcf_angle`.
@@ -4019,7 +4019,7 @@ class MSD(BaseEvaluation):
             False.
         max_workers : int | None, optional
             Number of parallel workers. Will be forwarded to
-            utils.average_func.
+            `utils.average_func`.
 
         Returns
         -------
