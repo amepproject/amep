@@ -838,7 +838,7 @@ class PCFangle(BaseEvaluation):
         axis :math:`\vec{e}` and is given by
 
         .. math::
-           \cos(\theta)=\frac{{\vec{r}}_{ij}\cdot\vec{e}}{r_{ij}e}
+           \cos(\theta_{ij})=\frac{{\vec{r}}_{ij}\cdot\vec{e}}{r_{ij}e}
 
         Here, we choose :math:`\vec{e}=\hat{e}_x`.
 
