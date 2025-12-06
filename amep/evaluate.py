@@ -811,12 +811,17 @@ class PCFangle(BaseEvaluation):
     def __init__(
             self, traj: ParticleTrajectory, skip: float = 0.0, nav: int = 10,
             ptype: int | None = None, other: int | None = None,
+            mode: str = 'psi6',
             **kwargs) -> None:
         r'''
         Calculate the two-dimensional pair correlation function :math:`g(r,\theta)`.
 
         Implemented for a 2D system.
         Takes the time average over several time steps.
+
+        ####################################################################
+        ### todo: change docstring after changing mode implementation!!! ###
+        ####################################################################
 
         To allow for averaging the result (either with respect to time or to
         make an ensemble average), the coordinates are rotated such that the
@@ -830,23 +835,26 @@ class PCFangle(BaseEvaluation):
 
         Notes
         -----
-        The angle-dependent pair correlation function is defined by
-        (see Ref. [2]_)
+        The angle-dependent pair correlation function is defined by (see Ref. [2]_)
 
         .. math::
-           g(r,\theta) = \frac{1}{\langle \rho\rangle_{local,\theta} N}
-           \sum\limits_{i=1}^{N} \sum\limits_{j\neq i}^{N}
-           \frac{\delta(r_{ij} -r)
-           \delta(\theta_{ij}-\theta)}{2\pi r^2 \sin(\theta)}
+        g(r,\theta) = \frac{1}{\langle \rho\rangle_{local,\theta} N}\sum\limits_{i=1}^{N}
+        \sum\limits_{j\neq i}^{N}\frac{\delta(r_{ij} -r)\delta(\theta_{ij}-\theta)}{2\pi r^2 \sin(\theta)}
 
-        The angle :math:`\theta` is defined with respect to a certain
-        axis :math:`\vec{e}` and is given by
+
+        The angle :math:`\theta` is defined with respect to a certain axis :math:`\vec{e}` and
+        is given by
 
         .. math::
-           \cos(\theta_{ij})=\frac{{\vec{r}}_{ij}\cdot\vec{e}}{r_{ij}e}
+        \cos(\theta)=\frac{\vec{r}_{ij}\cdot\vec{e}}{r_{ij}e}
 
-        Here, we choose :math:`\vec{e}=\hat{e}_x`.
+        The vector :math:`\vec{e}` is default the x-axis, but can be specified by supplying
+        the parameter `e`. See parameter description for details.
 
+        The angles are in the range :math:`\theta \in [0, 2\pi)`.
+
+        This method only works for 2D systems.
+        
         References
         ----------
         .. [1] Bernard, E. P., & Krauth, W. (2011). Two-Step Melting in Two
@@ -872,11 +880,25 @@ class PCFangle(BaseEvaluation):
         nav : int, optional
             Number of frames to consider for the time average.
             The default is 10.
-        ptype : float or None, optional
+        ptype : int or None, optional
             Particle type. The default is None.
-        other : float or None, optional
+        other : int or None, optional
             Other particle type (to calculate the correlation between
-            different particle types). The default is None.
+            different particle types).
+            `other` will specify the locations of the reference particles
+            from which the distances and angles to the particles `ptype`
+            are calculated ("`other` ≙ probing locations").
+            The default is None.
+        mode : str, optional
+            Mode that defines with respect to which axis the angles
+            are calculated. Possible values are `psi6`, `orientations`,
+            and `x`. The default is `psi6`, which uses the hexagonal
+            order parameter to define the mean orientation.
+            The option `orientations` calculates :math:`g(r,\theta)`
+            with respect to the individual particle orientations
+            (useful for active particles). The option `x` uses the
+            :math:`x`-axis of the simulation box as reference.
+            The default is 'psi6'.
         **kwargs
             All other keyword arguments are forwarded to
             `amep.spatialcor.pcf_angle`.
@@ -918,7 +940,20 @@ class PCFangle(BaseEvaluation):
         self.__nav    = nav
         self.__ptype  = ptype
         self.__other  = other
+        self.__mode   = mode
         self.__kwargs = kwargs
+
+        if self.__mode not in ['psi6', 'orientations', 'x']:
+            raise ValueError(
+                "Mode not recognized. Possible values are "
+                "'psi6', 'orientations', and 'x'."
+            )
+        # comment: it may be easily possible to implement
+        # a more general `custom` mode that allows to specify an 
+        # arbitrary function to calculate the reference axis or
+        # directly provide the reference axis `e` as np.ndarray
+        # in the shape (3,), (nframes,3) or (nav,3).
+        # One step at a time ;)
         
         self.__frames, res, self.__indices = average_func(
             self.__compute, self.__traj, skip = self.__skip,
@@ -949,23 +984,39 @@ class PCFangle(BaseEvaluation):
             theta values
         '''
         # hexagonal order parameter to specify mean orientation
-        psi = np.mean(psi_k(
-            frame.coords(),
-            frame.box,
-            k = 6
-        ))
+        if self.__mode == 'x':
+            psi = None
+            e = np.array([1.0, 0.0, 0.0])
+        elif self.__mode == 'orientations':
+            psi = None
+            if self.__other is None:
+                e = frame.orientations(ptype=self.__ptype)
+            else:
+                e = frame.orientations(ptype=self.__other)
+        elif self.__mode == 'psi6':
+            psi = np.mean(psi_k(
+                frame.coords(),
+                frame.box,
+                k = 6
+            ))
+            psi = np.array([psi.real, psi.imag])
+            # specifying e here to make the pcf_angle call work for all modes the same
+            e = np.array([1.0, 0.0, 0.0])
+        
         if self.__other is None:
             grt, r, t = pcf_angle(
                 frame.coords(ptype = self.__ptype),
                 frame.box,
-                psi = np.array([psi.real, psi.imag]),
+                psi = psi,
+                e=e,
                 **self.__kwargs
             )
         else:
             grt, r, t = pcf_angle(
                 frame.coords(ptype = self.__ptype),
                 frame.box,
-                psi = np.array([psi.real, psi.imag]),
+                psi = psi,
+                e=e,
                 other_coords = frame.coords(ptype = self.__other),
                 **self.__kwargs
             )

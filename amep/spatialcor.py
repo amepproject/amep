@@ -973,7 +973,7 @@ def __dhist_angle(
     Returns
     -------
     hist : np.ndarray
-        2D histogram.
+        2D histogram of distances and angles. Angles :math:`\theta \in [0, 2\pi)`.
 
     '''
     sl = slice(chunk, chunk+chunksize)
@@ -1000,6 +1000,15 @@ def __dhist_angle(
         
         # get distances
         dist = np.linalg.norm(r_ij, axis=1)
+        # remove zero distances to avoid issues in angle calculation
+        # This method is safer than excluding the n-th particle above,
+        # since the whole list of coords might contain duplicate particles
+        # as well as other particles. 
+        # Example: coords(ptype=None), other_coords(ptype=1) with total
+        # ptypes=[0,1,2,...]
+        mask_nonzero = dist > 0.0 # hopefully enough to avoid numerical issues
+        r_ij = r_ij[mask_nonzero]
+        dist = dist[mask_nonzero]
 
         # calculate angles
         if len(e.shape) == 1:
@@ -1009,8 +1018,7 @@ def __dhist_angle(
         # numerical issues might lead to values outside of [-1,1] for ratio
         ratio = np.clip(np.dot(e_n, r_ij.T)/(dist*np.linalg.norm(e_n)), -1.0, 1.0)
         theta = np.arccos(ratio)
-        theta[r_ij[:,1] < 0.0] = 2*np.pi - theta[r_ij[:,1] < 0.0] # use angles between 0 and 2\pi
-        print(theta)
+        theta[r_ij[:,1] < 0.0] = 2*np.pi - theta[r_ij[:,1] < 0.0] # use angles in [0, 2\pi)
         
         # orient x-axis along mean sample orientation
         # The rotation is applied to the difference vectors instead of the
@@ -1020,9 +1028,9 @@ def __dhist_angle(
         # are rotated)!
         if angle != 0.0:
             theta = theta - angle
-            # ensuring angles between 0 and 2\pi
+            # ensuring angles in [0, 2\pi)
             theta[theta<0.0] = theta[theta<0.0] + 2*np.pi
-            theta[theta>2*np.pi] = theta[theta>2*np.pi] - 2*np.pi
+            theta[theta>=2*np.pi] = theta[theta>=2*np.pi] - 2*np.pi
 
         # calculate 2D histogram
         hist += np.histogram2d(dist, theta, [dbins,abins])[0]
@@ -1061,10 +1069,12 @@ def pcf_angle(
     .. math::
        \cos(\theta)=\frac{\vec{r}_{ij}\cdot\vec{e}}{r_{ij}e}
 
-    Here, we choose :math:`\vec{e}=\hat{e}_x`.
+    The vector :math:`\vec{e}` is default the x-axis, but can be specified by supplying
+    the parameter `e`. See parameter description for details.
 
-    This version only works for 2D systems. For systems in 3D,
-    the z coordinate is discarded.
+    The angles are in the range :math:`\theta \in [0, 2\pi)`.
+
+    This method only works for 2D systems.
 
     References
     ----------
