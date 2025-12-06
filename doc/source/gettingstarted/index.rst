@@ -82,8 +82,8 @@ may adapt the path formatting to the Windows specific style).
    python3 -m venv amepenv
    source amepenv/bin/activate
 
-Depending on you Python installation, you may need to use `python3` or `python`.
-The virtual environment `amepenv` will be created in the directory you have 
+Depending on you Python installation, you may need to use ``python3`` or ``python``.
+The virtual environment ``amepenv`` will be created in the directory you have 
 your terminal running. Follow the official instructions linked above for more
 details.
 
