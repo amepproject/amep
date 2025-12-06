@@ -1916,8 +1916,8 @@ def compute_parallel(
 
     '''    
     # check number of jobs for parallelization
-    if njobs > os.cpu_count():
-        njobs = os.cpu_count()
+    if njobs > os.process_cpu_count():
+        njobs = os.process_cpu_count()
 
     # setup multiprossing environment
     execution = ProcessPoolExecutor(max_workers = njobs)
