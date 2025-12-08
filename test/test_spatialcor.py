@@ -54,6 +54,14 @@ class TestSpatialcor(unittest.TestCase):
             high=10,
             size=(1000, 2)
         )
+        # generate random orientations
+        cls.orientations = np.zeros((1000, 3))
+        cls.orientations[:, :2] = rng.uniform(
+            low=-10,
+            high=10,
+            size=(1000, 2)
+        )
+        cls.orientations=cls.orientations/np.linalg.norm(cls.orientations, axis=1)[:,None]
         # create box
         cls.box = np.array(
             [[-10, 10],
