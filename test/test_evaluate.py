@@ -93,6 +93,24 @@ class TestEvaluateMethods(unittest.TestCase):
             )
         msd_eval.name = "msd"
         msd_eval.save(RESULT_DIR/"msd_eval.h5")
+
+    def test_order_evaluations(self):
+        """Test order parameter evaluation.
+        TO BE IMPLEMENTED
+        """
+        pass
+
+    def test_correlations(self):
+        """Test correlation function evaluations.
+        """
+        svc = SpatialVelCor(self.particle_traj, skip=0.9, nav=2, njobs=4)
+
+        svc.save(RESULT_DIR/"svc.h5")
+        rdfcalc = RDF(
+                self.particle_traj,
+                nav=2, nbins=1000,
+                skip=0.9, njobs=4)
+        rdfcalc.save(RESULT_DIR/'rdf.h5')
         # PCF2d
         pcf2d = PCF2d(traj,
                       nav=2, nxbins=50, nybins=50,
@@ -125,6 +143,10 @@ class TestEvaluateMethods(unittest.TestCase):
         psf2d.save(RESULT_DIR/"sf2d_eval.h5", database=True, name="particles")
         fsf2d = SF2d(ftraj, skip=0.9, nav=2, ftype="c")
         fsf2d.save(RESULT_DIR/"sf2d_eval.h5", database=True, name="field")
+
+    def test_distributions(self):
+        """Test distribution functions.
+        """
         # VelDist
         veldist = VelDist(traj, skip=0.9, nav=2)
         veldist.save(RESULT_DIR/"veldist_eval.h5", database=True, name="particles")
@@ -135,25 +157,7 @@ class TestEvaluateMethods(unittest.TestCase):
         dist = Dist(traj, "vx", skip=0.9, nav=2)
         dist.save(RESULT_DIR/"distvx_eval.h5", database=True, name="particles")
 
-    def test_order_evaluations(self):
-        """Test order parameter evaluation.
-        TO BE IMPLEMENTED
-        """
-        pass
 
-    def test_correlation(self):
-        """Test order parameter evaluation.
-        TO BE IMPLEMENTED
-        """
-        svc = SpatialVelCor(self.particle_traj, skip=0.9, nav=2, njobs=4)
-
-        svc.save(RESULT_DIR/"svc.h5")
-        rdfcalc = RDF(
-                self.particle_traj,
-                nav=2, nbins=1000,
-                skip=0.9, njobs=4)
-        rdfcalc.save(RESULT_DIR/'rdf.h5')
-    
     def test_transforms(self):
         """Test order parameter evaluation.
         TO BE IMPLEMENTED
