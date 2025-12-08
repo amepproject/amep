@@ -146,9 +146,11 @@ class TestEvaluateMethods(unittest.TestCase):
         pass
 
     def test_parallel(self):
-        psf2d = SF2d(traj, skip=0.9, nav=2, max_workers=2)
-        psf2d = SF2d(traj, skip=0.8, nav=10, max_workers=-1)
-        psf2d = SF2d(traj, skip=0.9, nav=2, max_workers=None)
-        psf2d = SF2d(traj, skip=0.9, nav=2, max_workers=1)
+        import os
+        print("available threads:", len(os.sched_getaffinity(0)))
+        psf2d = SF2d(self.particle_traj, skip=0.9, nav=2, max_workers=2)
+        psf2d = SF2d(self.particle_traj, skip=0.8, nav=10, max_workers=-1)
+        psf2d = SF2d(self.particle_traj, skip=0.9, nav=2, max_workers=None)
+        psf2d = SF2d(self.particle_traj, skip=0.9, nav=2, max_workers=1)
 
 
