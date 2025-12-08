@@ -24,6 +24,8 @@ from matplotlib import use
 from amep.load import traj
 from amep.evaluate import ClusterGrowth, ClusterSizeDist, Function, SpatialVelCor, RDF, PCF2d, PCFangle, SF2d
 from amep.evaluate import VelDist, Dist, EkinRot, EkinTrans, EkinTot
+import amep
+
 use("Agg")
 DATA_DIR = Path("../examples/data/")
 
@@ -147,18 +149,34 @@ class TestEvaluateMethods(unittest.TestCase):
 
     def test_parallel(self):
         import os
+        import numpy as np
         print("available threads:", len(os.sched_getaffinity(0))) # on GitHub ~4
-        psf2d_1 = SF2d(self.particle_traj, skip=0.8, nav=7, max_workers=4)
-        psf2d_2 = SF2d(self.particle_traj, skip=0.8, nav=7, max_workers=-1)
-        psf2d_3 = SF2d(self.particle_traj, skip=0.8, nav=7, max_workers=None)
-        psf2d_4 = SF2d(self.particle_traj, skip=0.8, nav=7, max_workers=1)
-        self.assertTrue(np.all(psf2d_1.avg==psf2d_2.avg),
+        msd_1 = amep.evaluate.MSD(self.particle_traj, nav=20, max_workers=4)
+        msd_2 = amep.evaluate.MSD(self.particle_traj, nav=20, max_workers=-1)
+        msd_3 = amep.evaluate.MSD(self.particle_traj, nav=20, max_workers=None)
+        msd_4 = amep.evaluate.MSD(self.particle_traj, nav=20, max_workers=1)
+        self.assertTrue(np.all(msd_1.avg==msd_2.avg),
             '4 thread result differs from -1 thread result'
         )
-        self.assertTrue(np.all(psf2d_2.avg==psf2d_3.avg),
+        self.assertTrue(np.all(msd_2.avg==msd_3.avg),
             '-1 thread result differs from `None` thread result'
         )
-        self.assertTrue(np.all(psf2d_3.avg==psf2d_4.avg),
+        self.assertTrue(np.all(msd_3.avg==msd_4.avg),
             '`None` thread result differs from 1 thread result'
         )
+
+        # takes waayy longer:
+        # psf2d_1 = amep.evaluate.SF2d(self.particle_traj, skip=0.8, nav=2, max_workers=4)
+        # psf2d_2 = amep.evaluate.SF2d(self.particle_traj, skip=0.8, nav=2, max_workers=-1)
+        # psf2d_3 = amep.evaluate.SF2d(self.particle_traj, skip=0.8, nav=2, max_workers=None)
+        # psf2d_4 = amep.evaluate.SF2d(self.particle_traj, skip=0.8, nav=2, max_workers=1)
+        # self.assertTrue(np.all(psf2d_1.avg==psf2d_2.avg),
+        #     '4 thread result differs from -1 thread result'
+        # )
+        # self.assertTrue(np.all(psf2d_2.avg==psf2d_3.avg),
+        #     '-1 thread result differs from `None` thread result'
+        # )
+        # self.assertTrue(np.all(psf2d_3.avg==psf2d_4.avg),
+        #     '`None` thread result differs from 1 thread result'
+        # )
 
