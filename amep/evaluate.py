@@ -819,14 +819,18 @@ class PCFangle(BaseEvaluation):
         Implemented for a 2D system.
         Takes the time average over several time steps.
 
-        ####################################################################
-        ### todo: change docstring after changing mode implementation!!! ###
-        ####################################################################
-
-        To allow for averaging the result (either with respect to time or to
+        Three modes are available, the default, `psi6`
+        allows for averaging the result (either with respect to time or to
         make an ensemble average), the coordinates are rotated such that the
-        mean orientation points along the :math:`x`-axis
+        mean `psi6` orientation points along the :math:`x`-axis
         (see Ref. [1]_ for details).
+
+        The mode `orientations` calculates :math:`g(r,\theta)` in relation
+        to the individual particle orientations (`frame.orientations()`).
+        This mode is particularly interesting for active matter.
+
+        The mode `x` calculates :math:`g(r,\theta)` in relation to the 
+        :math:`x`-axis.
 
         Per default, it is assumed that the system has periodic boundary
         conditions (keyword `pbc=True`). Please adjust as needed.
@@ -907,28 +911,67 @@ class PCFangle(BaseEvaluation):
         --------
         >>> import amep
         >>> traj = amep.load.traj("../examples/data/lammps.h5amep")
-        >>> pcfangle = amep.evaluate.PCFangle(
-        ...     traj, nav=2, ndbins=1000, nabins=1000,
-        ...     njobs=4, rmax=8.0, skip=0.9
-        ... )
-        >>> pcfangle.save("./eval/pcfangle.h5")
-        >>> r = pcfangle.r
-        >>> theta = pcfangle.theta
-        >>> X = r*np.cos(theta)
-        >>> Y = r*np.sin(theta)
-        >>> fig, axs = amep.plot.new(figsize=(3.6,3))
-        >>> mp = amep.plot.field(
-        ...     axs, pcfangle.avg, X, Y
-        ... )
-        >>> cax = amep.plot.add_colorbar(
-        ... fig, axs, mp, label=r"$g(\Delta x, \Delta y)$"
-        ... )
-        >>> axs.set_xlim(-5, 5)
-        >>> axs.set_ylim(-5, 5)
-        >>> axs.set_xlabel(r"$\Delta x$")
-        >>> axs.set_ylabel(r"$\Delta y$")
-        >>> fig.savefig("./figures/evaluate/evaluate-PCFangle.png")
+        >>> pcfangle = amep.evaluate.PCFangle(traj, skip=.9, nav=2, rmax=3)
+        >>> fig, axs = amep.plot.new(subplot_kw=dict(projection="polar"))
+        >>> mp = axs.pcolormesh(pcfangle.theta, pcfangle.r, pcfangle.avg)
+        >>> cax = amep.plot.add_colorbar(fig, axs, mp, label=r"$g(\Delta r, \Delta \theta)$")
+        >>> axs.grid(alpha=.51, lw=.5, c='w')
+        >>> axs.set_rticks([0,1,2,3])
+        >>> axs.tick_params(axis='y', colors='white')
         >>> 
+        >>> fig.savefig("PCFangle_1.png")
+
+        .. image:: /_static/images/evaluate/PCFangle_1.png
+          :width: 400
+          :align: center
+
+        >>> 
+        >>> # PCFangle in relation to the particle orientations
+        >>> pcfangle = amep.evaluate.PCFangle(traj, skip=.75, 
+        >>>                 nav=10, rmax=3, nabins=100, 
+        >>>                 ndbins=100, mode="orientations"
+        >>>                 )
+        >>> fig, axs = amep.plot.new(subplot_kw=dict(projection="polar"))
+        >>> mp = axs.pcolormesh(pcfangle.theta, pcfangle.r, pcfangle.avg)
+        >>> cax = amep.plot.add_colorbar(fig, axs, mp, label=r"$g(\Delta r, \Delta \theta)$")
+        >>> axs.grid(alpha=.51, lw=.5, c='w')
+        >>> axs.set_rticks([0,1,2,3])
+        >>> axs.set_rlim(0,1.1)
+        >>> axs.tick_params(axis='y', colors='white')
+        >>> 
+        >>> fig.savefig("PCFangle_2.png")
+        
+        .. image:: /_static/images/evaluate/PCFangle_2.png
+          :width: 400
+          :align: center
+
+        >>> # plot integrated histograms to have 1d-plots
+        >>> fig, axs = amep.plot.new((7,3), ncols=2)
+        >>> angles = pcfangle.theta[:,0]
+        >>> theta_integrated = np.sum(pcfangle.avg, axis=0)
+        >>> axs[0].plot(np.mean(pcfangle.r, axis=0), theta_integrated)
+        >>> axs[0].set_xlabel(r"$r$")
+        >>> axs[0].set_ylabel(r"$g(\Delta r)$")
+        >>> 
+        >>> # fig, axs = amep.plot.new()
+        >>> # only integrate over first peak
+        >>> r_integrated = np.sum(pcfangle.avg*(pcfangle.r<1.1), axis=1)
+        >>> # changing angles so that it is plottet around 0
+        >>> theta=np.mean(pcfangle.theta, axis=1)
+        >>> angles=(angles+np.pi)%(2*np.pi)-np.pi
+        >>> angles*=180/np.pi # to change from radians to degree
+        >>> # sorting so that data points are plotted in order
+        >>> sort=np.argsort(angles)
+        >>> axs[1].plot(angles[sort], r_integrated[sort])
+        >>> axs[1].set_xlabel(r"$\theta$")
+        >>> axs[1].set_ylabel(r"$g(\Delta \theta)$")
+        >>> 
+        >>> fig.savefig("PCFangle_3.png")
+        
+        .. image:: /_static/images/evaluate/PCFangle_3.png
+          :width: 400
+          :align: center
+
 
         '''
         super(PCFangle, self).__init__()
