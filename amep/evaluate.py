@@ -969,7 +969,7 @@ class PCFangle(BaseEvaluation):
         >>> fig.savefig("PCFangle_3.png")
         
         .. image:: /_static/images/evaluate/PCFangle_3.png
-          :width: 400
+          :width: 800
           :align: center
 
 
