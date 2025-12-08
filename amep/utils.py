@@ -170,10 +170,10 @@ def average_func(
         # os.process_cpu_count() only available from Python 3.13.
         # using len(os.sched_getaffinity(0)) instead
         if max_workers is not None and max_workers<0:
-            if len(os.sched_getaffinity(0)) + max_workers > 0:
-                max_workers=len(os.sched_getaffinity(0)) + max_workers
+            if available_cpu_count() + max_workers > 0:
+                max_workers=available_cpu_count() + max_workers
             else:
-                raise ValueError(f"Only {len(os.sched_getaffinity(0))} CPU cores available. Please adjust `max_workers`.")
+                raise ValueError(f"Only {available_cpu_count()} CPU cores available. Please adjust `max_workers`.")
         
         # set up parallel computation with multi threading
         func_result = [None] * len(evaluated_indices)
@@ -1961,12 +1961,9 @@ def compute_parallel(
         List of results from each of the workers.
 
     '''    
-    # check number of jobs for parallelization
-    # os.cpu_count() returns system- and not process-available cpus.
-    # os.process_cpu_count() only available from Python 3.13.
-    # using len(os.sched_getaffinity(0)) instead
-    if njobs > len(os.sched_getaffinity(0)):
-        njobs = len(os.sched_getaffinity(0))
+    # check number of CPUs for parallelization
+    if njobs > available_cpu_count():
+        njobs = available_cpu_count()
 
     # setup multiprossing environment
     execution = ProcessPoolExecutor(max_workers = njobs)
@@ -2250,3 +2247,27 @@ def dr2_wca(r: float | np.ndarray, eps: float = 10.0, sig: float = 1.0):
     rcut = 2**(1/6)*sig
     dr2 = np.where(r<=rcut, 4*eps*(156*sig**12/r**14 - 42*sig**6/r**8), 0)
     return dr2
+
+
+def available_cpu_count() -> int:
+    r'''
+    Returns the number of available CPU cores for the current process.
+    
+    Some Unix systems provide a way to access the number of CPU cores
+    available to the current process (e.g., when using CPU affinity).
+    This function tries to use this information if available, otherwise
+    it falls back to the total number of CPU cores in the system.
+
+    Returns
+    -------
+    int
+        Number of (available) CPU cores.
+
+    '''
+    if "process_cpu_count" in dir(os):
+        return os.process_cpu_count()
+    elif "sched_getaffinity" in dir(os):
+        return len(os.sched_getaffinity(0))
+    else:
+        return os.cpu_count()
+    
