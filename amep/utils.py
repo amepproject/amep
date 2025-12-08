@@ -1914,10 +1914,12 @@ def compute_parallel(
     results : list
         List of results from each of the workers.
 
-    '''    
-    # check number of jobs for parallelization
-    if njobs > os.process_cpu_count():
-        njobs = os.process_cpu_count()
+    '''
+    # check number of jobs available to the process
+    # os.cpu_count() would not be correct here
+    # os.process_cpu_count() only available from Python 3.13 and above
+    if njobs > len(os.sched_getaffinity(0)):
+        njobs = len(os.sched_getaffinity(0))
 
     # setup multiprossing environment
     execution = ProcessPoolExecutor(max_workers = njobs)

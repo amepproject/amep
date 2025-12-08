@@ -1240,8 +1240,9 @@ def pcf_angle(
             angle = 2*np.pi - angle
             
     # check number of jobs available to the process
-    if njobs > os.process_cpu_count():
-        njobs = os.process_cpu_count()
+    # os.process_cpu_count() only available from Python 3.13 and above
+    if njobs > len(os.sched_getaffinity(0)):
+        njobs = len(os.sched_getaffinity(0))
     
     # get optimal chunk size to reduce RAM usage
     if chunksize is None:
