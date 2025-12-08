@@ -166,11 +166,14 @@ def average_func(
         
         # easy setting of number of used cpu cores:
         # concurrent.futures automatically interprets `None` as `os.process_cpu_count()`
+        # os.cpu_count() returns system- and not process-available cpus.
+        # os.process_cpu_count() only available from Python 3.13.
+        # using len(os.sched_getaffinity(0)) instead
         if max_workers is not None and max_workers<0:
-            if os.process_cpu_count() + max_workers > 0:
-                max_workers=os.process_cpu_count() + max_workers
+            if len(os.sched_getaffinity(0)) + max_workers > 0:
+                max_workers=len(os.sched_getaffinity(0)) + max_workers
             else:
-                raise ValueError(f"Only {os.process_cpu_count()} CPU cores available. Please adjust `max_workers`.")
+                raise ValueError(f"Only {len(os.sched_getaffinity(0))} CPU cores available. Please adjust `max_workers`.")
         
         # set up parallel computation with multi threading
         func_result = [None] * len(evaluated_indices)
@@ -1959,8 +1962,11 @@ def compute_parallel(
 
     '''    
     # check number of jobs for parallelization
-    if njobs > os.cpu_count():
-        njobs = os.cpu_count()
+    # os.cpu_count() returns system- and not process-available cpus.
+    # os.process_cpu_count() only available from Python 3.13.
+    # using len(os.sched_getaffinity(0)) instead
+    if njobs > len(os.sched_getaffinity(0)):
+        njobs = len(os.sched_getaffinity(0))
 
     # setup multiprossing environment
     execution = ProcessPoolExecutor(max_workers = njobs)

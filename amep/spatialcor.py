@@ -240,8 +240,11 @@ def spatialcor(
 
     '''
     # check number of CPUs
-    if njobs > os.cpu_count():
-        njobs = os.cpu_count()
+    # os.cpu_count() returns system- and not process-available cpus.
+    # `os.process_cpu_count()` only available from Python 3.13.
+    # using len(os.sched_getaffinity(0)) instead
+    if njobs > len(os.sched_getaffinity(0)):
+        njobs = len(os.sched_getaffinity(0))
     
     # get box length
     box = box_boundary[:,1]-box_boundary[:,0]
@@ -551,8 +554,11 @@ def rdf(
         rmax = max(box_boundary[:,1]-box_boundary[:,0])/2
     
     # check number of jobs
-    if njobs > os.cpu_count():
-        njobs = os.cpu_count()
+    # os.cpu_count() returns system- and not process-available cpus.
+    # `os.process_cpu_count()` only available from Python 3.13.
+    # using len(os.sched_getaffinity(0)) instead
+    if njobs > len(os.sched_getaffinity(0)):
+        njobs = len(os.sched_getaffinity(0))
         
     # get spatial dimension
     dim = dimension(coords)
@@ -866,8 +872,11 @@ def pcf2d(
         rmax = max(box)//(2*np.sqrt(2))#2
     
     # check number of jobs
-    if njobs > os.cpu_count():
-        njobs = os.cpu_count()
+    # os.cpu_count() returns system- and not process-available cpus.
+    # `os.process_cpu_count()` only available from Python 3.13.
+    # using len(os.sched_getaffinity(0)) instead
+    if njobs > len(os.sched_getaffinity(0)):
+        njobs = len(os.sched_getaffinity(0))
         
     # angle to rotate (to orient x-axis along mean sample orientation)
     angle = 0.0
@@ -1170,8 +1179,11 @@ def pcf_angle(
             angle = 2*np.pi - angle
             
     # check number of jobs
-    if njobs > os.cpu_count():
-        njobs = os.cpu_count()
+    # os.cpu_count() returns system- and not process-available cpus.
+    # `os.process_cpu_count()` only available from Python 3.13.
+    # using len(os.sched_getaffinity(0)) instead
+    if njobs > len(os.sched_getaffinity(0)):
+        njobs = len(os.sched_getaffinity(0))
         
     # get optimal chunk size to reduce RAM usage
     if chunksize is None:
@@ -1474,8 +1486,11 @@ def sfiso(
     modes = ['std', 'fast', 'fft']
     
     # check number of jobs for parallelization
-    if njobs > os.cpu_count():
-        njobs = os.cpu_count()
+    # os.cpu_count() returns system- and not process-available cpus.
+    # os.process_cpu_count() only available from Python 3.13.
+    # using len(os.sched_getaffinity(0)) instead
+    if njobs > len(os.sched_getaffinity(0)):
+        njobs = len(os.sched_getaffinity(0))
     
     # check other_coords
     if other_coords is None:
@@ -1744,8 +1759,11 @@ def sf2d(
     Nother = len(other_coords)
         
     # check njobs
-    if njobs > os.cpu_count():
-        njobs = os.cpu_count()
+    # os.cpu_count() returns system- and not process-available cpus.
+    # `os.process_cpu_count()` only available from Python 3.13.
+    # using len(os.sched_getaffinity(0)) instead
+    if njobs > len(os.sched_getaffinity(0)):
+        njobs = len(os.sched_getaffinity(0))
 
     # get maximum distance
     rmax = np.abs(np.max(box))
