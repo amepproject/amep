@@ -80,8 +80,6 @@ class TestEvaluateMethods(unittest.TestCase):
         """Test arbitray function evaluation.
         TO BE IMPLEMENTED
         """
-        traj = self.particle_traj
-        ftraj = self.field_traj
         # MSD
         def msd(frame, start=None):
             vec = start.unwrapped_coords() - frame.unwrapped_coords()
@@ -111,6 +109,9 @@ class TestEvaluateMethods(unittest.TestCase):
                 nav=2, nbins=1000,
                 skip=0.9, njobs=4)
         rdfcalc.save(RESULT_DIR/'rdf.h5')
+
+        traj = self.particle_traj
+        ftraj = self.field_traj
         # PCF2d
         pcf2d = PCF2d(traj,
                       nav=2, nxbins=50, nybins=50,
@@ -148,13 +149,13 @@ class TestEvaluateMethods(unittest.TestCase):
         """Test distribution functions.
         """
         # VelDist
-        veldist = VelDist(traj, skip=0.9, nav=2)
+        veldist = VelDist(self.particle_traj, skip=0.9, nav=2)
         veldist.save(RESULT_DIR/"veldist_eval.h5", database=True, name="particles")
         # VelDist
         import numpy as np
-        dist = Dist(traj, "v*",func=np.linalg.norm, axis=1, skip=0.9, nav=2)
+        dist = Dist(self.particle_traj, "v*",func=np.linalg.norm, axis=1, skip=0.9, nav=2)
         dist.save(RESULT_DIR/"distv_eval.h5", database=True, name="particles")
-        dist = Dist(traj, "vx", skip=0.9, nav=2)
+        dist = Dist(self.particle_traj, "vx", skip=0.9, nav=2)
         dist.save(RESULT_DIR/"distvx_eval.h5", database=True, name="particles")
 
 
