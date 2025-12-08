@@ -105,6 +105,21 @@ class TestEvaluateMethods(unittest.TestCase):
             njobs=4, rmax=8.0, skip=0.9
             )
         pcfangle.save(RESULT_DIR/"pcfangle.h5")
+        pcfangle = PCFangle(
+            traj, nav=2, ndbins=50, nabins=50,
+            njobs=4, rmax=3.0, skip=0.9,
+            mode="psi6"
+            )
+        pcfangle = PCFangle(
+            traj, nav=2, ndbins=50, nabins=50,
+            njobs=4, rmax=3.0, skip=0.9,
+            mode="orientations"
+            )
+        pcfangle = PCFangle(
+            traj, nav=2, ndbins=50, nabins=50,
+            njobs=4, rmax=3.0, skip=0.9,
+            mode="x"
+            )
         # SF2d
         psf2d = SF2d(traj, skip=0.9, nav=2)
         psf2d.save(RESULT_DIR/"sf2d_eval.h5", database=True, name="particles")
