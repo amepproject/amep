@@ -1142,23 +1142,41 @@ def pcf_angle(
     >>> frame = traj[-1]
     >>> grt, rt, theta = amep.spatialcor.pcf_angle(
     ...     frame.coords(), frame.box, njobs=4,
-    ...     ndbins=1000, nabins=1000
+    ...     ndbins=100, nabins=100, rmax=5
     ... )
-    >>> X = rt*np.cos(theta)
-    >>> Y = rt*np.sin(theta)
-    >>> fig, axs = amep.plot.new(figsize=(3.8,3))
-    >>> mp = amep.plot.field(axs, grt.T, X, Y)
-    >>> cax = amep.plot.add_colorbar(
-    ...     fig, axs, mp, label=r'$g(\Delta x, \Delta y)$'
-    ... )
-    >>> axs.set_xlim(-10,10)
-    >>> axs.set_ylim(-10,10)
-    >>> axs.set_xlabel(r'$\Delta x$')
-    >>> axs.set_ylabel(r'$\Delta y$')
-    >>> fig.savefig('./figures/spatialcor/spatialcor-pcf_angle.png')
-    >>> 
-    
+    >>> fig, axs = amep.plot.new(subplot_kw=dict(projection="polar"))
+    >>> mp = axs.pcolormesh(theta,rt, grt)
+    >>> cax = amep.plot.add_colorbar(fig, axs, mp, 
+    >>> label=r"$g(\Delta r, \Delta \theta)$")
+    >>> axs.grid(alpha=.5, lw=.5, c='w')
+    >>> axs.tick_params(axis='y', colors='white')
+    >>> fig.savefig('spatialcor-pcf_angle.png')
+
     .. image:: /_static/images/spatialcor/spatialcor-pcf_angle.png
+      :width: 400
+      :align: center
+
+    >>> # calculate angular pcf with respect to particle orientations
+    >>> grt, r, t = amep.spatialcor.pcf_angle(
+    ...        frame.coords(),
+    ...        frame.box,
+    ...        psi = None,
+    ...        e=frame.orientations(),
+    ...        nabins=36,
+    ...        rmax=3,
+    ...        ndbins=100
+    ...    )
+    >>> fig, axs = amep.plot.new(subplot_kw=dict(projection="polar"))
+    >>> mp = axs.pcolormesh(t,r, grt)
+    >>> cax = amep.plot.add_colorbar(fig, axs, mp, 
+    >>>        label=r"$g(\Delta r, \Delta \theta)$")
+    >>> axs.grid(alpha=.5, lw=.5, c='w')
+    >>> axs.set_rticks([0,1,2,3])
+    >>> axs.set_rlim(0,1.1)
+    >>> axs.tick_params(axis='y', colors='white')
+    >>> fig.savefig('spatialcor-pcf_angle_2.png')
+
+    .. image:: /_static/images/spatialcor/spatialcor-pcf_angle_2.png
       :width: 400
       :align: center
     
