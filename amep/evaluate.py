@@ -819,41 +819,41 @@ class PCFangle(BaseEvaluation):
         Implemented for a 2D system.
         Takes the time average over several time steps.
 
-        Three modes are available, the default, `psi6`
+        Three modes are available, the default, ``'psi6'``
         allows for averaging the result (either with respect to time or to
         make an ensemble average), the coordinates are rotated such that the
-        mean `psi6` orientation points along the :math:`x`-axis
+        mean :math:`\psi_6` orientation points along the :math:`x`-axis
         (see Ref. [1]_ for details).
 
-        The mode `orientations` calculates :math:`g(r,\theta)` in relation
-        to the individual particle orientations (`frame.orientations()`).
+        The mode ``'orientations'`` calculates :math:`g(r,\theta)` in relation
+        to the individual particle orientations (``frame.orientations()``).
         This mode is particularly interesting for active matter.
 
-        The mode `x` calculates :math:`g(r,\theta)` in relation to the 
+        The mode ``'x'`` calculates :math:`g(r,\theta)` in relation to the 
         :math:`x`-axis.
 
         Per default, it is assumed that the system has periodic boundary
-        conditions (keyword `pbc=True`). Please adjust as needed.
-        The keyword `pbc` is forwarded to `amep.spatialcor.pcf_angle` via
-        `**kwargs`.
+        conditions (keyword ``pbc=True``). Please adjust as needed.
+        The keyword ``pbc`` is forwarded to :func:`amep.spatialcor.pcf_angle` via
+        ``**kwargs``.
 
         Notes
         -----
         The angle-dependent pair correlation function is defined by (see Ref. [2]_)
 
         .. math::
-        g(r,\theta) = \frac{1}{\langle \rho\rangle_{local,\theta} N}\sum\limits_{i=1}^{N}
-        \sum\limits_{j\neq i}^{N}\frac{\delta(r_{ij} -r)\delta(\theta_{ij}-\theta)}{2\pi r^2 \sin(\theta)}
+            g(r,\theta) = \frac{1}{\langle \rho\rangle_{\text{local},\theta} N}\sum\limits_{i=1}^{N}
+            \sum\limits_{j\neq i}^{N}\frac{\delta(r_{ij} -r)\delta(\theta_{ij}-\theta)}{2\pi r^2 \sin(\theta)}
 
 
         The angle :math:`\theta` is defined with respect to a certain axis :math:`\vec{e}` and
         is given by
 
         .. math::
-        \cos(\theta)=\frac{\vec{r}_{ij}\cdot\vec{e}}{r_{ij}e}
+            \cos(\theta)=\frac{\vec{r}_{ij}\cdot\vec{e}}{r_{ij}e}
 
         The vector :math:`\vec{e}` is default the x-axis, but can be specified by supplying
-        the parameter `e`. See parameter description for details.
+        the parameter ``e``. See parameter description for details.
 
         The angles are in the range :math:`\theta \in [0, 2\pi)`.
 
@@ -889,23 +889,23 @@ class PCFangle(BaseEvaluation):
         other : int or None, optional
             Other particle type (to calculate the correlation between
             different particle types).
-            `other` will specify the locations of the reference particles
-            from which the distances and angles to the particles `ptype`
-            are calculated ("`other` ≙ probing locations").
+            ``other`` will specify the locations of the reference particles
+            from which the distances and angles to the particles ``ptype``
+            are calculated ("``other`` ≙ probing locations").
             The default is None.
         mode : str, optional
             Mode that defines with respect to which axis the angles
-            are calculated. Possible values are `psi6`, `orientations`,
-            and `x`. The default is `psi6`, which uses the hexagonal
+            are calculated. Possible values are ``'psi6'``, ``'orientations'``,
+            and ``'x'``. The default is ``'psi6'``, which uses the hexagonal
             order parameter to define the mean orientation.
             The option `orientations` calculates :math:`g(r,\theta)`
             with respect to the individual particle orientations
-            (useful for active particles). The option `x` uses the
+            (useful for active particles). The option ``'x'`` uses the
             :math:`x`-axis of the simulation box as reference.
-            The default is 'psi6'.
+            The default is ``'psi6'``.
         **kwargs
             All other keyword arguments are forwarded to
-            `amep.spatialcor.pcf_angle`.
+            :func:`amep.spatialcor.pcf_angle`.
 
         Examples
         --------
@@ -915,7 +915,7 @@ class PCFangle(BaseEvaluation):
         >>> fig, axs = amep.plot.new(subplot_kw=dict(projection="polar"))
         >>> mp = axs.pcolormesh(pcfangle.theta, pcfangle.r, pcfangle.avg)
         >>> cax = amep.plot.add_colorbar(fig, axs, mp, label=r"$g(\Delta r, \Delta \theta)$")
-        >>> axs.grid(alpha=.51, lw=.5, c='w')
+        >>> axs.grid(alpha=.5, lw=.5, c='w')
         >>> axs.set_rticks([0,1,2,3])
         >>> axs.tick_params(axis='y', colors='white')
         >>> 
@@ -934,7 +934,7 @@ class PCFangle(BaseEvaluation):
         >>> fig, axs = amep.plot.new(subplot_kw=dict(projection="polar"))
         >>> mp = axs.pcolormesh(pcfangle.theta, pcfangle.r, pcfangle.avg)
         >>> cax = amep.plot.add_colorbar(fig, axs, mp, label=r"$g(\Delta r, \Delta \theta)$")
-        >>> axs.grid(alpha=.51, lw=.5, c='w')
+        >>> axs.grid(alpha=.5, lw=.5, c='w')
         >>> axs.set_rticks([0,1,2,3])
         >>> axs.set_rlim(0,1.1)
         >>> axs.tick_params(axis='y', colors='white')
