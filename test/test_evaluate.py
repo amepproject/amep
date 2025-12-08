@@ -152,13 +152,13 @@ class TestEvaluateMethods(unittest.TestCase):
         psf2d_2 = SF2d(self.particle_traj, skip=0.8, nav=7, max_workers=-1)
         psf2d_3 = SF2d(self.particle_traj, skip=0.8, nav=7, max_workers=None)
         psf2d_4 = SF2d(self.particle_traj, skip=0.8, nav=7, max_workers=1)
-        self.assertTrue(psf2d_1.avg==psf2d_2.avg,
+        self.assertTrue(np.all(psf2d_1.avg==psf2d_2.avg),
             '4 thread result differs from -1 thread result'
         )
-        self.assertTrue(psf2d_2.avg==psf2d_3.avg,
+        self.assertTrue(np.all(psf2d_2.avg==psf2d_3.avg),
             '-1 thread result differs from `None` thread result'
         )
-        self.assertTrue(psf2d_3.avg==psf2d_4.avg,
+        self.assertTrue(np.all(psf2d_3.avg==psf2d_4.avg),
             '`None` thread result differs from 1 thread result'
         )
 
