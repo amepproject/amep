@@ -1916,10 +1916,8 @@ def compute_parallel(
 
     '''
     # check number of jobs available to the process
-    # os.cpu_count() would not be correct here
-    # os.process_cpu_count() only available from Python 3.13 and above
-    if njobs > len(os.sched_getaffinity(0)):
-        njobs = len(os.sched_getaffinity(0))
+    if njobs > available_cpu_count():
+        njobs = available_cpu_count()
 
     # setup multiprossing environment
     execution = ProcessPoolExecutor(max_workers = njobs)
@@ -2203,3 +2201,26 @@ def dr2_wca(r: float | np.ndarray, eps: float = 10.0, sig: float = 1.0):
     rcut = 2**(1/6)*sig
     dr2 = np.where(r<=rcut, 4*eps*(156*sig**12/r**14 - 42*sig**6/r**8), 0)
     return dr2
+
+
+def available_cpu_count() -> int:
+    r'''
+    Returns the number of available CPU cores for the current process.
+
+    On some systems, the number of available CPU cores to the process
+    (the affinity) can be determined. This function first tries to use
+    different options to get the number of available CPU cores.
+    (Dependent on the Python version and operating system.)
+
+    Returns
+    -------
+    int
+        Number of available CPU cores.
+
+    '''
+    if "process_cpu_count" in dir(os):
+        return os.process_cpu_count()
+    elif "sched_getaffinity" in dir(os):
+        return len(os.sched_getaffinity(0))
+    else:
+        return os.cpu_count()
