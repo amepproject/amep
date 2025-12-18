@@ -63,7 +63,6 @@ class TestEvaluateMethods(unittest.TestCase):
 
     def test_energy_methods(self):
         """Test the energy methods.
-        TO BE IMPLEMENTED
         """
         traj = self.particle_traj
         # Ekintrans
@@ -78,7 +77,6 @@ class TestEvaluateMethods(unittest.TestCase):
 
     def test_function(self):
         """Test arbitray function evaluation.
-        TO BE IMPLEMENTED
         """
         # MSD
         def msd(frame, start=None):
@@ -92,11 +90,6 @@ class TestEvaluateMethods(unittest.TestCase):
         msd_eval.name = "msd"
         msd_eval.save(RESULT_DIR/"msd_eval.h5")
 
-    def test_order_evaluations(self):
-        """Test order parameter evaluation.
-        TO BE IMPLEMENTED
-        """
-        pass
 
     def test_correlations(self):
         """Test correlation function evaluations.
@@ -157,10 +150,3 @@ class TestEvaluateMethods(unittest.TestCase):
         dist.save(RESULT_DIR/"distv_eval.h5", database=True, name="particles")
         dist = Dist(self.particle_traj, "vx", skip=0.9, nav=2)
         dist.save(RESULT_DIR/"distvx_eval.h5", database=True, name="particles")
-
-
-    def test_transforms(self):
-        """Test order parameter evaluation.
-        TO BE IMPLEMENTED
-        """
-        pass
