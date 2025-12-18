@@ -892,7 +892,7 @@ class PCFangle(BaseEvaluation):
             ``other`` will specify the locations of the reference particles
             from which the distances and angles to the particles ``ptype``
             are calculated ("``other`` ≙ probing locations").
-            The default is None.
+            The default is None which uses the ``ptype`` particles.
         mode : str, optional
             Mode that defines with respect to which axis the angles
             are calculated. Possible values are ``'psi6'``, ``'orientations'``,
@@ -1020,25 +1020,31 @@ class PCFangle(BaseEvaluation):
         t : np.ndarray
             theta values
         '''
-        # hexagonal order parameter to specify mean orientation
-        if self.__mode == 'x':
-            psi = None
-            e = np.array([1.0, 0.0, 0.0])
-        elif self.__mode == 'orientations':
-            psi = None
+        DEFAULT_E = np.array([1.0, 0.0, 0.0], dtype=float)
+
+        psi = None
+        e = DEFAULT_E # default works for modes that don't naturally define e
+
+        if self.__mode == "x":
+            # keep default psi
+            # keep default e
+            pass
+        elif self.__mode == "orientations":
+            # keep default psi
             if self.__other is None:
                 e = frame.orientations(ptype=self.__ptype)
             else:
                 e = frame.orientations(ptype=self.__other)
-        elif self.__mode == 'psi6':
+        elif self.__mode == "psi6":
             psi = np.mean(psi_k(
                 frame.coords(),
                 frame.box,
                 k = 6
             ))
             psi = np.array([psi.real, psi.imag])
-            # specifying e here to make the pcf_angle call work for all modes the same
-            e = np.array([1.0, 0.0, 0.0])
+            # keep default e
+        else:
+            raise ValueError(f"Unknown mode: {self.__mode!r}")
         
         if self.__other is None:
             grt, r, t = pcf_angle(
