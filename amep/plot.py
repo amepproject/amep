@@ -1828,8 +1828,8 @@ def create_video(
 
 def voronoi(axs: mpl.axes.Axes, vor: Voronoi, **kwargs):
     r'''
-    Plots the Voronoi tessellations from a Voronoi object calculated with scipy
-    function voronoi_plot_2d [1]_.
+    Plots the Voronoi tessellations from a Voronoi object calculated with the
+    SciPy function ``voronoi_plot_2d`` (see Ref. [1]_).
 
 
     Notes
@@ -1847,7 +1847,8 @@ def voronoi(axs: mpl.axes.Axes, vor: Voronoi, **kwargs):
     voronoi : Voronoi object
         Voronoi object to plot the Voronoi tessellation of.
     **kwargs : Keyword arguments for the plot.
-        show_points, show_vertices, line_colors, line_width, line_alpha, point_size
+        ``show_points``, ``show_vertices``, ``line_colors``, 
+        ``line_width``, ``line_alpha``, ``point_size``.
         Compare [1]_
 
     Returns
