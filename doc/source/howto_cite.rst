@@ -3,8 +3,8 @@
 How to Cite
 ============
 
-If you use **AMEP** for a project that leads to a scientific publication, please acknowledge 
-the use of **AMEP** within the body of your publication for example by copying or adapting 
+If you use AMEP for a project that leads to a scientific publication, please acknowledge 
+the use of AMEP within the body of your publication for example by copying or adapting 
 the following formulation:
 
 *Data analysis for this publication utilized the AMEP library [1].*

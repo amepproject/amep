@@ -32,7 +32,6 @@ doc/source/_autosummary
 *.egg-info/
 *.swp
 *.mp4
-*.gif
 *.h5
 dist/
 config/
