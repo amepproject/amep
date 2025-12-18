@@ -982,22 +982,23 @@ def __dhist_angle(
     # compute the 2D histogram (r,theta)
     hist = np.zeros((len(dbins)-1,len(abins)-1), dtype=float)
 
-    for n in np.arange(len(other_coords))[sl]:
+    # reduce overhead by defining particle range outside of loop
+    if same:
+        particlerange = np.arange(len(coords))
+
+    for n in range(len(other_coords))[sl]:
         # calculate connecting vectors between particle n of other_coords and
         # all particles in coords. r_ij = r_j - r_i = r_j - r_n, where r_n
         # is the position of particle n in other_coords.
         if same:
             r_ij = pbc_diff(
-                coords[np.arange(len(coords)) != n], # exclude the particle itself
+                coords[particlerange != n], # exclude the particle itself
                 other_coords[n],
                 box_boundary,
                 pbc=pbc
             )
-            # # exclude the particle itself
-            # r_ij = other_coords[n] - coords[np.arange(len(coords)) != n]
         else:
             r_ij = pbc_diff(coords, other_coords[n], box_boundary, pbc=pbc)
-            # r_ij = other_coords[n] - coords
         
         # get distances
         dist = np.linalg.norm(r_ij, axis=1)
