@@ -46,13 +46,8 @@ from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Avoid deprecation warnings of multiprocessing by selecting safer start method.
-import multiprocessing
-multiprocessing.set_start_method("spawn", force=True)
-# could do this for safe error catching when method was set before
-# try:
-#     multiprocessing.set_start_method("spawn", force=True)
-# except RuntimeError:
-#     pass
+from multiprocessing import set_start_method
+set_start_method("spawn", force=True)
 
 
 # logger setup
@@ -2184,6 +2179,8 @@ def wca(r: float | np.ndarray, eps: float = 10.0, sig: float = 1.0):
         Potential energy.
 
     """
+    # rcut: cutoff distance for purely repulsive Lennard-Jones potential
+    # purely repulsive Lennard-Jones is the WCA potential
     rcut = 2**(1/6)*sig
     epot = np.where(r<=rcut, 4*eps*((sig/r)**12-(sig/r)**6)+eps, 0)
     return epot
@@ -2214,6 +2211,8 @@ def dr_wca(r: float | np.ndarray, eps: float = 10.0, sig: float = 1.0):
         First derivative.
 
     """
+    # rcut: cutoff distance for purely repulsive Lennard-Jones potential
+    # purely repulsive Lennard-Jones is the WCA potential
     rcut = 2**(1/6)*sig
     dr = np.where(r<=rcut, 4*eps*(6*sig**6/r**7 - 12*sig**12/r**13), 0)
     return dr
@@ -2244,6 +2243,8 @@ def dr2_wca(r: float | np.ndarray, eps: float = 10.0, sig: float = 1.0):
         Second derivative.
 
     """
+    # rcut: cutoff distance for purely repulsive Lennard-Jones potential
+    # purely repulsive Lennard-Jones is the WCA potential
     rcut = 2**(1/6)*sig
     dr2 = np.where(r<=rcut, 4*eps*(156*sig**12/r**14 - 42*sig**6/r**8), 0)
     return dr2

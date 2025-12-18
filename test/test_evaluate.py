@@ -164,19 +164,3 @@ class TestEvaluateMethods(unittest.TestCase):
         self.assertTrue(np.all(msd_3.avg==msd_4.avg),
             '`None` thread result differs from 1 thread result'
         )
-
-        # takes waayy longer:
-        # psf2d_1 = amep.evaluate.SF2d(self.particle_traj, skip=0.8, nav=2, max_workers=4)
-        # psf2d_2 = amep.evaluate.SF2d(self.particle_traj, skip=0.8, nav=2, max_workers=-1)
-        # psf2d_3 = amep.evaluate.SF2d(self.particle_traj, skip=0.8, nav=2, max_workers=None)
-        # psf2d_4 = amep.evaluate.SF2d(self.particle_traj, skip=0.8, nav=2, max_workers=1)
-        # self.assertTrue(np.all(psf2d_1.avg==psf2d_2.avg),
-        #     '4 thread result differs from -1 thread result'
-        # )
-        # self.assertTrue(np.all(psf2d_2.avg==psf2d_3.avg),
-        #     '-1 thread result differs from `None` thread result'
-        # )
-        # self.assertTrue(np.all(psf2d_3.avg==psf2d_4.avg),
-        #     '`None` thread result differs from 1 thread result'
-        # )
-
