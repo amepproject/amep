@@ -10,22 +10,35 @@
 
 <center><img src="https://raw.githubusercontent.com/amepproject/amep/main/doc/source/_static/images/amep-logo_v2.png" alt="amep logo" width="200" height="200"/></center>
 
-The **AMEP** (**A**ctive **M**atter **E**valuation **P**ackage) Python library 
-is a powerful tool for analyzing data from molecular-dynamics (MD), 
-Brownian-dynamics (BD), and continuum simulations. It comprises various 
-methods to analyze structural and dynamical properties of condensed matter 
-systems in general and active matter systems in particular. **AMEP** is 
-exclusively built on Python, and therefore, it is easy to modify and allows to 
-easily add user-defined functions. **AMEP** provides an efficient data format 
-for saving both simulation data and analysis results based on the HDF5 file 
-format. To be fast and usable on modern HPC (**H**igh **P**erformance 
-**C**omputing) hardware, the methods are optimized to run also in parallel.
+
+**AMEP** is a Python library that focuses on the fast and user-friendly analysis 
+of active and soft matter simulations. It can natively analyze data from molecular 
+dynamics, Brownian dynamics, and continuum simulations from software such as LAMMPS, 
+HOOMD-blue, and GROMACS. 
+
+With a plethora of methods for calculating observables 
+and visualizing results, AMEP is suitable for calculating complex observables 
+equally for advanced studies of active and soft matter, as well as for beginners 
+in the field. Computationally intensive methods are parallelized to run on systems 
+ranging from laptops and workstations to high-performance computing clusters.
+
+AMEP utilizes the simplicity of NumPy for users to extract data from the 
+internal functions, which allows for easy extension and individualization of 
+analyses and handling of results and data with existing Python workflows. Additionally, 
+AMEP provides an efficient data format for saving both simulation data and analysis 
+results in a binary file based on the well-established [HDF5](https://www.hdfgroup.org/solutions/hdf5/) 
+file format.
+
+The methods range from correlation functions and order parameters to cluster detection 
+and coarse-graining methods. Examples and the documentation can be found on our homepage 
+[amepproject.de](https://amepproject.de). AMEP can be installed via pip and conda.
+
 
 
 # How to cite AMEP
 
-If you use **AMEP** for a project that leads to a scientific publication, please acknowledge 
-the use of **AMEP** within the body of your publication for example by copying or adapting 
+If you use AMEP for a project that leads to a scientific publication, please acknowledge 
+the use of AMEP within the body of your publication for example by copying
 the following formulation:
 
 *Data analysis for this publication utilized the AMEP library [1].*
@@ -60,14 +73,14 @@ To cite this reference, you can use the following BibTeX entry:
 
 # Installation
 
-The **AMEP** library can be installed via `pip`, `conda`, or by manually adding 
+The AMEP Python library can be installed via `pip`, `conda`, or by manually adding 
 the `amep` directory to your Python path. Installation via `pip` or `conda` is 
 recommended. To use all plot animation features, please additionally install 
 FFmpeg (https://ffmpeg.org/) on your machine (see below).
 
 ## Installation via pip
 
-**AMEP** can be simply installed from [PyPI](https://pypi.org/project/amep/) 
+AMEP can be simply installed from [PyPI](https://pypi.org/project/amep/) 
 via 
 
 ```bash
@@ -76,7 +89,7 @@ pip install amep
 
 ## Installation via conda
 
-**AMEP** can be simply installed from 
+AMEP can be simply installed from 
 [conda-forge](https://anaconda.org/conda-forge/amep) via 
 
 ```bash
@@ -85,7 +98,7 @@ conda install conda-forge::amep
 
 ## Manual installation
 
-Before installing **AMEP** manually, ensure that your Python environment 
+Before installing AMEP manually, ensure that your Python environment 
 fulfills the required specifications as published together with each release. 
 If your Python environment is set up, download the latest version from 
 [https://github.com/amepproject/amep](https://github.com/amepproject/amep) 
@@ -109,18 +122,37 @@ to the `.bash_profile` file (Linux only). If you use the Anaconda distribution,
 you can alternatively add the `amep` directory to `Lib/site-packages` in the 
 Anaconda installation path.
 
+## Python environment
+
+For system cleanliness and easy dependency management, we recommend to use
+virtual environments as a good practice using Python. You can create and 
+activate one by following the [official Python instructions](https://docs.python.org/3/library/venv.html). 
+Here are the instructions for Linux or macOS (for Microsoft Windows you 
+may adapt the path formatting to the Windows specific style).
+
+```bash
+python3 -m venv amepenv
+source amepenv/bin/activate
+```
+
+Depending on you Python installation, you may need to use `python3` or `python`.
+The virtual environment `amepenv` will be created in the directory you have 
+your terminal running. Follow the official instructions linked above for more
+details.
+
+
 ## FFmpeg
 
-**AMEP** provides the possibility to animate plots and trajectories. 
-**To enable all animation features, FFmpeg must be installed on the device on** 
-**which you run AMEP**. FFmpeg is not automatically installed when you install 
-**AMEP**. Please visit [https://ffmpeg.org/download.html](https://ffmpeg.org/download.html) 
+AMEP provides the possibility to animate plots and trajectories. 
+To enable the animation features, _FFmpeg must be installed on the device on which you run AMEP_.
+FFmpeg is not automatically installed when you install 
+AMEP. Please visit [https://ffmpeg.org/download.html](https://ffmpeg.org/download.html) 
 to download FFmpeg and to get further information on how to install FFmpeg on your machine.
 
 
 # Getting started
 
-The following example briefly demonstrates the **AMEP** workflow. A typical 
+The following example briefly demonstrates the AMEP workflow. A typical 
 task is to calculate the average of an observable over several frames of the 
 simulation (time average). In the example below, we first load LAMMPS 
 simulation data stored as individual `dump*.txt` files for each frame, and 
@@ -153,38 +185,16 @@ fig.savefig(rdf.name + '.png')
 fig.savefig(rdf.name + '.pdf')
 ```
 
-For more detailed examples, check the [examples](https://github.com/amepproject/amep/tree/main/examples) directory.
+For more detailed examples, check the [examples](https://github.com/amepproject/amep/tree/main/examples)
+directory and check out our homepage [amepproject.de](https://amepproject.de).
 
 
-# Project description
+# Feature overview
 
-The **AMEP** Python library provides a unified framework for handling 
-both particle-based and continuum simulation data. It is made for the analysis 
-of molecular-dynamics (MD), Brownian-dynamics (BD), and continuum simulation 
-data of condensed matter systems and active matter systems in particular. 
-**AMEP** provides a huge variety of analysis methods for both data types that 
-allow to evaluate various dynamic and static observables based on the 
-trajectories of the particles or the time evolution of continuum fields. For 
-fast and efficient data handling, **AMEP** provides a unified framework for 
-loading and storing simulation data and analysis results in a compressed, 
-HDF5-based data format. **AMEP** is written purely in Python and uses powerful 
-libraries such as NumPy, SciPy, Matplotlib, and scikit-image commonly used in 
-computational physics. Therefore, understanding, modifying, and building up on 
-the provided framework is comparatively easy. All evaluation functions are 
-optimized to run efficiently on HPC hardware to provide fast computations. To 
-plot and visualize simulation data and analysis results, **AMEP** provides an 
-optimized plotting framework based on the Matplotlib Python library, which 
-allows to easily plot and animate particles, fields, and lines. Compared to 
-other analysis libraries, the huge variety of analysis methods combined with 
-the possibility to handle both most common data types used in soft-matter 
-physics and in the active matter community in particular, enables the analysis 
-of a much broader class of simulation data including not only classical 
-molecular-dynamics or Brownian-dynamics simulations but also any kind of 
-numerical solutions of partial differential equations. The following table 
-gives an overview on the observables provided by **AMEP** and on their 
-capability of processing particle-based and continuum 
-simulation data.
-
+The following table is a subset of functions and methods implemented in AMEP.
+It does not cover all analysis methods and shall only be seen as a exemplary list.
+Please go to our [API Reference](https://amepproject.de/stable/api.html) for the
+complete documentation of AMEP and its implemented features.
 
 | Observable | Particles | Fields |
 |:-----------|:---------:|:------:|
@@ -222,7 +232,7 @@ simulation data.
 
 # Module descriptions
 
-In the following, we provide a list of all **AMEP** modules together with a 
+In the following, we provide a list of all AMEP modules together with a 
 short description.
 
 | **Module:** | **Description:** |
@@ -246,46 +256,16 @@ short description.
 
 # Data Formats
 
-**AMEP** is compatible with multiple data formats. The current version can load 
-particle-based simulation data obtained from LAMMPS (https://www.lammps.org), 
-HOOMD-blue, GROMACS and continuum simulation data with the following format: 
-The main directory should contain one file with data that stays constant 
-throughout the entire simulation such as the boundaries of the simulation 
-box, the shape of the underlying grid and the grid coordinates. It's standard 
-name is `grid.txt` and it should have the following form:
-```
-BOX:
-<X_min>	<X_max>
-<Y_min>	<Y_max>
-<Z_min>	<Z_max>
-SHAPE:
-<nx> <ny> <nz>
-COORDINATES: X Y Z
-<X_0> <Y_0> <Z_0>
-<X_1> <Y_1> <Z_1>
-...
-```
-All data that varies in time is to be put into files named `dump<index>.txt`. 
-The index should increase with time, i.e., the file `dump1000.txt` should 
-contain the data of the continuum simulation at timestep 1000, and the prefix 
-`dump` is user-defined and can be changed (if it is changed, the new naming 
-convention has to be specified with the keyword `dumps` in `amep.load.traj`, 
-e.g., for files named `field_100.txt`, `field_200.txt`, ..., use 
-`dumps='field_*.txt'`). The data files should have the following form:
-```
-TIMESTEP:
-<Simulation timestep>
-TIME:
-<Physical time>
-DATA: <fieldname 0> <fieldname 1> <fieldname 2> <fieldname 3>
-<field 0 0> <field 1 0> <field 2 0> <field 3 0>
-<field 0 1> <field 1 1> <field 2 1> <field 3 1>
-<field 0 2> <field 1 2> <field 2 2> <field 3 2>
-...
-```
+For details on the supported data formats such as LAMMPS, GROMACS, HOOMD-blue,
+or continuum simulations, please refer to the documentation section 
+[Supported data formats](https://amepproject.de/stable/user_guide/data_formats/index.html)
+on our homepage or the corresponding files 
+[here on GitHub](https://github.com/amepproject/amep/tree/main/doc/source/user_guide/data_formats).
 
 # Support
-If you need support for using **AMEP**, we recommend to use our [GitHub discussions](https://github.com/amepproject/amep/discussions) page. If you find a bug, please create an [issue](https://github.com/amepproject/amep/issues).
+If you need support for using AMEP, please feel free to contact us either 
+directly on our [GitHub discussions](https://github.com/amepproject/amep/discussions) 
+page. If you find a bug or inconsistency, please create an [issue](https://github.com/amepproject/amep/issues).
 
 ## Creating issues
 To create an issue, go to [https://github.com/amepproject/amep/issues](https://github.com/amepproject/amep/issues) and
@@ -299,30 +279,20 @@ When creating issues, text is written as markdown, which allows formatting text,
 tables for example. A useful guide can be found [here](https://www.markdownguide.org/).
 
 
-# Roadmap
-Planned new features for future releases are listed as issues in the [issue list](https://github.com/amepproject/amep/issues).
-
 # Contributing
-If you want to contribute to this project, please check the file [CONTRIBUTING.md](https://github.com/amepproject/amep/blob/main/CONTRIBUTING.md).
+Contributions are always welcome! If you want to contribute to this project, 
+please check the file [CONTRIBUTING.md](https://github.com/amepproject/amep/blob/main/CONTRIBUTING.md).
+You can also send us a message or post in our [GitHub discussions](https://github.com/amepproject/amep/discussions).
 
-# Contributors/Authors
-The following people contributed to **AMEP**:
+# Authors and Contributors
+The list of contributors can be found in the file [CONTRIBUTORS.md](https://github.com/amepproject/amep/blob/main/CONTRIBUTORS.md)
 
-- Lukas Hecht (creator and lead developer)
-- Kay-Robert Dormann (lead developer)
-- Kai Luca Spanheimer (developer)
-- Aritra Mukhopadhyay (developer)
-- Mahdieh Ebrahimi (developer)
-- Suvendu Mandal (developer)
-- Benno Liebchen (planning)
-- Lukas Walter (former developer)
-- Malte Cordts (former developer)
 
 # Acknowledgments
 Many thanks to the whole 
 [group of Benno Liebchen](https://www.ipkm.tu-darmstadt.de/research_ipkm/liebchen_group/index.en.jsp) 
 at the Institute for Condensed Matter Physics at Technical University of 
-Darmstadt for testing and supporting **AMEP**, for fruitful discussions, and 
+Darmstadt for testing and supporting AMEP, for fruitful discussions, and 
 for very helpful feedback. Additionally, the authors gratefully acknowledge the 
 computing time provided to them at the NHR Center NHR4CES at TU Darmstadt 
 (project number p0020259). This is funded by the Federal Ministry of Education 
@@ -331,6 +301,6 @@ resolutions of the GWK for national high performance computing at universities
 ([https://www.nhr-verein.de/unsere-partner](https://www.nhr-verein.de/unsere-partner)).
 
 # License
-The **AMEP** library is published under the GNU General Public License, 
+The AMEP library is published under the GNU General Public License, 
 version 3 or any later version. Please see the file [LICENSE](https://github.com/amepproject/amep/blob/main/LICENSE) for more 
 information.

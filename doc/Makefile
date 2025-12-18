@@ -14,6 +14,13 @@ help:
 
 .PHONY: help Makefile
 
+clean:
+	@echo "Cleaning build/ and _autosummary/..."
+	rm -rf $(BUILDDIR)/*
+	rm -rf $(SOURCEDIR)/_autosummary/*
+	@echo "Running Sphinx's built-in clean target..."
+	@$(SPHINXBUILD) -M clean "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile

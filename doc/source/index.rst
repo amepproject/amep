@@ -6,16 +6,28 @@
 AMEP |release| documentation
 ============================
 
-The **AMEP** (**A**\ ctive **M**\ atter **E**\ valuation **P**\ ackage) Python library 
-is a powerful tool for analyzing data from molecular-dynamics (MD), 
-Brownian-dynamics (BD), and continuum simulations. It comprises various 
-methods to analyze structural and dynamical properties of condensed matter 
-systems in general and active matter systems in particular. **AMEP** is 
-exclusively built on Python, and therefore, it is easy to modify and allows to 
-easily add user-defined functions. **AMEP** provides an efficient data format 
-for saving both simulation data and analysis results based on the HDF5 file 
-format. To be fast and usable on modern HPC (**H**\ igh **P**\ erformance 
-**C**\ omputing) hardware, the methods are optimized to run also in parallel.
+**AMEP** is a Python library that focuses on the fast and user-friendly analysis 
+of active and soft matter simulations. It can natively analyze data from molecular 
+dynamics, Brownian dynamics, and continuum simulations from software such as LAMMPS, 
+HOOMD-blue, and GROMACS. 
+
+With a plethora of methods for calculating observables 
+and visualizing results, AMEP is suitable for calculating complex observables 
+equally for advanced studies of active and soft matter, as well as for beginners 
+in the field. Computationally intensive methods are parallelized to run on systems 
+ranging from laptops and workstations to high-performance computing clusters.
+
+AMEP utilizes the simplicity of NumPy for users to extract data from the 
+internal functions, which allows for easy extension and individualization of 
+analyses and handling of results and data with existing Python workflows. Additionally, 
+AMEP provides an efficient data format for saving both simulation data and analysis 
+results in a binary file based on the well-established `HDF5 <https://www.hdfgroup.org/solutions/hdf5/>`_
+file format.
+
+The methods range from correlation functions and order parameters to cluster detection 
+and coarse-graining methods. For examples check out our :doc:`Getting Started <gettingstarted/index>` section 
+and the documentation can be found in the :doc:`API Reference <api>`. 
+AMEP can be installed via pip and conda.
 
 .. .. include:: ../../README.md
 ..    :parser: myst_parser.sphinx_
