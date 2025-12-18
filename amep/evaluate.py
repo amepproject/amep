@@ -991,12 +991,6 @@ class PCFangle(BaseEvaluation):
                 "Mode not recognized. Possible values are "
                 "'psi6', 'orientations', and 'x'."
             )
-        # comment: it may be easily possible to implement
-        # a more general `custom` mode that allows to specify an 
-        # arbitrary function to calculate the reference axis or
-        # directly provide the reference axis `e` as np.ndarray
-        # in the shape (3,), (nframes,3) or (nav,3).
-        # One step at a time ;)
         
         self.__frames, res, self.__indices = average_func(
             self.__compute, self.__traj, skip = self.__skip,
