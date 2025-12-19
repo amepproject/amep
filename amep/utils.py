@@ -43,6 +43,12 @@ from .functions import gaussian2d, gaussian
 from .base import MAXMEM, get_module_logger
 from tqdm.autonotebook import tqdm
 from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+# Avoid deprecation warnings of multiprocessing by selecting safer start method.
+from multiprocessing import set_start_method
+set_start_method("spawn", force=True)
+
 
 # logger setup
 _log = get_module_logger(__name__)
@@ -73,7 +79,9 @@ def traj_slice(N: int, skip: float, nr_averages: int) -> slice:
 
 def average_func(
         func: callable, data: list | np.ndarray, skip: float = 0.0,
-        nr: int = 10, indices: bool = False, **kwargs):
+        nr: int = 10, indices: bool = False, 
+        max_workers: int | None = 1,
+        **kwargs):
     r'''
     Compute the average of a certain function.
     
@@ -92,6 +100,11 @@ def average_func(
     indices : bool, default=False
         If True, the list indices that the averaging function used are returned
         as last output!
+    max_workers : int | None, optional
+        Number of maximum parallel threads. Will be forwarded to
+        `concurrent.futures.ThreadPoolExecutor`. `None` uses all
+        available CPU cores. Negative numbers will be translated
+        to `AVAILABLE_CPUS + max_workers`.
     **kwargs: Keyword Arguments
         keyword arguments that are put to func
 
@@ -139,7 +152,35 @@ def average_func(
         nr = max(1,int(N-skip*N))
 
     evaluated_indices = np.array(np.ceil(np.linspace(skip*N, N-1, nr)), dtype=int)
-    func_result = [func(x, **kwargs) for x in tqdm(data[evaluated_indices])]
+    # keep previous implementation for safe backwards compatibility
+    if max_workers==1:
+        # kept for backwards compatibility
+        func_result = [func(x, **kwargs) for x in tqdm(data[evaluated_indices])]
+    else:
+        # parallel computation
+        
+        # easy setting of number of used cpu cores:
+        # concurrent.futures automatically interprets `None` as `os.process_cpu_count()`
+        # os.cpu_count() returns system- and not process-available cpus.
+        # os.process_cpu_count() only available from Python 3.13.
+        # using len(os.sched_getaffinity(0)) instead
+        if max_workers is not None and max_workers<0:
+            if available_cpu_count() + max_workers > 0:
+                max_workers=available_cpu_count() + max_workers
+            else:
+                raise ValueError(f"Only {available_cpu_count()} CPU cores available. Please adjust `max_workers`.")
+        
+        # set up parallel computation with multi threading
+        func_result = [None] * len(evaluated_indices)
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {executor.submit(func, x, **kwargs): i for i, x in enumerate(data[evaluated_indices])}
+            # gather results
+            with tqdm(total=len(futures)) as pbar:
+                for future in as_completed(futures):
+                    i = futures[future] # get original index
+                    func_result[i] = future.result()
+                    pbar.update(1)
+
     evaluated = np.array(func_result)
     if indices:
         return evaluated, np.mean(evaluated, axis=0), evaluated_indices
@@ -1915,9 +1956,9 @@ def compute_parallel(
         List of results from each of the workers.
 
     '''    
-    # check number of jobs for parallelization
-    if njobs > os.cpu_count():
-        njobs = os.cpu_count()
+    # check number of CPUs for parallelization
+    if njobs > available_cpu_count():
+        njobs = available_cpu_count()
 
     # setup multiprossing environment
     execution = ProcessPoolExecutor(max_workers = njobs)
@@ -2138,6 +2179,8 @@ def wca(r: float | np.ndarray, eps: float = 10.0, sig: float = 1.0):
         Potential energy.
 
     """
+    # rcut: cutoff distance for purely repulsive Lennard-Jones potential
+    # purely repulsive Lennard-Jones is the WCA potential
     rcut = 2**(1/6)*sig
     epot = np.where(r<=rcut, 4*eps*((sig/r)**12-(sig/r)**6)+eps, 0)
     return epot
@@ -2168,6 +2211,8 @@ def dr_wca(r: float | np.ndarray, eps: float = 10.0, sig: float = 1.0):
         First derivative.
 
     """
+    # rcut: cutoff distance for purely repulsive Lennard-Jones potential
+    # purely repulsive Lennard-Jones is the WCA potential
     rcut = 2**(1/6)*sig
     dr = np.where(r<=rcut, 4*eps*(6*sig**6/r**7 - 12*sig**12/r**13), 0)
     return dr
@@ -2198,6 +2243,32 @@ def dr2_wca(r: float | np.ndarray, eps: float = 10.0, sig: float = 1.0):
         Second derivative.
 
     """
+    # rcut: cutoff distance for purely repulsive Lennard-Jones potential
+    # purely repulsive Lennard-Jones is the WCA potential
     rcut = 2**(1/6)*sig
     dr2 = np.where(r<=rcut, 4*eps*(156*sig**12/r**14 - 42*sig**6/r**8), 0)
     return dr2
+
+
+def available_cpu_count() -> int:
+    r'''
+    Returns the number of available CPU cores for the current process.
+    
+    Some Unix systems provide a way to access the number of CPU cores
+    available to the current process (e.g., when using CPU affinity).
+    This function tries to use this information if available, otherwise
+    it falls back to the total number of CPU cores in the system.
+
+    Returns
+    -------
+    int
+        Number of (available) CPU cores.
+
+    '''
+    if "process_cpu_count" in dir(os):
+        return os.process_cpu_count()
+    elif "sched_getaffinity" in dir(os):
+        return len(os.sched_getaffinity(0))
+    else:
+        return os.cpu_count()
+    

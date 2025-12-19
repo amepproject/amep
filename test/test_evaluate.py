@@ -24,6 +24,8 @@ from matplotlib import use
 from amep.load import traj
 from amep.evaluate import ClusterGrowth, ClusterSizeDist, Function, SpatialVelCor, RDF, PCF2d, PCFangle, SF2d
 from amep.evaluate import VelDist, Dist, EkinRot, EkinTrans, EkinTot
+import amep
+
 use("Agg")
 DATA_DIR = Path("../examples/data/")
 
@@ -144,3 +146,21 @@ class TestEvaluateMethods(unittest.TestCase):
         TO BE IMPLEMENTED
         """
         pass
+
+    def test_parallel(self):
+        import os
+        import numpy as np
+        print("available threads:", len(os.sched_getaffinity(0))) # on GitHub ~4
+        msd_1 = amep.evaluate.MSD(self.particle_traj, nav=20, max_workers=4)
+        msd_2 = amep.evaluate.MSD(self.particle_traj, nav=20, max_workers=-1)
+        msd_3 = amep.evaluate.MSD(self.particle_traj, nav=20, max_workers=None)
+        msd_4 = amep.evaluate.MSD(self.particle_traj, nav=20, max_workers=1)
+        self.assertTrue(np.all(msd_1.avg==msd_2.avg),
+            '4 thread result differs from -1 thread result'
+        )
+        self.assertTrue(np.all(msd_2.avg==msd_3.avg),
+            '-1 thread result differs from `None` thread result'
+        )
+        self.assertTrue(np.all(msd_3.avg==msd_4.avg),
+            '`None` thread result differs from 1 thread result'
+        )
