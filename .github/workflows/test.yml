@@ -15,8 +15,6 @@ jobs:
       - name: install amep
         run: |  
           pip install -e .
-
-
   test:
     runs-on: ubuntu-latest
     needs: [install]
@@ -59,4 +57,5 @@ jobs:
         with:
           name: generated-site
           path: ./doc/build/html
+
 
