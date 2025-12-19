@@ -40,6 +40,7 @@ from numba import jit
 
 from .utils import runningmean, sq_from_sf2d, rotate_coords, unit_vector_2D
 from .utils import unit_vector_3D, dimension, compute_parallel, optimal_chunksize
+from .utils import available_cpu_count
 from .pbc import pbc_points, pbc_diff, distances, kdtree, fold
 from .continuum import coords_to_density
 from .continuum import sf2d as csf2d
@@ -551,7 +552,7 @@ def rdf(
     if rmax is None:
         rmax = max(box_boundary[:,1]-box_boundary[:,0])/2
     
-    # check number of jobs
+    # check number of CPUs
     if njobs > available_cpu_count():
         njobs = available_cpu_count()
         
@@ -866,7 +867,7 @@ def pcf2d(
     if rmax is None:
         rmax = max(box)//(2*np.sqrt(2))#2
     
-    # check number of jobs
+    # check number of CPUs
     if njobs > available_cpu_count():
         njobs = available_cpu_count()
         
@@ -1241,10 +1242,10 @@ def pcf_angle(
         if psi[1] < 0:
             angle = 2*np.pi - angle
             
-    # check number of jobs available to the process
+    # check number of CPUs
     if njobs > available_cpu_count():
         njobs = available_cpu_count()
-    
+        
     # get optimal chunk size to reduce RAM usage
     if chunksize is None:
         chunksize = optimal_chunksize(N, 8*N)
@@ -1570,7 +1571,7 @@ def sfiso(
     # possible modes
     modes = ['std', 'fast', 'fft']
     
-    # check number of jobs for parallelization
+    # check number of CPUs
     if njobs > available_cpu_count():
         njobs = available_cpu_count()
     
@@ -1840,7 +1841,7 @@ def sf2d(
     N = len(coords)
     Nother = len(other_coords)
         
-    # check njobs
+    # check number of CPUs
     if njobs > available_cpu_count():
         njobs = available_cpu_count()
 

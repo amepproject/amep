@@ -24,6 +24,8 @@ from matplotlib import use
 from amep.load import traj
 from amep.evaluate import ClusterGrowth, ClusterSizeDist, Function, SpatialVelCor, RDF, PCF2d, PCFangle, SF2d
 from amep.evaluate import VelDist, Dist, EkinRot, EkinTrans, EkinTot
+import amep
+
 use("Agg")
 DATA_DIR = Path("../examples/data/")
 
@@ -150,3 +152,35 @@ class TestEvaluateMethods(unittest.TestCase):
         dist.save(RESULT_DIR/"distv_eval.h5", database=True, name="particles")
         dist = Dist(self.particle_traj, "vx", skip=0.9, nav=2)
         dist.save(RESULT_DIR/"distvx_eval.h5", database=True, name="particles")
+
+    def test_correlation(self):
+        """Test spatial correlation evaluation.
+        """
+        svc = SpatialVelCor(self.particle_traj, skip=0.9, nav=2, njobs=4)
+
+        svc.save(RESULT_DIR/"svc.h5")
+        rdfcalc = RDF(
+                self.particle_traj,
+                nav=2, nbins=1000,
+                skip=0.9, njobs=4)
+        rdfcalc.save(RESULT_DIR/'rdf.h5')
+
+    def test_parallel(self):
+        """Test parallel computation of evaluation method(s).
+        """
+        import os
+        import numpy as np
+        print("available threads:", len(os.sched_getaffinity(0))) # on GitHub ~4
+        msd_1 = amep.evaluate.MSD(self.particle_traj, nav=20, max_workers=4)
+        msd_2 = amep.evaluate.MSD(self.particle_traj, nav=20, max_workers=-1)
+        msd_3 = amep.evaluate.MSD(self.particle_traj, nav=20, max_workers=None)
+        msd_4 = amep.evaluate.MSD(self.particle_traj, nav=20, max_workers=1)
+        self.assertTrue(np.all(msd_1.avg==msd_2.avg),
+            '4 thread result differs from -1 thread result'
+        )
+        self.assertTrue(np.all(msd_2.avg==msd_3.avg),
+            '-1 thread result differs from `None` thread result'
+        )
+        self.assertTrue(np.all(msd_3.avg==msd_4.avg),
+            '`None` thread result differs from 1 thread result'
+        )

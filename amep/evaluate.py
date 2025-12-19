@@ -62,7 +62,9 @@ class Function(BaseEvaluation):
     """
 
     def __init__(self, traj: ParticleTrajectory | FieldTrajectory, 
-        func: Callable, skip: float = 0.0, nav: int = 10, **kwargs):
+        func: Callable, skip: float = 0.0, nav: int = 10, 
+        max_workers: int | None = 1,
+        **kwargs):
         r'''Calculate a given function for a trajectory.
 
         Parameters
@@ -78,6 +80,9 @@ class Function(BaseEvaluation):
         nav: int, optional
             Number of frames to consider for the time average.
             The default is 10.
+        max_workers : int or None, optional
+            Number of parallel workers. Will be forwarded to
+            `utils.average_func`.
         **kwargs: Keyword Arguments
             General python keyword arguments to be
             forwarded to the function f.
@@ -126,11 +131,13 @@ class Function(BaseEvaluation):
         self.__func   = func
         self.__skip   = skip
         self.__nav    = nav
+        self.__max_workers = max_workers
         self.__kwargs = kwargs
         
         self.__frames, self.__avg, self.__indices = average_func(
             self.__compute, np.arange(self.__traj.nframes), skip=self.__skip,
-            nr=self.__nav, indices=True, **kwargs)
+            nr=self.__nav, indices=True,
+            max_workers=self.__max_workers, **kwargs)
         
         self.__times = self.__traj.times[self.__indices]
     def __compute(self, ind: int, **kwargs):
@@ -215,7 +222,9 @@ class SpatialVelCor(BaseEvaluation):
 
     def __init__(
             self, traj: ParticleTrajectory, skip: float = 0.0, nav: int = 10,
-            ptype: int | None = None, other: int | None = None, **kwargs
+            ptype: int | None = None, other: int | None = None, 
+            max_workers: int | None = 1,
+            **kwargs
             ) -> None:
         r'''
         Calculates the spatial velocity correlation function.
@@ -244,11 +253,14 @@ class SpatialVelCor(BaseEvaluation):
         nav : int, optional
             Number of frames to consider for the time average.
             The default is 10.
-        ptype : float, optional
+        ptype : float or None, optional
             Particle type. The default is None.
-        other : float, optional
+        other : int or None, optional
             Other particle type (to calculate the correlation between
             different particle types). The default is None.
+        max_workers : int or None, optional
+            Number of parallel workers. Will be forwarded to
+            `utils.average_func`.
         **kwargs
             Other keyword arguments are forwarded to
             `amep.spatialcor.spatialcor`.
@@ -280,6 +292,7 @@ class SpatialVelCor(BaseEvaluation):
         self.__nav    = nav
         self.__ptype  = ptype
         self.__other  = other
+        self.__max_workers = max_workers
         self.__kwargs = kwargs
         
         self.__frames, res, self.__indices = average_func(
@@ -287,7 +300,8 @@ class SpatialVelCor(BaseEvaluation):
             self.__traj,
             skip = self.__skip,
             nr = self.__nav,
-            indices = True
+            indices = True,
+            max_workers=self.__max_workers
         )
         
         self.__times = self.__traj.times[self.__indices]
@@ -396,6 +410,7 @@ class RDF(BaseEvaluation):
     def __init__(
             self, traj: ParticleTrajectory, skip: float = 0.0, nav: int = 10,
             ptype: int | None = None, other: int | None = None,
+            max_workers: int | None = 1,
             **kwargs) -> None:
         r'''
         Calculate the radial pair-distribution function [1]_.
@@ -442,11 +457,14 @@ class RDF(BaseEvaluation):
         nav : int, optional
             Number of frames to consider for the time average.
             The default is 10.
-        ptype : float, optional
+        ptype : float or None, optional
             Particle type. The default is None.
-        other : float, optional
+        other : int or None, optional
             Other particle type (to calculate the correlation between
             different particle types). The default is None.
+        max_workers : int or None, optional
+            Number of parallel workers. Will be forwarded to
+            `utils.average_func`.
         **kwargs
             Other keyword arguments are forwarded to `amep.spatialcor.rdf`.
               
@@ -479,11 +497,13 @@ class RDF(BaseEvaluation):
         self.__nav = nav
         self.__ptype = ptype
         self.__other = other
+        self.__max_workers = max_workers
         self.__kwargs = kwargs
         
         self.__frames, res, self.__indices = average_func(
             self.__compute, self.__traj, skip=self.__skip,
-            nr=self.__nav, indices=True
+            nr=self.__nav, indices=True,
+            max_workers=self.__max_workers
         )
         
         self.__times = self.__traj.times[self.__indices]
@@ -596,6 +616,7 @@ class PCF2d(BaseEvaluation):
     def __init__(
             self, traj: ParticleTrajectory, skip: float = 0.0, nav: int = 10,
             ptype: int | None = None, other: int | None = None,
+            max_workers: int | None = 1,
             **kwargs) -> None:
         r'''
         Calculate the two-dimensional pair correlation function :math:`g(x,y)`.
@@ -637,6 +658,9 @@ class PCF2d(BaseEvaluation):
         other : float or None, optional
             Other particle type (to calculate the correlation between
             different particle types). The default is None.
+        max_workers : int or None, optional
+            Number of parallel workers. Will be forwarded to
+            `utils.average_func`.
         **kwargs
             All other keyword arguments are forwarded to
             `amep.spatialcor.pcf2d`.
@@ -671,11 +695,14 @@ class PCF2d(BaseEvaluation):
         self.__nav    = nav
         self.__ptype  = ptype
         self.__other  = other
+        self.__max_workers = max_workers
         self.__kwargs = kwargs
         
         self.__frames, res, self.__indices = average_func(
             self.__compute, self.__traj, skip=self.__skip,
-            nr=self.__nav, indices=True)
+            nr=self.__nav, indices=True,
+            max_workers=self.__max_workers
+        )
         
         self.__times = self.__traj.times[self.__indices]
         self.__avg   = res[0]
@@ -812,6 +839,7 @@ class PCFangle(BaseEvaluation):
             self, traj: ParticleTrajectory, skip: float = 0.0, nav: int = 10,
             ptype: int | None = None, other: int | None = None,
             mode: str = 'psi6',
+            max_workers: int | None = 1,
             **kwargs) -> None:
         r'''
         Calculate the two-dimensional pair correlation function :math:`g(r,\theta)`.
@@ -903,6 +931,10 @@ class PCFangle(BaseEvaluation):
             (useful for active particles). The option ``'x'`` uses the
             :math:`x`-axis of the simulation box as reference.
             The default is ``'psi6'``.
+            different particle types). The default is None.
+        max_workers : int or None, optional
+            Number of parallel workers. Will be forwarded to
+            `utils.average_func`.
         **kwargs
             All other keyword arguments are forwarded to
             :func:`amep.spatialcor.pcf_angle`.
@@ -984,6 +1016,7 @@ class PCFangle(BaseEvaluation):
         self.__ptype  = ptype
         self.__other  = other
         self.__mode   = mode
+        self.__max_workers  = max_workers
         self.__kwargs = kwargs
 
         if self.__mode not in ['psi6', 'orientations', 'x']:
@@ -994,7 +1027,8 @@ class PCFangle(BaseEvaluation):
         
         self.__frames, res, self.__indices = average_func(
             self.__compute, self.__traj, skip = self.__skip,
-            nr = self.__nav, indices = True
+            nr = self.__nav, indices = True,
+            max_workers=self.__max_workers
         )
             
         self.__times = self.__traj.times[self.__indices]
@@ -1154,7 +1188,9 @@ class SF2d(BaseEvaluation):
             self, traj: ParticleTrajectory | FieldTrajectory,
             skip: float = 0.0, nav: int = 10, ptype: int = None,
             other: int = None, rotate: bool = True,
-            ftype: str | list | None = None, **kwargs) -> None:
+            ftype: str | list | None = None, 
+            max_workers: int | None = 1,
+            **kwargs) -> None:
         r'''
         Calculate the 2d static structure factor.
 
@@ -1185,9 +1221,9 @@ class SF2d(BaseEvaluation):
         nav : int, optional
             Number of frames to consider for the time average.
             The default is 10.
-        ptype : float, optional
+        ptype : float or None, optional
             Particle type. The default is None.
-        other : float, optional
+        other : int or None, optional
             Other particle type (to calculate the correlation between
             different particle types). The default is None.
         rotate : bool, optional
@@ -1198,6 +1234,9 @@ class SF2d(BaseEvaluation):
             the 2d structure factor should be calculated. If None, the
             2d structure factor is calculated for all fields.
             The default is None.
+        max_workers : int or None, optional
+            Number of parallel workers. Will be forwarded to
+            `utils.average_func`.
         **kwargs
             Other keyword arguments are forwarded to 
             `amep.spatialcor.sf2d` in the case of particle-based simulation
@@ -1257,6 +1296,7 @@ class SF2d(BaseEvaluation):
         self.__other    = other
         self.__rotate   = rotate
         self.__ftype    = ftype
+        self.__max_workers = max_workers
         self.__kwargs   = kwargs
         
         if type(self.__traj)==ParticleTrajectory:
@@ -1266,7 +1306,8 @@ class SF2d(BaseEvaluation):
                 self.__traj,
                 skip=self.__skip,
                 nr=self.__nav,
-                indices=True
+                indices=True,
+                max_workers=self.__max_workers
             )
         elif type(self.__traj)==FieldTrajectory:
             # calculation for fields
@@ -1275,7 +1316,8 @@ class SF2d(BaseEvaluation):
                 self.__traj,
                 skip=self.__skip,
                 nr=self.__nav,
-                indices=True
+                indices=True,
+                max_workers=self.__max_workers
             )
         else:
             raise TypeError(f'Invalid type of traj: {type(self.__traj)}.')
@@ -1490,7 +1532,9 @@ class SFiso(BaseEvaluation):
             twod: bool = True, njobs: int = 1, chunksize: int = 1000,
             mode: str = 'fast', ptype: int | None = None,
             other: int | None = None, accuracy: float = 0.5,
-            num: int = 8, ftype: str | list | None = None) -> None:
+            num: int = 8, ftype: str | list | None = None,
+            max_workers: int | None = 1
+            ) -> None:
         r'''
         Calculate the isotropic static structure.
 
@@ -1556,6 +1600,9 @@ class SFiso(BaseEvaluation):
             the isotropic structure factor should be calculated. If None, the
             isotropic structure factor is calculated for all field.
             The default is None.
+        max_workers : int or None, optional
+            Number of parallel workers. Will be forwarded to
+            `utils.average_func`.
 
         Examples
         --------
@@ -1603,6 +1650,7 @@ class SFiso(BaseEvaluation):
         self.__num       = num
         self.__accuracy  = accuracy
         self.__ftype     = ftype        
+        self.__max_workers = max_workers
         
         if type(self.__traj)==ParticleTrajectory:
             # calculation for particles
@@ -1611,7 +1659,8 @@ class SFiso(BaseEvaluation):
                 self.__traj,
                 skip=self.__skip,
                 nr=self.__nav,
-                indices=True
+                indices=True,
+                max_workers=self.__max_workers
             )
         elif type(self.__traj)==FieldTrajectory:
             # calculation for fields
@@ -1620,7 +1669,8 @@ class SFiso(BaseEvaluation):
                 self.__traj,
                 skip=self.__skip,
                 nr=self.__nav,
-                indices=True
+                indices=True,
+                max_workers=self.__max_workers
             )
         else:
             raise TypeError(f'Invalid type of traj: {type(self.__traj)}.')
@@ -1801,6 +1851,7 @@ class PosOrderCor(BaseEvaluation):
             order: str = 'hexagonal', 
             dk: float = 4.0, ptype: int | None = None, 
             other: int | None = None,
+            max_workers: int | None = 1,
             **kwargs) -> None:
         r'''
         Calculate the positional order correlation function.
@@ -1869,6 +1920,9 @@ class PosOrderCor(BaseEvaluation):
             Size of the area in k-space around each estimate used
             for the Gaussian fit to determine the k0 vectors.
             The default is 4.0.
+        max_workers : int or None, optional
+            Number of parallel workers. Will be forwarded to
+            `utils.average_func`.
         **kwargs
             Other keyword arguments are forwarded to `amep.evaluate.PCFangle`.
 
@@ -1909,6 +1963,7 @@ class PosOrderCor(BaseEvaluation):
         self.__dk = dk
         self.__ptype = ptype
         self.__other = other
+        self.__max_workers = max_workers
         self.__kwargs = kwargs
         
         # check if pair correlation function is available
@@ -1916,7 +1971,9 @@ class PosOrderCor(BaseEvaluation):
             self.__grtdata = PCFangle(
                 self.__traj, skip=self.__skip,
                 nav=self.__nav, ptype=self.__ptype,
-                other=self.__other, **self.__kwargs
+                other=self.__other,
+                max_workers=self.__max_workers, 
+                **self.__kwargs
             )
 
         self.__grt   = self.__grtdata['avg']
@@ -2032,6 +2089,7 @@ class HexOrderCor(BaseEvaluation):
     def __init__(
             self, traj: ParticleTrajectory, skip: float = 0.0, nav: int = 10,
             ptype: int | None = None, other: int | None = None,
+            max_workers: int | None = 1,
             **kwargs) -> None:
         r'''
         Calculate the spatial correlation function of :math:`\Psi_6`.
@@ -2084,10 +2142,13 @@ class HexOrderCor(BaseEvaluation):
         nav : int, optional
             Number of frames to consider for the time average.
             The default is 10.
-        ptype : float, optional
+        ptype : float or None, optional
             Particle type. The default is None.
-        other : float, optional
+        other : int or None, optional
             Other particle type. If None, ptype is used. The default is None.
+        max_workers : int or None, optional
+            Number of parallel workers. Will be forwarded to
+            `utils.average_func`.
         **kwargs
             All other keyword arguments are forwarded to
             `amep.spatialcor.spatialcor`.
@@ -2122,6 +2183,7 @@ class HexOrderCor(BaseEvaluation):
         self.__nav    = nav
         self.__ptype  = ptype
         self.__other  = other
+        self.__max_workers = max_workers
         self.__kwargs = kwargs
         
         self.__frames, res, self.__indices = average_func(
@@ -2129,7 +2191,8 @@ class HexOrderCor(BaseEvaluation):
             self.__traj,
             skip = self.__skip,
             nr = self.__nav,
-            indices = True
+            indices = True,
+            max_workers=self.__max_workers
         )
         
         self.__times = self.__traj.times[self.__indices]
@@ -2275,6 +2338,7 @@ class LDdist(BaseEvaluation):
             ptype: int | None = None, other: int | None = None,
             mode: str = 'number',
             use_voronoi: bool = False,
+            max_workers: int | None = 1,
             **kwargs) -> None:
         r'''
         Calculate the local density distribution and takes an average
@@ -2332,6 +2396,9 @@ class LDdist(BaseEvaluation):
             density. If False, averages over circles of radius `rmax` are used.
             Note that `other` is ignored if `use_voronoi` is set to True.
             The default is False.
+        max_workers : int or None, optional
+            Number of parallel workers. Will be forwarded to
+            `utils.average_func`.
         **kwargs
             Other keyword arguments are forwarded to the local density functions
             used such as `rmax`, `pbc`, `enforce_nd`.
@@ -2407,6 +2474,7 @@ class LDdist(BaseEvaluation):
         self.__mode = mode
         self.__ftype = ftype
         self.__use_voronoi = use_voronoi
+        self.__max_workers = max_workers
         self.__kwargs = kwargs
         
         # check mode
@@ -2423,7 +2491,8 @@ class LDdist(BaseEvaluation):
                 self.__traj,
                 skip=self.__skip,
                 nr=self.__nav,
-                indices=True
+                indices=True,
+                max_workers=self.__max_workers
             )
         elif type(self.__traj)==FieldTrajectory:
             # calculation for fields
@@ -2432,7 +2501,8 @@ class LDdist(BaseEvaluation):
                 self.__traj,
                 skip=self.__skip,
                 nr=self.__nav,
-                indices=True
+                indices=True,
+                max_workers=self.__max_workers
             )
         else:
             raise TypeError(f'Invalid type of traj: {type(self.__traj)}.')
@@ -2637,6 +2707,7 @@ class Psi6dist(BaseEvaluation):
             self, traj: ParticleTrajectory, skip: float = 0.0, 
             nav: int = 10, nbins: int = 50, 
             ptype: int | None = None, other: int | None = None, 
+            max_workers: int | None = 1,
             **kwargs) -> None:
         r'''
         Calculate the distribution of the :math:`\Psi_6`.
@@ -2688,12 +2759,15 @@ class Psi6dist(BaseEvaluation):
             The default is 10.
         nbins : int, optional
             Number of bins. The default is 50.
-        ptype : float, optional
+        ptype : float or None, optional
             Particle type. If None, all particles are used.
             The default is None.
-        other : float, optional
+        other : int or None, optional
             Other particles. These are the ones which are counted as neighbors.
             If None, ptypes is used. The default is None.
+        max_workers : int or None, optional
+            Number of parallel workers. Will be forwarded to
+            `utils.average_func`.
         **kwargs
             Other keyword arguments are forwarded to 
             :py:func:`amep.order.psi_k`.
@@ -2731,11 +2805,14 @@ class Psi6dist(BaseEvaluation):
         self.__nbins = nbins
         self.__ptype = ptype
         self.__other = other
+        self.__max_workers = max_workers
         self.__kwargs = kwargs
         
         self.__frames, res, self.__indices = average_func(
             self.__compute, np.arange(self.__traj.nframes), skip=self.__skip,
-            nr=self.__nav, indices=True)
+            nr=self.__nav, indices=True,
+            max_workers=self.__max_workers
+        )
         
         self.__times = self.__traj.times[self.__indices]
         self.__avg   = res[0]
@@ -2851,10 +2928,12 @@ class VelDist(BaseEvaluation):
     """
     
     def __init__(
-            self, traj, skip: float = 0.0, nav: int = 10,
+            self, traj: ParticleTrajectory, skip: float = 0.0, nav: int = 10,
             nbins: int = 50, ptype: int | None = None,
             vmin: float | None = None, vmax: float | None = None,
-            v2min: float | None = None) -> None:
+            v2min: float | None = None,
+            max_workers: int | None = 1
+            ) -> None:
         r'''
         Calculate the distribution of velocities.
 
@@ -2883,7 +2962,7 @@ class VelDist(BaseEvaluation):
             The default is 10.
         nbins : int, optional
             Number of bins. The default is 50.
-        ptype : float, optional
+        ptype : float or None, optional
             Particle type. The default is None.
         vmin : float | None, optional
             Minimum value for the histogram in each spatial dimension
@@ -2898,6 +2977,9 @@ class VelDist(BaseEvaluation):
             This value has to be :math:`\ge 0` due to the use of
             logarithmic bins for the :math:`v^2` distribution.
             If None, then the minimum value of the last frame will be used.
+        max_workers : int or None, optional
+            Number of parallel workers. Will be forwarded to
+            `utils.average_func`.
 
         Returns
         -------
@@ -2932,6 +3014,7 @@ class VelDist(BaseEvaluation):
         self.__vmin  = vmin
         self.__vmax  = vmax
         self.__v2min = v2min
+        self.__max_workers = max_workers
         
         if self.__vmin is None:
             self.__vmin = np.min(self.__traj[-1].velocities(ptype=self.__ptype))
@@ -2948,7 +3031,9 @@ class VelDist(BaseEvaluation):
         
         self.__frames, res, self.__indices = average_func(
             self.__compute, np.arange(self.__traj.nframes), skip=self.__skip,
-            nr=self.__nav, indices=True)
+            nr=self.__nav, indices=True,
+            max_workers=self.__max_workers
+        )
         
         self.__times  = self.__traj.times[self.__indices]
         self.__vxdist = res[0]
@@ -3186,6 +3271,7 @@ class Dist(BaseEvaluation):
             nav: int = 10, nbins: int = 50, ptype: float | None = None,
             ftype: str | None = None, logbins: bool = False,
             xmin: float | None = None, xmax: float | None = None,
+            max_workers: int | None = 1,
             **kwargs):
         r'''
         Calculate the distribution of a user-defined key or keys.
@@ -3215,9 +3301,14 @@ class Dist(BaseEvaluation):
             The default is 10.
         nbins : int, optional
             Number of bins. The default is None.
-        ptype : float, optional
+        ptype : float or None, optional
             Particle type. The default is None.
-
+        max_workers : int or None, optional
+            Number of parallel workers. Will be forwarded to
+            `utils.average_func`.
+        **kwargs
+            Other keyword arguments are forwarded to the user-defined
+            function `func`.
         Returns
         -------
         None
@@ -3267,6 +3358,7 @@ class Dist(BaseEvaluation):
         self.__xmax  = xmax
         self.__func  = func
         self.__logbins = logbins
+        self.__max_workers = max_workers
         self.__kwargs = kwargs
 
         if self.__xmin is None or self.__xmax is None:
@@ -3283,7 +3375,9 @@ class Dist(BaseEvaluation):
 
         self.__frames, res, self.__indices = average_func(
             self.__compute, np.arange(self.__traj.nframes), skip=self.__skip,
-            nr=self.__nav, indices=True)
+            nr=self.__nav, indices=True,
+            max_workers=self.__max_workers
+        )
         
         self.__times  = self.__traj.times[self.__indices]
         self.__xdist  = res[0]
@@ -3394,7 +3488,9 @@ class ClusterSizeDist(BaseEvaluation):
             ftype: str | list | None = None,
             use_density: bool = True, logbins: bool = False, 
             xmin: float | None = None, xmax: float | None = None,
-            nbins: int | None = None, **kwargs
+            nbins: int | None = None, 
+            max_workers: int | None = 1,
+            **kwargs
             ) -> None:
         r'''
         Calculate the weighted cluster size distribution.
@@ -3433,7 +3529,7 @@ class ClusterSizeDist(BaseEvaluation):
         include_single : bool, optional
             If True, single-particle clusters are included in the histogram.
             The default is False.
-        ptype : float, optional
+        ptype : float or None, optional
             Particle type. If None, all particles are considered.
             The default is None.
         ftype : str or None, optional
@@ -3454,6 +3550,9 @@ class ClusterSizeDist(BaseEvaluation):
             Maximum value of the bins. The default is None.
         nbins : int or None, optional
             Number of bins. The default is None.
+        max_workers : int or None, optional
+            Number of parallel workers. Will be forwarded to
+            `utils.average_func`.
         **kwargs
             Other keyword arguments are forwarded to amep.cluster.identify and 
             amep.continuum.identify_clusters for ParticleTrajectories and 
@@ -3512,6 +3611,7 @@ class ClusterSizeDist(BaseEvaluation):
         self.__xmin = xmin
         self.__xmax = xmax
         self.__nbins = nbins
+        self.__max_workers = max_workers
         self.__kwargs = kwargs
         
         if isinstance(self.__traj, ParticleTrajectory):
@@ -3529,7 +3629,8 @@ class ClusterSizeDist(BaseEvaluation):
                 self.__traj,
                 skip=self.__skip,
                 nr=self.__nav,
-                indices=True
+                indices=True,
+                max_workers=self.__max_workers
             )
         elif isinstance(self.__traj, FieldTrajectory):
             if self.__ftype is None:
@@ -3578,7 +3679,8 @@ class ClusterSizeDist(BaseEvaluation):
                 self.__traj,
                 skip=self.__skip,
                 nr=self.__nav,
-                indices=True
+                indices=True,
+                max_workers=self.__max_workers
             )
         else:
             raise TypeError(f'Invalid type of traj: {type(self.__traj)}.')
@@ -3754,6 +3856,7 @@ class ClusterGrowth(BaseEvaluation):
             min_size: int = 0,
             ptype: int | None = None, ftype: str | list | None = None,
             mode: str = "largest", use_density: bool = True,
+            max_workers: int | None = 1,
             **kwargs) -> None:
         r'''
         Calculates the size of the largest cluster, the mean cluster size, or 
@@ -3787,7 +3890,7 @@ class ClusterGrowth(BaseEvaluation):
             of particles. If a FieldTrajectory is supplied, it is either given 
             in area units (use_density=False) or density units 
             (use_density=True). The default is 2.
-        ptype : float, optional
+        ptype : float or None, optional
             Particle type. If None, all particles are considered.
             The default is None.
         ftype : str or None, optional
@@ -3805,6 +3908,9 @@ class ClusterGrowth(BaseEvaluation):
             as clustersize. Only set to false if your field cannot be 
             interpreted as a density, i.e., if it can be negative. The default 
             is True.
+        max_workers : int or None, optional
+            Number of parallel workers. Will be forwarded to
+            `utils.average_func`.
         **kwargs
             Other keyword arguments are forwarded to amep.cluster.cluster and 
             amep.continuum.identify_clusters for ParticleTrajectories and 
@@ -3866,6 +3972,7 @@ class ClusterGrowth(BaseEvaluation):
         self.__mode = mode
         self.__min_size = min_size
         self.__use_density = use_density
+        self.__max_workers = max_workers
         self.__kwargs = kwargs
 
         if nav is None:
@@ -3886,7 +3993,8 @@ class ClusterGrowth(BaseEvaluation):
                 traj,
                 skip=self.__skip,
                 nr=self.__nav,
-                indices=True
+                indices=True,
+                max_workers=self.__max_workers
             )
         elif isinstance(self.__traj, FieldTrajectory):
             # calculation for fields
@@ -3902,7 +4010,8 @@ class ClusterGrowth(BaseEvaluation):
                 traj,
                 skip=self.__skip,
                 nr=self.__nav,
-                indices=True
+                indices=True,
+                max_workers=self.__max_workers
             )
         else:
             raise TypeError(
@@ -4079,7 +4188,9 @@ class MSD(BaseEvaluation):
     def __init__(
             self, traj: ParticleTrajectory, ptype: int | None = None,
             skip: float = 0.0, nav: int | None = 10,
-            use_nojump: bool = False, pbc: bool = True) -> None:
+            use_nojump: bool = False, pbc: bool = True,
+            max_workers: int | None = 1
+            ) -> None:
         r'''
         Calculates the mean-square displacement over time. If periodic boundary
         conditions are applied, the unwrapped coordinates are used if they are
@@ -4106,6 +4217,9 @@ class MSD(BaseEvaluation):
             coordinates are used for the calculation. If those are not 
             available, nojump coordinates will be used instead. The default is
             False.
+        max_workers : int or None, optional
+            Number of parallel workers. Will be forwarded to
+            `utils.average_func`.
 
         Returns
         -------
@@ -4156,6 +4270,7 @@ class MSD(BaseEvaluation):
         self.__nav = nav
         self.__pbc = pbc
         self.__use_nojump = use_nojump
+        self.__max_workers = max_workers
         
         if self.__nav is None:
             self.__nav = self.__traj.nframes
@@ -4193,7 +4308,8 @@ class MSD(BaseEvaluation):
         # calculation
         self.__frames, self.__avg, self.__indices = average_func(
             self.__compute, self.__traj, skip=self.__skip,
-            nr=self.__nav, indices=True
+            nr=self.__nav, indices=True,
+            max_workers=self.__max_workers
         )
         self.__times = self.__traj.times[self.__indices]
 
@@ -4304,7 +4420,9 @@ class VACF(BaseEvaluation):
     def __init__(
             self, traj: ParticleTrajectory, ptype: int | None = None,
             skip: float = 0.0, nav: int | None = 10,
-            direction: str = 'xyz') -> None:
+            direction: str = 'xyz',
+            max_workers: int | None = 1,
+            ) -> None:
         r'''
         Calculate the velocity autocorrelation function.
 
@@ -4325,6 +4443,9 @@ class VACF(BaseEvaluation):
         direction : str, optional
             'x', 'y', 'z', or any combination of it.
             The default is 'xyz' (average over all directions).
+        max_workers : int or None, optional
+            Number of parallel workers. Will be forwarded to
+            `utils.average_func`.
 
         Returns
         -------
@@ -4362,6 +4483,7 @@ class VACF(BaseEvaluation):
         self.__direction = direction
         self.__skip      = skip
         self.__nav       = nav
+        self.__max_workers = max_workers
         
         # get directions to be considered
         self.__components = []
@@ -4389,7 +4511,8 @@ class VACF(BaseEvaluation):
         # main calculation
         self.__frames, self.__avg, self.__indices = average_func(
             self.__compute, self.__traj, skip=self.__skip,
-            nr=self.__nav, indices=True
+            nr=self.__nav, indices=True,
+            max_workers=self.__max_workers
         )
         
         # get times
@@ -4500,7 +4623,11 @@ class OACF(BaseEvaluation):
     """Orientational autocorrelation function.
     """
 
-    def __init__(self, traj, ptype=None, skip=0.0, nav: int | None = 10, direction='xyz'):
+    def __init__(self, traj: ParticleTrajectory, ptype=None, skip=0.0, 
+                 nav: int | None = 10, 
+                 direction: str = 'xyz',
+                 max_workers: int | None = 1
+                 )-> None:
         r'''
         Calculate the orientational autocorrelation function
         averaged over all particles of the given type.
@@ -4520,6 +4647,9 @@ class OACF(BaseEvaluation):
         direction : str, optional
             'x', 'y', 'z', or any combination of it.
             The default is 'xyz' (average over all directions).
+        max_workers : int or None, optional
+            Number of parallel workers. Will be forwarded to
+            `utils.average_func`.
 
         Returns
         -------
@@ -4564,6 +4694,7 @@ class OACF(BaseEvaluation):
         self.__direction = direction
         self.__skip      = skip
         self.__nav       = nav
+        self.__max_workers = max_workers
         
         # get directions to be considered
         self.__components = []
@@ -4591,7 +4722,8 @@ class OACF(BaseEvaluation):
         # main calculation
         self.__frames, self.__avg, self.__indices = average_func(
             self.__compute, self.__traj, skip=self.__skip,
-            nr=self.__nav, indices=True
+            nr=self.__nav, indices=True,
+            max_workers=self.__max_workers
         )
 
         # get times
@@ -4703,7 +4835,11 @@ class TimeCor(BaseEvaluation):
     quantity.
     """
 
-    def __init__(self, traj, *args, ptype=None, skip=0.0, nav: int | None = 10):
+    def __init__(self, traj: ParticleTrajectory, *args, ptype: int | None = None, 
+                 skip: float = 0.0, 
+                 nav: int | None = 10,
+                 max_workers: int | None = 1
+                 ) -> None:
         r'''
         Calculate the autocorrelation function.
         Averages over all particles of the given type.
@@ -4737,6 +4873,9 @@ class TimeCor(BaseEvaluation):
         nav : int, optional
             Number of time steps at which the autocorrelation
             function should be evaluated. The default is 10.
+        max_workers : int or None, optional
+            Number of parallel workers. Will be forwarded to
+            `utils.average_func`.
 
         Returns
         -------
@@ -4772,6 +4911,7 @@ class TimeCor(BaseEvaluation):
         self.__nskip     = int(skip*traj.nframes)
         self.__skip      = skip
         self.__nav       = nav
+        self.__max_workers = max_workers
         
         if self.__nav is None:
             self.__nav = self.__traj.nframes
@@ -4782,7 +4922,9 @@ class TimeCor(BaseEvaluation):
         # main calculation
         self.__frames, self.__avg, self.__indices = average_func(
             self.__compute, self.__traj, skip=self.__skip,
-            nr=self.__nav, indices=True)
+            nr=self.__nav, indices=True,
+            max_workers=self.__max_workers
+        )
 
         # get times
         self.__times = self.__traj.times[self.__indices]        
@@ -4882,7 +5024,9 @@ class EkinTot(BaseEvaluation):
 
     def __init__(
             self, traj: ParticleTrajectory, mass: float | np.ndarray,
-            inertia: float | np.ndarray, skip: float = 0.0, nav: int = 10, **kwargs):
+            inertia: float | np.ndarray, skip: float = 0.0, nav: int = 10, 
+            max_workers: int | None = 1,
+            **kwargs):
         r'''Calculate the total kinetic energy of each particle over a
         trajectory.
 
@@ -4900,6 +5044,9 @@ class EkinTot(BaseEvaluation):
             Mass(es) of the particles.
         inertia : float or np.ndarray
             Moment of inertia of the particles.
+        max_workers : int or None, optional
+            Number of parallel workers. Will be forwarded to
+            `utils.average_func`.
         **kwargs : Keyword Arguments
             General python keyword arguments to be
             forwarded to the function f
@@ -4933,12 +5080,15 @@ class EkinTot(BaseEvaluation):
         self.__mass      = mass
         self.__inertia   = inertia
         self.__nav       = nav
+        self.__max_workers = max_workers
         self.__kwargs    = kwargs
         
         self.__frames, self.__avg, self.__indices = average_func(
             self.__compute, np.arange(self.__traj.nframes),
             mass=self.__mass, inertia=self.__inertia, skip=self.__skip,
-            nr=self.__nav, indices=True)
+            nr=self.__nav, indices=True,
+            max_workers=self.__max_workers
+        )
         
         self.__times = self.__traj.times[self.indices]
 
@@ -5021,9 +5171,11 @@ class EkinTrans(BaseEvaluation):
     """
 
     def __init__(
-            self, traj, mass: float | np.ndarray,
+            self, traj: ParticleTrajectory, mass: float | np.ndarray,
             mode: str = "total",
-            skip: float = 0.0, nav: int = 10, **kwargs):
+            skip: float = 0.0, nav: int = 10, 
+            max_workers: int | None = 1,
+            **kwargs):
         r'''Calculate the translational kinetic energy of each particle.
 
         Calculates energy over a whole trajectory.
@@ -5045,6 +5197,9 @@ class EkinTrans(BaseEvaluation):
         nav : int, optional
             Number of frames to consider for the time average.
             The default is 10.
+        max_workers : int or None, optional
+            Number of parallel workers. Will be forwarded to
+            `utils.average_func`.
         **kwargs : Keyword Arguments
             General python keyword arguments to be
             forwarded to the function f
@@ -5077,11 +5232,14 @@ class EkinTrans(BaseEvaluation):
         self.__skip      = skip
         self.__mass      = mass
         self.__nav       = nav
+        self.__max_workers = max_workers
         self.__kwargs    = kwargs
         
         self.__frames, self.__avg, self.__indices = average_func(
             self.__compute, np.arange(self.__traj.nframes), mass=self.__mass,
-            skip=self.__skip, nr=self.__nav, indices=True)
+            skip=self.__skip, nr=self.__nav, indices=True,
+            max_workers=self.__max_workers
+        )
 
         self.__times = self.__traj.times[self.indices]
 
@@ -5168,7 +5326,9 @@ class EkinRot(BaseEvaluation):
                  mode: str = "total",
                  skip: float = 0.0,
                  nav: int = 10,
-                 avgstyle=None, **kwargs):
+                 avgstyle=None, 
+                 max_workers: int | None = 1,
+                 **kwargs):
         r'''
         Calculate the rotational kinetic energy of each particle over a
         trajectory.
@@ -5187,6 +5347,9 @@ class EkinRot(BaseEvaluation):
         nav : int, optional
             Number of frames to consider for the time average.
             The default is 10.
+        max_workers : int or None, optional
+            Number of parallel workers. Will be forwarded to
+            `utils.average_func`.
         **kwargs : Keyword Arguments
             General python keyword arguments to be
             forwarded to the function f
@@ -5200,11 +5363,14 @@ class EkinRot(BaseEvaluation):
         self.__skip      = skip
         self.__inertia   = inertia
         self.__nav       = nav
+        self.__max_workers = max_workers
         self.__kwargs    = kwargs
         
         self.__frames, self.__avg, self.__indices = average_func(
             self.__compute, np.arange(self.__traj.nframes), indices=True,
-            inertia=self.__inertia, skip=self.__skip, nr=self.__nav)
+            inertia=self.__inertia, skip=self.__skip, nr=self.__nav,
+            max_workers=self.__max_workers
+        )
         
         self.__times = self.__traj.times[self.__indices]
         
@@ -5291,7 +5457,9 @@ class Tkin(BaseEvaluation):
     """
     def __init__(
             self, traj: ParticleTrajectory, skip: float = 0.0, nav: int = 10,
-            ptype: int | None = None, **kwargs
+            ptype: int | None = None, 
+            max_workers: int | None = 1,
+            **kwargs
             ) -> None:
         r'''
         Calculates the kinetic temperature based on the second moment of the
@@ -5314,8 +5482,11 @@ class Tkin(BaseEvaluation):
         nav : int, optional
             Number of frames to consider for the time average.
             The default is 10.
-        ptype : float, optional
+        ptype : float or None, optional
             Particle type. The default is None.
+        max_workers : int or None, optional
+            Number of parallel workers. Will be forwarded to
+            `utils.average_func`.
         **kwargs
             Other keyword arguments are forwarded to
             `amep.thermo.Tkin`.
@@ -5329,6 +5500,7 @@ class Tkin(BaseEvaluation):
         self.__skip   = skip
         self.__nav    = nav
         self.__ptype  = ptype
+        self.__max_workers = max_workers
         self.__kwargs = kwargs
         
         self.__frames, self.__avg, self.__indices = average_func(
@@ -5336,7 +5508,8 @@ class Tkin(BaseEvaluation):
             self.__traj,
             skip = self.__skip,
             nr = self.__nav,
-            indices = True
+            indices = True,
+            max_workers=self.__max_workers
         )
         
         self.__times = self.__traj.times[self.__indices]
@@ -5425,7 +5598,9 @@ class Tkin4(BaseEvaluation):
     def __init__(
             self, traj: ParticleTrajectory, 
             skip: float = 0.0, nav: int = 10,
-            ptype: int | None = None, **kwargs
+            ptype: int | None = None, 
+            max_workers: int | None = 1,
+            **kwargs
             ) -> None:
         r'''
         Calculates the kinetic temperature based on the 4th moment of the
@@ -5448,8 +5623,11 @@ class Tkin4(BaseEvaluation):
         nav : int, optional
             Number of frames to consider for the time average.
             The default is 10.
-        ptype : float, optional
+        ptype : float or None, optional
             Particle type. The default is None.
+        max_workers : int or None, optional
+            Number of parallel workers. Will be forwarded to
+            `utils.average_func`.
         **kwargs
             Other keyword arguments are forwarded to
             `amep.thermo.Tkin4`.
@@ -5463,6 +5641,7 @@ class Tkin4(BaseEvaluation):
         self.__skip   = skip
         self.__nav    = nav
         self.__ptype  = ptype
+        self.__max_workers = max_workers
         self.__kwargs = kwargs
         
         self.__frames, self.__avg, self.__indices = average_func(
@@ -5470,7 +5649,8 @@ class Tkin4(BaseEvaluation):
             self.__traj,
             skip = self.__skip,
             nr = self.__nav,
-            indices = True
+            indices = True,
+            max_workers=self.__max_workers
         )
         
         self.__times = self.__traj.times[self.__indices]
@@ -5559,6 +5739,7 @@ class Tosc():
             self, traj: ParticleTrajectory, k: float,
             skip: float = 0.0, nav: int = 10,
             ptype: int | None = None,
+            max_workers: int | None = 1
             ) -> None:
         r'''
         Calculates the oscillator temperature. [1]_
@@ -5582,8 +5763,11 @@ class Tosc():
         nav : int, optional
             Number of frames to consider for the time average.
             The default is 10.
-        ptype : float, optional
+        ptype : float or None, optional
             Particle type. The default is None.
+        max_workers : int or None, optional
+            Number of parallel workers. Will be forwarded to
+            `utils.average_func`.
 
         '''
         super(Tosc, self).__init__()
@@ -5595,13 +5779,15 @@ class Tosc():
         self.__nav = nav
         self.__ptype = ptype
         self.__k = k
+        self.__max_workers = max_workers
         
         self.__frames, self.__avg, self.__indices = average_func(
             self.__compute,
             self.__traj,
             skip = self.__skip,
             nr = self.__nav,
-            indices = True
+            indices = True,
+            max_workers=self.__max_workers
         )
         
         self.__times = self.__traj.times[self.__indices]
@@ -5687,7 +5873,9 @@ class Tconf(BaseEvaluation):
     def __init__(
             self, traj: ParticleTrajectory, drU: Callable, dr2U: Callable,
             skip: float = 0.0, nav: int = 10,
-            ptype: int | None = None, **kwargs
+            ptype: int | None = None, 
+            max_workers: int | None = 1,
+            **kwargs
             ) -> None:
         r'''
         Calculates the configurational temperature.
@@ -5727,8 +5915,11 @@ class Tconf(BaseEvaluation):
         nav : int, optional
             Number of frames to consider for the time average.
             The default is 10.
-        ptype : float, optional
+        ptype : float or None, optional
             Particle type. The default is None.
+        max_workers : int or None, optional
+            Number of parallel workers. Will be forwarded to
+            `utils.average_func`.
         **kwargs
             Other keyword arguments are forwarded to
             `amep.thermo.Tkin`.
@@ -5739,19 +5930,21 @@ class Tconf(BaseEvaluation):
         self.name = 'Tconf'
         
         self.__traj   = traj
+        self.__drU = drU
+        self.__dr2U = dr2U
         self.__skip   = skip
         self.__nav    = nav
         self.__ptype  = ptype
+        self.__max_workers = max_workers
         self.__kwargs = kwargs
-        self.__drU = drU
-        self.__dr2U = dr2U
         
         self.__frames, self.__avg, self.__indices = average_func(
             self.__compute,
             self.__traj,
             skip = self.__skip,
             nr = self.__nav,
-            indices = True
+            indices = True,
+            max_workers=self.__max_workers
         )
         
         self.__times = self.__traj.times[self.__indices]
