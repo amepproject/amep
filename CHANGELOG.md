@@ -3,6 +3,30 @@
 All notable changes to AMEP will be documented in this file. AMEP 
 adheres to [semantic versioning](https://semver.org/).
 
+
+## AMEP 1.2.0 (23 Dec 2025)
+
+### New features
+
+* `PCFangle` in relation to particle orientations (KD)
+* parallelization of `evaluate` classes via `utils.average_func` (KD)
+* rebranding to reflect soft matter capabilities and improvements of website (KD)
+* updated examples Jupyter notebook (KD)
+* CICD, release automation phase 1 (ZB, KD)
+
+### Bug fixes
+
+* documentation improvements (KD)
+* bug in `spatialcor.pcfangle` fixed (KD)
+
+### Contributors
+
+* Kay-Robert Dormann (KD)
+* Zino Belkadi (ZB)
+
+
+
+
 ## AMEP 1.1.1 (12 June 2025)
 
 ### Bug fixes
