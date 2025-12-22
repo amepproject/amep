@@ -8,8 +8,13 @@
 [![Static Badge](https://img.shields.io/badge/arXiv-2404.16533-brown)](https://doi.org/10.48550/arXiv.2404.16533)
 
 
-<p align="center"><img src="https://raw.githubusercontent.com/amepproject/amep/main/doc/source/_static/images/amep-logo_v2.png" alt="amep logo" width="200" height="200"/></p>
-
+<!-- <p align="center"><img src="https://raw.githubusercontent.com/amepproject/amep/main/doc/source/_static/images/amep-logo_v2.png" alt="amep logo" width="200" height="200"/></p> -->
+<img src="https://raw.githubusercontent.com/amepproject/amep/main/doc/source/_static/images/amep-logo_v2.png"
+     alt="amep logo"
+     width="200"
+     height="200"
+     align="left"
+     style="margin-right: 20px; margin-bottom: 20px;" />
 
 **AMEP** is a Python library that focuses on the fast and user-friendly analysis 
 of active and soft matter simulations. It can natively analyze data from molecular 
