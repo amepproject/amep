@@ -1,13 +1,13 @@
 # AMEP example data
 In this directory, we provide the simulation data which we have used for all 
-**AMEP** examples. This data can either be downloaded directly from the 
+AMEP examples. This data can either be downloaded directly from the 
 [repository](https://github.com/amepproject/amep/tree/main/examples/data) 
 or with the following download link:
 
 https://download-directory.github.io/?url=https://github.com/amepproject/amep/tree/main/examples/data
 
-For **AMEP** beginners, we strongly recommend to download this data and run 
-the examples to get familiar with the **AMEP** workflow.
+For AMEP beginners, we strongly recommend to download this data and run 
+the examples to get familiar with the AMEP workflow.
 
 
 ## The data directory
@@ -45,7 +45,7 @@ traj = amep.load.traj(
 )
 ```
 
-which are the corresponding **AMEP** data files.
+which are the corresponding AMEP data files.
 
 ### Run the continuum simulation
 To run the continuum simulation by yourself, you have to install the 
@@ -72,7 +72,7 @@ python /data/continuum/solver.py
 To run the LAMMPS simulation by yourself, you have to install the latest 
 stable LAMMPS release. Please download the respective version for your 
 operating system from https://www.lammps.org and install it on your machine. 
-The example provided by **AMEP** requires the `BROWNIAN` and the `DIPOLE` 
+The example provided by AMEP requires the `BROWNIAN` and the `DIPOLE` 
 packages. To compile it under Linux, you might use the following commands:
 
 ```
@@ -97,4 +97,4 @@ We provide two basic examples, one for the particle-based simulation data
 obtained from the LAMMPS simulation (`particle-example.py`) and one for the 
 continuum data (`continuum-data.py`). The Jupyter notebook 
 `amep-examples.ipynb` contains the same examples. These examples serve as a 
-starting point for everyone who uses **AMEP** for the first time.
+starting point for everyone who uses AMEP for the first time.
