@@ -6,6 +6,14 @@
 [![Static Badge](https://img.shields.io/badge/DOI-10.1016%2Fj.cpc.2024.109483-brown)](https://doi.org/10.1016/j.cpc.2024.109483)
 
 
+
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![Python Version](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Famepproject%2Famep%2Fmain%2Fpyproject.toml)
+[![PyPI](https://img.shields.io/pypi/v/amep)](https://pypi.org/project/amep/)
+[![Conda Forge](https://img.shields.io/conda/v/conda-forge/amep)](https://anaconda.org/conda-forge/amep)
+[![Docs](https://img.shields.io/badge/documentation-amepproject.de-blue)](https://amepproject.de)
+[![DOI](https://img.shields.io/badge/DOI-10.1016%2Fj.cpc.2024.109483-brown)](https://doi.org/10.1016/j.cpc.2024.109483)
+
 <!-- <p align="center"><img src="https://raw.githubusercontent.com/amepproject/amep/main/doc/source/_static/images/amep-logo_v2.png" alt="amep logo" width="200" height="200"/></p> -->
 <img src="https://raw.githubusercontent.com/amepproject/amep/main/doc/source/_static/images/amep-logo_v2.png"
      alt="amep logo"
