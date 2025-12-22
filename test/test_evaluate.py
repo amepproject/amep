@@ -133,6 +133,8 @@ class TestEvaluateMethods(unittest.TestCase):
         rdfcalc.save(RESULT_DIR/'rdf.h5')
     
     def test_parallel(self):
+        """Test parallelization of average_func and evaluate classes.
+        """
         import os
         import numpy as np
         print("available threads:", len(os.sched_getaffinity(0))) # on GitHub ~4
