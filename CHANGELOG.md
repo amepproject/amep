@@ -13,17 +13,17 @@ adheres to [semantic versioning](https://semver.org/).
 * rebranding to reflect soft matter capabilities and improvements of website (KD)
 * updated examples Jupyter notebook (KD)
 * CICD, release automation phase 1 (ZB, KD)
+* code improvements, overhead reductions (ZB, KD)
 
 ### Bug fixes
 
 * documentation improvements (KD)
-* bug in `spatialcor.pcfangle` fixed (KD)
+* bug in `spatialcor.pcfangle` related to periodic images fixed (KD)
 
 ### Contributors
 
 * Kay-Robert Dormann (KD)
 * Zino Belkadi (ZB)
-
 
 
 
