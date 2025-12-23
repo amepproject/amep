@@ -1,6 +1,6 @@
 name: Feature request
 description: Request a new feature.
-title: "FRQ: <Please add a meaningful title after the 'FRQ: ' prefix."
+title: "FRQ: <Please add a meaningful title after the 'FRQ: ' prefix.>"
 labels: [new feature]
 
 body:
