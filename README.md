@@ -1,15 +1,16 @@
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![GitHub Discussions](https://img.shields.io/github/discussions/amepproject/amep)](https://github.com/amepproject/amep/discussions)
-![Python Version from PEP 621 TOML](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Famepproject%2Famep%2Fmain%2Fpyproject.toml)
-[![Static Badge](https://img.shields.io/badge/documentation-amepproject.de-blue)](https://amepproject.de)
-[![Pepy Total Downlods](https://img.shields.io/pepy/dt/amep?label=pypi%7Cdownloads)](https://pypi.org/project/amep/)
-[![Conda Downloads](https://img.shields.io/conda/d/conda-forge/amep)](https://anaconda.org/conda-forge/amep)
-[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/amepproject/amep/test.yml?label=pipeline)](https://github.com/amepproject/amep/actions)
-[![Static Badge](https://img.shields.io/badge/arXiv-2404.16533-brown)](https://doi.org/10.48550/arXiv.2404.16533)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat-square)](https://www.gnu.org/licenses/gpl-3.0)
+![Python Version](https://img.shields.io/python/required-version-toml?tomlFilePath=https://raw.githubusercontent.com/amepproject/amep/main/pyproject.toml&color=yellow&style=flat-square)
+[![Docs](https://img.shields.io/badge/documentation-amepproject.de-blue?style=flat-square)](https://amepproject.de)
+[![DOI](https://img.shields.io/badge/DOI-10.1016/j.cpc.2024.109483-orange?style=flat-square)](https://doi.org/10.1016/j.cpc.2024.109483)
 
 
-<center><img src="https://raw.githubusercontent.com/amepproject/amep/main/doc/source/_static/images/amep-logo_v2.png" alt="amep logo" width="200" height="200"/></center>
-
+<!-- <p align="center"><img src="https://raw.githubusercontent.com/amepproject/amep/main/doc/source/_static/images/amep-logo_v2.png" alt="amep logo" width="200" height="200"/></p> -->
+<img src="https://raw.githubusercontent.com/amepproject/amep/main/doc/source/_static/images/amep-logo_v2.png"
+     alt="amep logo"
+     width="200"
+     height="200"
+     align="left"
+     style="margin-right: 20px; margin-bottom: 20px;" />
 
 **AMEP** is a Python library that focuses on the fast and user-friendly analysis 
 of active and soft matter simulations. It can natively analyze data from molecular 
