@@ -20,6 +20,7 @@ All contributors are listed below. The CHANGELOG shows individual code contribut
 
 2025
   - Kay-Robert Dormann
+  - Zino Belkadi
   - Lukas Hecht
   - Kai Luca Spanheimer
   - Muhammed Muhsin A.
