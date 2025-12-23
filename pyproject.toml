@@ -58,19 +58,14 @@ dev = [
 ]
 
 [build-system]
-requires = ["setuptools >= 64"]
+requires = ["setuptools >= 64", "wheel"]
 build-backend = "setuptools.build_meta"
+[tool.distutils.bdist_wheel]
+universal = true
 
-[tool.setuptools.packages]
-find = {}
-
-[options.packages.find]
+[tool.setuptools.packages.find]
 include = ["amep"]
-exclude = [
-    "doc",
-    "examples",
-    "test",
-]
+exclude = ["doc", "examples", "test"]
 
 [tool.setuptools.package-data]
 "amep.styles" = ["*.mplstyle"]
