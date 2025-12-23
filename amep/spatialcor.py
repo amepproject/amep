@@ -40,6 +40,7 @@ from numba import jit
 
 from .utils import runningmean, sq_from_sf2d, rotate_coords, unit_vector_2D
 from .utils import unit_vector_3D, dimension, compute_parallel, optimal_chunksize
+from .utils import available_cpu_count
 from .pbc import pbc_points, pbc_diff, distances, kdtree, fold
 from .continuum import coords_to_density
 from .continuum import sf2d as csf2d
@@ -240,8 +241,8 @@ def spatialcor(
 
     '''
     # check number of CPUs
-    if njobs > os.cpu_count():
-        njobs = os.cpu_count()
+    if njobs > available_cpu_count():
+        njobs = available_cpu_count()
     
     # get box length
     box = box_boundary[:,1]-box_boundary[:,0]
@@ -550,9 +551,9 @@ def rdf(
     if rmax is None:
         rmax = max(box_boundary[:,1]-box_boundary[:,0])/2
     
-    # check number of jobs
-    if njobs > os.cpu_count():
-        njobs = os.cpu_count()
+    # check number of CPUs
+    if njobs > available_cpu_count():
+        njobs = available_cpu_count()
         
     # get spatial dimension
     dim = dimension(coords)
@@ -865,9 +866,9 @@ def pcf2d(
     if rmax is None:
         rmax = max(box)//(2*np.sqrt(2))#2
     
-    # check number of jobs
-    if njobs > os.cpu_count():
-        njobs = os.cpu_count()
+    # check number of CPUs
+    if njobs > available_cpu_count():
+        njobs = available_cpu_count()
         
     # angle to rotate (to orient x-axis along mean sample orientation)
     angle = 0.0
@@ -1169,9 +1170,9 @@ def pcf_angle(
         if psi[1] < 0:
             angle = 2*np.pi - angle
             
-    # check number of jobs
-    if njobs > os.cpu_count():
-        njobs = os.cpu_count()
+    # check number of CPUs
+    if njobs > available_cpu_count():
+        njobs = available_cpu_count()
         
     # get optimal chunk size to reduce RAM usage
     if chunksize is None:
@@ -1473,9 +1474,9 @@ def sfiso(
     # possible modes
     modes = ['std', 'fast', 'fft']
     
-    # check number of jobs for parallelization
-    if njobs > os.cpu_count():
-        njobs = os.cpu_count()
+    # check number of CPUs
+    if njobs > available_cpu_count():
+        njobs = available_cpu_count()
     
     # check other_coords
     if other_coords is None:
@@ -1743,9 +1744,9 @@ def sf2d(
     N = len(coords)
     Nother = len(other_coords)
         
-    # check njobs
-    if njobs > os.cpu_count():
-        njobs = os.cpu_count()
+    # check number of CPUs
+    if njobs > available_cpu_count():
+        njobs = available_cpu_count()
 
     # get maximum distance
     rmax = np.abs(np.max(box))

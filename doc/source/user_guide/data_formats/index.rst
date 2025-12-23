@@ -3,13 +3,13 @@
 Supported data formats
 ======================
 
-**AMEP** is compatible with multiple data formats.
+AMEP is compatible with multiple data formats.
 An overview can be found in the table below. We are continuously
 improving the supported data formats to increase usability.
 
 If you are missing a specific reader, you are welcome to create
 an issue (see :ref:`support_label`) or write your own reader and
-help us by contributing it to the **AMEP** project
+help us by contributing it to the AMEP project
 (see :ref:`contribute_label`).
 
 .. Alternatively, you can directly save your simulation data to a ``h5amep``
@@ -46,7 +46,7 @@ Data format pages
 Below, you can find the individual data formats and a more detailed
 description of their supported styles.
 More simulation software can be supported by writing your own
-**AMEP** reader or modifying an existing one.
+AMEP reader or modifying an existing one.
 
 .. toctree::
     

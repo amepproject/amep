@@ -3,22 +3,11 @@
 API Reference
 =============
 
-The AMEP **A**\ ctive **M**\ atter **E**\ valuation **P**\ ackage
-Python library is a powerful tool for analyzing data
-from molecular-dynamics (MD), Brownian-dynamics (BD),
-and continuum simulations.
-It comprises various methods to analyze structural and
-dynamical properties of condensed matter systems in
-general and active matter systems in particular.
-AMEP is exclusively built on Python, and therefore,
-it is easy to modify and allows
-to easily add user-defined methods.
-AMEP provides an efficient data format for saving both
-simulation data and analysis results based on the HDF5
-file format.
-To be fast and usable on modern
-HPC (**H**\ igh **P**\ erformance **C**\ omputing) hardware,
-the methods are optimized to run also in parallel.)
+This reference manual contains details about the usage of functions, modules, 
+and objects included in the AMEP Python library. The pages include descriptions 
+what they can be used for and short examples of them.
+Below, we provide a list of all AMEP modules together with a 
+short description.
 
 .. autosummary::
    :toctree: _autosummary

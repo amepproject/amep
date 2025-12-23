@@ -1,9 +1,33 @@
 # Change Log
 
-All notable changes to **AMEP** will be documented in this file. **AMEP** 
+All notable changes to AMEP will be documented in this file. AMEP 
 adheres to [semantic versioning](https://semver.org/).
 
-## AMEP 1.1.1
+
+## AMEP 1.2.0 (23 Dec 2025)
+
+### New features
+
+* `PCFangle` in relation to particle orientations (KD)
+* parallelization of `evaluate` classes via `utils.average_func` (KD)
+* rebranding to reflect soft matter capabilities and improvements of website (KD)
+* updated examples Jupyter notebook (KD)
+* CICD, release automation phase 1 (ZB, KD)
+* code improvements, overhead reductions (ZB, KD)
+
+### Bug fixes
+
+* documentation improvements (KD)
+* bug in `spatialcor.pcfangle` related to periodic images fixed (KD)
+
+### Contributors
+
+* Kay-Robert Dormann (KD)
+* Zino Belkadi (ZB)
+
+
+
+## AMEP 1.1.1 (12 June 2025)
 
 ### Bug fixes
 
@@ -107,7 +131,7 @@ adheres to [semantic versioning](https://semver.org/).
 
 ## AMEP 1.0.0  (21 Mar 2024)
 
-This is the first public version of **AMEP**. It fully integrates the analysis 
+This is the first public version of AMEP. It fully integrates the analysis 
 of continuum simulation data, fixes various bugs of version 0.5.0, and provides 
 useful new features. It is also the first version that can be installed via 
 conda and pip.
@@ -155,7 +179,7 @@ conda and pip.
 * missing integration limits in `amep.utils.domain_length` added (LH)
 * incorrect calculation of moments in `amep.statistics.binder_cumulant` fixed (LH, LW)
 * bug in `amep.pbc.kdtree` related to an error occured when particles are exactly at the border of the simulation box fixed (LH)
-* new plot styles are now installed when installing **AMEP** via pip (KS)
+* new plot styles are now installed when installing AMEP via pip (KS)
 * `amep.plot.format_axis` improved (LH, ME)
 
 ### Deprecation and removals
@@ -260,7 +284,7 @@ hardware.
 This version fixes many important bugs of version 2.0.0 and now allows to 
 efficiently use the new HDF5-based data format. The loading of the data has 
 been improved significantly and is robust against data loss. With this version, 
-it is also possible to install **AMEP** via `pip`.
+it is also possible to install AMEP via `pip`.
 
 ### New features
 
@@ -294,7 +318,7 @@ it is also possible to install **AMEP** via `pip`.
 
 ## AMEP 0.3.0 (09 Nov 2022)
 
-This is the new **AMEP** version which includes full HDF5 support and uses 
+This is the new AMEP version which includes full HDF5 support and uses 
 HDF5 files in the backend.
 
 ### New features
@@ -359,7 +383,7 @@ This version includes small bug fixes and improvements.
 
 ## AMEP 0.1.0 (30 Mar 2022)
 
-This is the first complete **AMEP** version ready to be shared with our group 
+This is the first complete AMEP version ready to be shared with our group 
 members.
 
 ### Contributors
