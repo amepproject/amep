@@ -8,7 +8,6 @@ adheres to [semantic versioning](https://semver.org/).
 
 ### New features
 
-* `PCFangle` in relation to particle orientations (KD)
 * parallelization of `evaluate` classes via `utils.average_func` (KD)
 * rebranding to reflect soft matter capabilities and improvements of website (KD)
 * updated examples Jupyter notebook (KD)
@@ -18,7 +17,6 @@ adheres to [semantic versioning](https://semver.org/).
 ### Bug fixes
 
 * documentation improvements (KD)
-* bug in `spatialcor.pcfangle` related to periodic images fixed (KD)
 
 ### Contributors
 
