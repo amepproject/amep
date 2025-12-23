@@ -60,8 +60,6 @@ dev = [
 [build-system]
 requires = ["setuptools >= 64", "wheel"]
 build-backend = "setuptools.build_meta"
-[tool.distutils.bdist_wheel]
-universal = true
 
 [tool.setuptools.packages.find]
 include = ["amep"]
