@@ -1,7 +1,7 @@
 [project]
 name = "amep"
-version = "1.1.1"
-license = {file="LICENSE"}
+version = "1.2.0"
+license = "GPL-3.0-or-later"
 authors = [
     {name = "Lukas Hecht", email = "lukas.hecht@pkm.tu-darmstadt.de"},
     {name = "Kay-Robert Dormann", email = "kay-robert.dormann@pkm.tu-darmstadt.de"}
@@ -20,13 +20,13 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Science/Research",
     "Intended Audience :: Education",
-    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     "Natural Language :: English",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: Physics",
     "Topic :: Scientific/Engineering :: Visualization",
 ]

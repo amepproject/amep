@@ -24,7 +24,7 @@ from matplotlib import use
 from amep.load import traj
 from amep.evaluate import ClusterGrowth, ClusterSizeDist, Function, SpatialVelCor, RDF, PCF2d, PCFangle, SF2d
 from amep.evaluate import VelDist, Dist, EkinRot, EkinTrans, EkinTot
-import amep
+from amep.evaluate import MSD
 
 use("Agg")
 DATA_DIR = Path("../examples/data/")
@@ -65,7 +65,6 @@ class TestEvaluateMethods(unittest.TestCase):
 
     def test_energy_methods(self):
         """Test the energy methods.
-        TO BE IMPLEMENTED
         """
         traj = self.particle_traj
         # Ekintrans
@@ -80,7 +79,6 @@ class TestEvaluateMethods(unittest.TestCase):
 
     def test_function(self):
         """Test arbitray function evaluation.
-        TO BE IMPLEMENTED
         """
         traj = self.particle_traj
         ftraj = self.field_traj
@@ -122,15 +120,8 @@ class TestEvaluateMethods(unittest.TestCase):
         dist = Dist(traj, "vx", skip=0.9, nav=2)
         dist.save(RESULT_DIR/"distvx_eval.h5", database=True, name="particles")
 
-    def test_order_evaluations(self):
-        """Test order parameter evaluation.
-        TO BE IMPLEMENTED
-        """
-        pass
-
     def test_correlation(self):
-        """Test order parameter evaluation.
-        TO BE IMPLEMENTED
+        """Test spatial correlation evaluation.
         """
         svc = SpatialVelCor(self.particle_traj, skip=0.9, nav=2, njobs=4)
 
@@ -141,20 +132,16 @@ class TestEvaluateMethods(unittest.TestCase):
                 skip=0.9, njobs=4)
         rdfcalc.save(RESULT_DIR/'rdf.h5')
     
-    def test_transforms(self):
-        """Test order parameter evaluation.
-        TO BE IMPLEMENTED
-        """
-        pass
-
     def test_parallel(self):
+        """Test parallelization of average_func and evaluate classes.
+        """
         import os
         import numpy as np
         print("available threads:", len(os.sched_getaffinity(0))) # on GitHub ~4
-        msd_1 = amep.evaluate.MSD(self.particle_traj, nav=20, max_workers=4)
-        msd_2 = amep.evaluate.MSD(self.particle_traj, nav=20, max_workers=-1)
-        msd_3 = amep.evaluate.MSD(self.particle_traj, nav=20, max_workers=None)
-        msd_4 = amep.evaluate.MSD(self.particle_traj, nav=20, max_workers=1)
+        msd_1 = MSD(self.particle_traj, nav=20, max_workers=4)
+        msd_2 = MSD(self.particle_traj, nav=20, max_workers=-1)
+        msd_3 = MSD(self.particle_traj, nav=20, max_workers=None)
+        msd_4 = MSD(self.particle_traj, nav=20, max_workers=1)
         self.assertTrue(np.all(msd_1.avg==msd_2.avg),
             '4 thread result differs from -1 thread result'
         )
