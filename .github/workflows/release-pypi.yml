@@ -1,0 +1,169 @@
+name: Release PyPi
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "release" to confirm'
+        required: true
+        default: ""
+
+concurrency:
+  group: release-pypi
+  cancel-in-progress: false
+
+permissions:
+  contents: write     # create tag + GitHub Release
+  id-token: write     # Trusted Publishing to PyPI
+  actions: read
+
+jobs:
+  guard-and-validate:
+    name: Guard + validate version on main
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Require explicit confirmation
+        run: |
+          if [ "${{ github.event.inputs.confirm }}" != "release" ]; then
+            echo "You must type 'release' in the confirm input."
+            exit 1
+          fi
+
+      - name: Only allow running from main
+        run: |
+          if [ "${{ github.ref_name }}" != "main" ]; then
+            echo "This workflow can only be run on the main branch."
+            echo "You ran it on: ${{ github.ref_name }}"
+            exit 1
+          fi
+
+      - name: Only allow repo admins (owners/admins)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          perm="$(gh api "repos/${{ github.repository }}/collaborators/${{ github.actor }}/permission" --jq '.permission')"
+          echo "Actor permission: ${perm}"
+          if [ "${perm}" != "admin" ]; then
+            echo "Only repo admins can run a release. Current actor is not admin."
+            exit 1
+          fi
+
+      - name: Checkout main (full history + tags)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Ensure local main is up to date with origin/main
+        run: |
+          git fetch origin main --tags
+          LOCAL="$(git rev-parse HEAD)"
+          REMOTE="$(git rev-parse origin/main)"
+          echo "LOCAL : $LOCAL"
+          echo "REMOTE: $REMOTE"
+          if [ "$LOCAL" != "$REMOTE" ]; then
+            echo "_toggle: main is not up-to-date with origin/main. Re-run after syncing."
+            exit 1
+          fi
+
+      - name: Read version from pyproject.toml and validate files
+        id: ver
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate version consistency + changelog
+        id: validate
+        run: |
+          ./tools/release/validate_release.sh
+      - name: Fail if tag already exists
+        run: |
+          git fetch --tags
+          if git rev-parse "${TAG}" >/dev/null 2>&1; then
+            echo "Tag ${TAG} already exists. Refusing to release the same version again."
+            exit 1
+          fi
+
+  tag-and-release:
+    name: Create tag + GitHub Release
+    needs: guard-and-validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main (full history + tags)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Create annotated tag and push
+        env:
+          TAG: ${{ needs.guard-and-validate.outputs.tag }}
+        run: |
+          # Recompute TAG from env written earlier (safe fallback)
+          if [ -z "${TAG}" ]; then
+            VERSION="$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")"
+            TAG="v${VERSION}"
+          fi
+
+          git tag -a "${TAG}" -m "version ${TAG#v}"
+          git push origin "${TAG}"
+
+      - name: Create GitHub Release from tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")"
+          TAG="v${VERSION}"
+
+          # Use CHANGELOG as notes if you want (kept simple here)
+          gh release create "${TAG}" \
+            --title "${TAG}" \
+            --generate-notes
+
+  build-and-publish:
+    name: Build + Publish to PyPI
+    needs: tag-and-release
+    runs-on: ubuntu-latest
+
+    # Strongly recommended: protect this environment in repo settings with required reviewers (owners)
+    environment:
+      name: pypi
+      url: https://pypi.org/project/amep/
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout main at the release tag
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+
+      - name: Install build tooling
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install build twine
+
+      - name: Build wheel and sdist
+        run: |
+          rm -rf dist/
+          python -m build
+
+      - name: Twine check
+        run: |
+          python -m twine check dist/*
+
+      - name: Publish to PyPI (Trusted Publishing)
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+          skip-existing: false
