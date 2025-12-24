@@ -838,6 +838,7 @@ class PCFangle(BaseEvaluation):
     def __init__(
             self, traj: ParticleTrajectory, skip: float = 0.0, nav: int = 10,
             ptype: int | None = None, other: int | None = None,
+            mode: str = 'psi6',
             max_workers: int | None = 1,
             **kwargs) -> None:
         r'''
@@ -846,30 +847,46 @@ class PCFangle(BaseEvaluation):
         Implemented for a 2D system.
         Takes the time average over several time steps.
 
-        To allow for averaging the result (either with respect to time or to
+        Three modes are available, the default, ``'psi6'``
+        allows for averaging the result (either with respect to time or to
         make an ensemble average), the coordinates are rotated such that the
-        mean orientation points along the :math:`x`-axis
+        mean :math:`\psi_6` orientation points along the :math:`x`-axis
         (see Ref. [1]_ for details).
+
+        The mode ``'orientations'`` calculates :math:`g(r,\theta)` in relation
+        to the individual particle orientations (``frame.orientations()``).
+        This mode is particularly interesting for active matter.
+
+        The mode ``'x'`` calculates :math:`g(r,\theta)` in relation to the 
+        :math:`x`-axis.
+
+        Per default, it is assumed that the system has periodic boundary
+        conditions (keyword ``pbc=True``). Please adjust as needed.
+        The keyword ``pbc`` is forwarded to :func:`amep.spatialcor.pcf_angle` via
+        ``**kwargs``.
 
         Notes
         -----
-        The angle-dependent pair correlation function is defined by
-        (see Ref. [2]_)
+        The angle-dependent pair correlation function is defined by (see Ref. [2]_)
 
         .. math::
-           g(r,\theta) = \frac{1}{\langle \rho\rangle_{local,\theta} N}
-           \sum\limits_{i=1}^{N} \sum\limits_{j\neq i}^{N}
-           \frac{\delta(r_{ij} -r)
-           \delta(\theta_{ij}-\theta)}{2\pi r^2 \sin(\theta)}
+            g(r,\theta) = \frac{1}{\langle \rho\rangle_{\text{local},\theta} N}\sum\limits_{i=1}^{N}
+            \sum\limits_{j\neq i}^{N}\frac{\delta(r_{ij} -r)\delta(\theta_{ij}-\theta)}{2\pi r^2 \sin(\theta)}
 
-        The angle :math:`\theta` is defined with respect to a certain
-        axis :math:`\vec{e}` and is given by
+
+        The angle :math:`\theta` is defined with respect to a certain axis :math:`\vec{e}` and
+        is given by
 
         .. math::
-           \cos(\theta)=\frac{{\vec{r}}_{ij}\cdot\vec{e}}{r_{ij}e}
+            \cos(\theta)=\frac{\vec{r}_{ij}\cdot\vec{e}}{r_{ij}e}
 
-        Here, we choose :math:`\vec{e}=\hat{e}_x`.
+        The vector :math:`\vec{e}` is default the x-axis, but can be specified by supplying
+        the parameter ``e``. See parameter description for details.
 
+        The angles are in the range :math:`\theta \in [0, 2\pi)`.
+
+        This method only works for 2D systems.
+        
         References
         ----------
         .. [1] Bernard, E. P., & Krauth, W. (2011). Two-Step Melting in Two
@@ -895,44 +912,98 @@ class PCFangle(BaseEvaluation):
         nav : int, optional
             Number of frames to consider for the time average.
             The default is 10.
-        ptype : float or None, optional
+        ptype : int or None, optional
             Particle type. The default is None.
-        other : float or None, optional
+        other : int or None, optional
             Other particle type (to calculate the correlation between
+            different particle types).
+            ``other`` will specify the locations of the reference particles
+            from which the distances and angles to the particles ``ptype``
+            are calculated ("``other`` ≙ probing locations").
+            The default is None which uses the ``ptype`` particles.
+        mode : str, optional
+            Mode that defines with respect to which axis the angles
+            are calculated. Possible values are ``'psi6'``, ``'orientations'``,
+            and ``'x'``. The default is ``'psi6'``, which uses the hexagonal
+            order parameter to define the mean orientation.
+            The option `orientations` calculates :math:`g(r,\theta)`
+            with respect to the individual particle orientations
+            (useful for active particles). The option ``'x'`` uses the
+            :math:`x`-axis of the simulation box as reference.
+            The default is ``'psi6'``.
             different particle types). The default is None.
         max_workers : int or None, optional
             Number of parallel workers. Will be forwarded to
             `utils.average_func`.
         **kwargs
             All other keyword arguments are forwarded to
-            `amep.spatialcor.pcf_angle`.
+            :func:`amep.spatialcor.pcf_angle`.
 
         Examples
         --------
         >>> import amep
         >>> traj = amep.load.traj("../examples/data/lammps.h5amep")
-        >>> pcfangle = amep.evaluate.PCFangle(
-        ...     traj, nav=2, ndbins=1000, nabins=1000,
-        ...     njobs=4, rmax=8.0, skip=0.9
-        ... )
-        >>> pcfangle.save("./eval/pcfangle.h5")
-        >>> r = pcfangle.r
-        >>> theta = pcfangle.theta
-        >>> X = r*np.cos(theta)
-        >>> Y = r*np.sin(theta)
-        >>> fig, axs = amep.plot.new(figsize=(3.6,3))
-        >>> mp = amep.plot.field(
-        ...     axs, pcfangle.avg, X, Y
-        ... )
-        >>> cax = amep.plot.add_colorbar(
-        ... fig, axs, mp, label=r"$g(\Delta x, \Delta y)$"
-        ... )
-        >>> axs.set_xlim(-5, 5)
-        >>> axs.set_ylim(-5, 5)
-        >>> axs.set_xlabel(r"$\Delta x$")
-        >>> axs.set_ylabel(r"$\Delta y$")
-        >>> fig.savefig("./figures/evaluate/evaluate-PCFangle.png")
+        >>> pcfangle = amep.evaluate.PCFangle(traj, skip=.9, nav=2, rmax=3)
+        >>> fig, axs = amep.plot.new(subplot_kw=dict(projection="polar"))
+        >>> mp = axs.pcolormesh(pcfangle.theta, pcfangle.r, pcfangle.avg)
+        >>> cax = amep.plot.add_colorbar(fig, axs, mp, label=r"$g(\Delta r, \Delta \theta)$")
+        >>> axs.grid(alpha=.5, lw=.5, c='w')
+        >>> axs.set_rticks([0,1,2,3])
+        >>> axs.tick_params(axis='y', colors='white')
         >>> 
+        >>> fig.savefig("PCFangle_1.png")
+
+        .. image:: /_static/images/evaluate/PCFangle_1.png
+          :width: 400
+          :align: center
+
+        >>> 
+        >>> # PCFangle in relation to the particle orientations
+        >>> pcfangle = amep.evaluate.PCFangle(traj, skip=.75, 
+        >>>                 nav=10, rmax=3, nabins=100, 
+        >>>                 ndbins=100, mode="orientations"
+        >>>                 )
+        >>> fig, axs = amep.plot.new(subplot_kw=dict(projection="polar"))
+        >>> mp = axs.pcolormesh(pcfangle.theta, pcfangle.r, pcfangle.avg)
+        >>> cax = amep.plot.add_colorbar(fig, axs, mp, label=r"$g(\Delta r, \Delta \theta)$")
+        >>> axs.grid(alpha=.5, lw=.5, c='w')
+        >>> axs.set_rticks([0,1,2,3])
+        >>> axs.set_rlim(0,1.1)
+        >>> axs.tick_params(axis='y', colors='white')
+        >>> 
+        >>> fig.savefig("PCFangle_2.png")
+        
+        .. image:: /_static/images/evaluate/PCFangle_2.png
+          :width: 400
+          :align: center
+
+        >>> # plot integrated histograms to have 1d-plots
+        >>> fig, axs = amep.plot.new((7,3), ncols=2)
+        >>> angles = pcfangle.theta[:,0]
+        >>> theta_integrated = np.sum(pcfangle.avg, axis=0)
+        >>> axs[0].plot(np.mean(pcfangle.r, axis=0), theta_integrated)
+        >>> axs[0].set_xlabel(r"$r$")
+        >>> axs[0].set_ylabel(r"$g(\Delta r)$")
+        >>> 
+        >>> # fig, axs = amep.plot.new()
+        >>> # only integrate over first peak
+        >>> r_integrated = np.sum(pcfangle.avg*(pcfangle.r<1.1), axis=1)
+        >>> # changing angles so that it is plottet around 0
+        >>> theta=np.mean(pcfangle.theta, axis=1)
+        >>> angles=(angles+np.pi)%(2*np.pi)-np.pi
+        >>> angles*=180/np.pi # to change from radians to degree
+        >>> # sorting so that data points are plotted in order
+        >>> sort=np.argsort(angles)
+        >>> axs[1].plot(angles[sort], r_integrated[sort])
+        >>> axs[1].set_xlabel(r"$\theta$")
+        >>> axs[1].set_ylabel(r"$g(\Delta \theta)$")
+        >>> 
+        >>> fig.savefig("PCFangle_3.png")
+        
+        .. image:: /_static/images/evaluate/PCFangle_3.png
+          :width: 800
+          :align: center
+
 
         '''
         super(PCFangle, self).__init__()
@@ -944,8 +1015,15 @@ class PCFangle(BaseEvaluation):
         self.__nav    = nav
         self.__ptype  = ptype
         self.__other  = other
+        self.__mode   = mode
         self.__max_workers  = max_workers
         self.__kwargs = kwargs
+
+        if self.__mode not in ['psi6', 'orientations', 'x']:
+            raise ValueError(
+                "Mode not recognized. Possible values are "
+                "'psi6', 'orientations', and 'x'."
+            )
         
         self.__frames, res, self.__indices = average_func(
             self.__compute, self.__traj, skip = self.__skip,
@@ -976,24 +1054,46 @@ class PCFangle(BaseEvaluation):
         t : np.ndarray
             theta values
         '''
-        # hexagonal order parameter to specify mean orientation
-        psi = np.mean(psi_k(
-            frame.coords(),
-            frame.box,
-            k = 6
-        ))
+        DEFAULT_E = np.array([1.0, 0.0, 0.0], dtype=float)
+
+        psi = None
+        e = DEFAULT_E # default works for modes that don't naturally define e
+
+        if self.__mode == "x":
+            # keep default psi
+            # keep default e
+            pass
+        elif self.__mode == "orientations":
+            # keep default psi
+            if self.__other is None:
+                e = frame.orientations(ptype=self.__ptype)
+            else:
+                e = frame.orientations(ptype=self.__other)
+        elif self.__mode == "psi6":
+            psi = np.mean(psi_k(
+                frame.coords(),
+                frame.box,
+                k = 6
+            ))
+            psi = np.array([psi.real, psi.imag])
+            # keep default e
+        else:
+            raise ValueError(f"Unknown mode: {self.__mode!r}")
+        
         if self.__other is None:
             grt, r, t = pcf_angle(
                 frame.coords(ptype = self.__ptype),
                 frame.box,
-                psi = np.array([psi.real, psi.imag]),
+                psi = psi,
+                e=e,
                 **self.__kwargs
             )
         else:
             grt, r, t = pcf_angle(
                 frame.coords(ptype = self.__ptype),
                 frame.box,
-                psi = np.array([psi.real, psi.imag]),
+                psi = psi,
+                e=e,
                 other_coords = frame.coords(ptype = self.__other),
                 **self.__kwargs
             )
