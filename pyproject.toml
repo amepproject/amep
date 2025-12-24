@@ -1,11 +1,13 @@
 [project]
 name = "amep"
-version = "1.1.1"
-license = {file="LICENSE"}
+dynamic = ["version"]
+
+license = "GPL-3.0-or-later"
 authors = [
     {name = "Lukas Hecht", email = "lukas.hecht@pkm.tu-darmstadt.de"},
+    {name = "Kay-Robert Dormann", email = "kay-robert.dormann@pkm.tu-darmstadt.de"}
 ]
-description = "Active Matter Evaluation Package for data analysis of active matter simulations"
+description = "Data analysis package for active and soft matter simulations"
 readme = "README.md"
 requires-python = ">=3.10"
 keywords = [
@@ -19,13 +21,13 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Science/Research",
     "Intended Audience :: Education",
-    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     "Natural Language :: English",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: Physics",
     "Topic :: Scientific/Engineering :: Visualization",
 ]
@@ -56,11 +58,12 @@ dev = [
     "setuptools >= 64",
 ]
 
+[tool.setuptools.dynamic]
+version = { attr = "amep._version.__version__" }
+
 [build-system]
 requires = ["setuptools >= 64", "wheel"]
 build-backend = "setuptools.build_meta"
-[tool.distutils.bdist_wheel]
-universal = true
 
 [tool.setuptools.packages.find]
 include = ["amep"]
