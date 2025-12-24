@@ -3,7 +3,7 @@
 All notable changes to AMEP will be documented in this file. AMEP 
 adheres to [semantic versioning](https://semver.org/).
 
-## AMEP 1.3.0 (24 Dec 2025)
+## AMEP 1.3.0
 
 ### New features
 
@@ -14,6 +14,7 @@ adheres to [semantic versioning](https://semver.org/).
 
 * documentation improvements (KD)
 * bug in `spatialcor.pcfangle` related to periodic images fixed (KD)
+* reduced version locations in GitHub repository (KD)
 
 ### Contributors
 
