@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use AMEP for a project that leads to a scientific publication, please acknowledge the use of AMEP within the body of your publication by citing Hecht L., Dormann, K.-R., Spanheimer, K. L., Ebrahimi, M., Cordts, M., Mandal, S., Mukhopadhyay, A. K. & Liebchen, B. (2025). “AMEP: The Active Matter Evaluation Package for Python”, Comput. Phys. Commun., 309, 109483. https://doi.org/10.1016/j.cpc.2024.109483"
-title: 'AMEP: The Active Matter Evaluation Package'
+title: 'AMEP'
 authors:
   - name: "Lukas Hecht and the AMEP development team"
     website: "https://amepproject.de/"
