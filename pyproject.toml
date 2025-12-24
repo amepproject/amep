@@ -1,6 +1,7 @@
 [project]
 name = "amep"
-version = "1.3.0"
+dynamic = ["version"]
+
 license = "GPL-3.0-or-later"
 authors = [
     {name = "Lukas Hecht", email = "lukas.hecht@pkm.tu-darmstadt.de"},
@@ -56,6 +57,9 @@ dependencies = [
 dev = [
     "setuptools >= 64",
 ]
+
+[tool.setuptools.dynamic]
+version = { attr = "amep._version.__version__" }
 
 [build-system]
 requires = ["setuptools >= 64", "wheel"]
