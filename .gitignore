@@ -51,3 +51,6 @@ examples/data/lammps/traj.h5amep
 examples/data/lammps/#traj.h5amep
 examples/data/lammps/##temp*
 examples/data/invalid
+main_data/
+Plot_PCF/
+PCF_test.py

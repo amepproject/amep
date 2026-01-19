@@ -579,7 +579,7 @@ def rotation(theta: float, axis: str = 'z') -> np.ndarray:
 
 
 def rotate_coords(
-        coords: np.ndarray, theta: float, center: np.ndarray) -> np.ndarray:
+        coords: np.ndarray, theta: float | np.float32 | np.float64, center: np.ndarray) -> np.ndarray:
     r'''
     Rotates all coordinate vectors given in coords by the angle theta
     around the origin of the system given by center.
@@ -637,19 +637,72 @@ def rotate_coords(
       :align: center
 
     '''
-    # get rotation matrix
-    R = rotation(theta)
-    
-    # shift to put [0,0,0] into the center
-    coords = coords - center
-    
-    # rotate coordinates
-    coords = np.array([np.dot(R,coords[i]) for i in range(len(coords))])
-    
-    # redo the shift operation
-    coords = coords + center
-    
-    return coords
+    if isinstance(theta, (float, int, np.floating, np.integer)):
+        # get rotation matrix
+        R = rotation(theta)
+        
+        # shift to put [0,0,0] into the center
+        coords = coords - center
+        
+        # rotate coordinates
+        coords = np.array([np.dot(R,coords[i]) for i in range(len(coords))])
+        
+        # redo the shift operation
+        coords = coords + center
+        
+        return coords
+
+    # elif isinstance(theta, np.ndarray):
+    #     # !!!From my understanding this should handle floats as well but just in case the if statements are added
+    #     # shift to put [0,0,0] into the center
+    #     coords = coords - center
+        
+    #     # 2. Ensure theta is an array for consistent math
+    #     theta = np.asarray(theta)
+        
+    #     # 3. Pre-calculate trig values
+    #     c, s = np.cos(theta), np.sin(theta)
+
+    #     # 4. Branch for Performance
+    #     if theta.ndim == 0:
+    #         # If Theta is a single float (Global Rotation)
+    #         # Build standard 3x3 rotation matrix for Z-axis
+    #         R = np.array([
+    #             [c, -s, 0.0],
+    #             [s,  c, 0.0],
+    #             [0.0, 0.0, 1.0]
+    #         ])
+            
+    #         # Fast Matrix Multiplication: (N,3) @ (3,3).T
+    #         coords = coords @ R.T
+
+    #     else:
+    #         # CASE B: Theta is a list/array (Individual Particle Rotation)
+    #         # We need "N" matrices. We use zeros_like/ones_like to match the shape of theta.
+    #         z = np.zeros_like(theta)
+    #         o = np.ones_like(theta)
+            
+    #         # Build stack of matrices. Shape becomes (3, 3, N)
+    #         R_stack = np.array([
+    #             [c, -s, z],
+    #             [s,  c, z],
+    #             [z,  z, o]  # The '1' here keeps the z-coordinate unchanged
+    #         ])
+            
+    #         # Transpose to (N, 3, 3) for einsum
+    #         R = R_stack.transpose(2, 0, 1)
+            
+    #         # Einstein Summation: Multiply i-th particle by i-th matrix
+    #         # 'nij' = (N matrices, 3 rows, 3 cols)
+    #         # 'nj'  = (N particles, 3 coords)
+    #         # -> 'ni' = (N particles, 3 rotated coords)
+    #         coords = np.einsum('nij,nj->ni', R, coords)
+
+    #     # redo the shift operation
+    #     coords = coords + center
+    #     return coords
+    else:
+        raise TypeError(f"Unsupported type: {type(theta)}")
 
 
 def in_box(

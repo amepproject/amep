@@ -650,7 +650,8 @@ def rdf(
         
 
 def __dhist2d(
-        chunk, chunksize, coords, box_boundary, other_coords, xbins, ybins,
+        chunk: int, chunksize: int, coords: np.ndarray, box_boundary: np.ndarray,
+        other_coords: np.ndarray, xbins: np.ndarray, ybins: np.ndarray, e,
         angle, same, pbc):
     r'''
     Calculates the 2D histogram of distances from chunk particles to all other
@@ -678,6 +679,11 @@ def __dhist2d(
         Bin edges for x direction.
     ybins : np.ndarray
         Bin edges for y direction.
+    e : np.ndarray of shape (3,) or (N,3)
+        Direction/axis to which the angle is measured.
+        This can be either a single vector of shape (3,) or
+        an array of shape (N,3) containing a direction for
+        each particle.
     angle : np.ndarray
         Angle to rotate the system in order to orient its mean orientation
         along the x-axis.
@@ -696,36 +702,68 @@ def __dhist2d(
     
     hist = np.zeros((len(xbins)-1,len(ybins)-1), dtype=float)
 
+    local_rotation = (e.ndim == 2)
+
+    # reduce overhead by defining particle range outside of loop
+    if same:
+        particlerange = np.arange(len(coords))
+
     for n in np.arange(len(other_coords))[sl]:
         # calculate distance vectors
         if same:
-            # diff = pbc_diff(
-            #     other_coords[n],
-            #     coords[np.arange(len(coords)) != n], # exclude the particle itself
-            #     box_boundary,
-            #     pbc=pbc
-            # )
+            # !!!!!!!!!Here change maybe check
+            r_ij = pbc_diff(
+                coords[particlerange != n], # exclude the particle itself
+                other_coords[n],
+                box_boundary,
+                pbc=pbc
+                )
             # exclude the particle itself
-            diff = other_coords[n] - coords[np.arange(len(coords)) != n]
+            # diff = other_coords[n] - coords[np.arange(len(coords)) != n]
         else:
-            # diff = pbc_diff(other_coords[n], coords, box_boundary, pbc=pbc)
-            diff = other_coords[n] - coords
-        # orient x-axis along mean sample orientation
-        # The rotation is applied to the difference vectors instead of the
-        # particle positions, since the distances can only be calculated 
-        # correctly if the particle coordinates and the simulation box
-        # fit to each other (which is no longer the case when coordinates
-        # are rotated)!
-        if angle != 0.0:
-            # get center of the simulation box
-            center = np.mean(box_boundary, axis=1)
-            
-            # rotate all coords
-            diff = rotate_coords(diff, -angle, center)
+            r_ij = pbc_diff(
+                coords,
+                other_coords[n], 
+                box_boundary, 
+                pbc=pbc
+                )
+            # diff = other_coords[n] - coords
+        
+        # reduce to only x and y coordinates
+        diff = r_ij[:,:2]
 
+        # Calculate distance to avoid square root cost for filtering
+        dist_sq = diff[:, 0]**2 + diff[:, 1]**2
+
+        # Filter out particles that are effectively at 0 distance (self-interaction or duplicates)
+        mask_nonzero = dist_sq > 1e-12 
+        diff = diff[mask_nonzero]
+
+        if local_rotation:
+            # Get orientation vector of the reference particle n
+            e_n = e[n]
+            
+            # Calculate angle of orientation in lab frame
+            phi = np.arctan2(e_n[1], e_n[0])
+
+            # Rotate neighbors by -phi to align e_n to +x
+            c = np.cos(-phi)
+            s = np.sin(-phi)
+
+            # Apply 2D rotation matrix manually
+            dx = diff[:, 0] * c - diff[:, 1] * s
+            dy = diff[:, 0] * s + diff[:, 1] * c
+
+            # Update diff with rotated coordinates
+            diff[:, 0] = dx
+            diff[:, 1] = dy
+
+        elif angle != 0.0:
+            # rotate all coords
+            diff = rotate_coords(diff, -angle, np.array([0., 0.]))
 
         # calculate 2D histogram
-        hist += np.histogram2d(diff[:,0], diff[:,1], [xbins,ybins])[0]
+        hist += np.histogram2d(diff[:, 0], diff[:, 1], [xbins, ybins])[0]
     
     return hist
         
@@ -735,7 +773,8 @@ def pcf2d(
         other_coords: np.ndarray | None = None, nxbins: int | None = None,
         nybins: int | None = None, rmax: float | None = None,
         psi: np.ndarray | None = None, njobs: int = 1, pbc: bool = True,
-        verbose: bool = False, chunksize: int | None = None
+        verbose: bool = False, chunksize: int | None = None,
+        e: np.ndarray = np.array([1.0, 0.0, 0.0]),
         ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     r'''
     Calculates the 2D pair correlation function by calculating histograms.
@@ -802,6 +841,11 @@ def pcf2d(
         If True, a progress bar is shown. The default is False.
     chunksize : int or None, optional
         Divide calculation into chunks of this size. The default is None.
+    e : np.ndarray of shape (3,) or (N,3,), optional
+        Direction/axis to which the angle is measured.
+        The default is `np.array([1.0, 0.0, 0.0])`.
+        Can also be an array of shape (N,3) to have different directions for each
+        particle (such as `frame.orientations`).
         
 
     Returns
@@ -849,12 +893,38 @@ def pcf2d(
         same = True
     
     # enforce 2D
+    # !Why not in sf2d?
+    # if np.any(coords[:,-1] != 0.0) or np.any(other_coords[:,-1] != 0.0):
+    #     raise ValueError(
+    #         "amep.spatialcor.pcf_angle: Input coordinates are not 2D. "\
+    #         "The z-coordinate must be zero for all particles."
+    #     )
     coords[:,-1] = 0.0
     other_coords[:,-1] = 0.0
     
     # total number of particles
     N = len(coords)
     Nother = len(other_coords) 
+
+    # check shape of e to match 1 or number of particles
+    if e.ndim == 1:
+        if e.shape[0] != 3:
+            raise ValueError(
+                "amep.spatialcor.pcf2d: Invalid shape of e. "\
+                "If e is given as 1D array, it must have shape (3,)."
+            )
+    elif e.ndim == 2:
+        if e.shape != (N,3):
+            raise ValueError(
+                "amep.spatialcor.pcf2d: Invalid shape of e. "\
+                "If e is given as 2D array, it must have shape (N,3), "\
+                "where N is the number of particles."
+            )
+    else:
+        raise ValueError(
+            "amep.spatialcor.pcf2d: Invalid shape of e. "\
+            "e must be either 1D or 2D array."
+        )
 
     if nxbins is None:
         nxbins = 500
@@ -866,11 +936,7 @@ def pcf2d(
     # might not stay insight the box after rotation)
     if rmax is None:
         rmax = max(box)//(2*np.sqrt(2))#2
-    
-    # check number of CPUs
-    if njobs > available_cpu_count():
-        njobs = available_cpu_count()
-        
+
     # angle to rotate (to orient x-axis along mean sample orientation)
     angle = 0.0
     if psi is not None:
@@ -878,14 +944,22 @@ def pcf2d(
         angle = np.arccos(np.dot(ex, psi)/np.sqrt(psi[0]**2+psi[1]**2))
         if psi[1] < 0:
             angle = 2*np.pi - angle
+
+    # check number of CPUs
+    if njobs > available_cpu_count():
+        njobs = available_cpu_count()
         
     # get optimal chunk size to reduce RAM usage
     if chunksize is None:
         chunksize = optimal_chunksize(N, 8*N)
-        
+
     # limit chunksize
     if chunksize > N:
         chunksize = int(N/njobs)
+
+    # ensure that for njobs=1, the whole system is computed in one chunk
+    if njobs==1:
+        chunksize = Nother
 
     # create bin edges for the histogram
     xbins = np.linspace(-rmax, rmax, nxbins+1)
@@ -894,22 +968,46 @@ def pcf2d(
     # compute the 2D histogram
     hist = np.zeros((nxbins,nybins), dtype=float)
     
-    results = compute_parallel(
-        __dhist2d,
-        range(0, Nother, chunksize),
-        chunksize,
-        coords,
-        box_boundary,
-        other_coords,
-        xbins,
-        ybins,
-        angle,
-        same,
-        pbc,
-        njobs = njobs,
-        verbose = verbose
-    )
-     
+
+    # running __dhist2d directly allows to print during the calculation
+    # useful for debugging and development
+    # The following code block can be simplified by removing the njobs==1
+    # clause in future releases if no debugging for development is needed 
+    # anymore or printing can be handled with logging.
+    if njobs == 1:
+        results = [
+            __dhist2d(
+                0,
+                chunksize,
+                coords,
+                box_boundary,
+                other_coords,
+                xbins,
+                ybins,
+                e,
+                angle,
+                same,
+                pbc,
+            )
+        ]
+    else:
+        results = compute_parallel(
+            __dhist2d,
+            range(0, Nother, chunksize),
+            chunksize,
+            coords,
+            box_boundary,
+            other_coords,
+            xbins,
+            ybins,
+            e,
+            angle,
+            same,
+            pbc,
+            njobs = njobs,
+            verbose = verbose
+        )
+
     for res in results:
         hist += res
 
@@ -923,7 +1021,10 @@ def pcf2d(
     
     X,Y = np.meshgrid(x,y)
 
-    return res, X, Y 
+    # Tranpose res according to https://numpy.org/doc/2.1/reference/generated/numpy.histogram2d.html
+    # Histogram does not follow Cartesian convention (see Notes),
+    # therefore transpose H for visualization purposes.
+    return res.T, X, Y 
 
 
 def __dhist_angle(
@@ -1241,7 +1342,7 @@ def pcf_angle(
         angle = np.arccos(np.dot(ex, psi)/np.sqrt(psi[0]**2+psi[1]**2))
         if psi[1] < 0:
             angle = 2*np.pi - angle
-            
+
     # check number of CPUs
     if njobs > available_cpu_count():
         njobs = available_cpu_count()
