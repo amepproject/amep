@@ -53,4 +53,5 @@ examples/data/lammps/##temp*
 examples/data/invalid
 main_data/
 Plot_PCF/
-PCF_test.py
+# PCF_test.py # Add if shipping
+# Compare_h5.py

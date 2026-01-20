@@ -34,6 +34,8 @@ correlation functions for a single frame of particle-based data.
 import os
 
 import numpy as np
+# Temp Import for testing
+import time
 
 from scipy import special
 from numba import jit
@@ -652,7 +654,7 @@ def rdf(
 def __dhist2d(
         chunk: int, chunksize: int, coords: np.ndarray, box_boundary: np.ndarray,
         other_coords: np.ndarray, xbins: np.ndarray, ybins: np.ndarray, e,
-        angle, same, pbc):
+        angle, same, pbc, search_radius, use_kDTree):
     r'''
     Calculates the 2D histogram of distances from chunk particles to all other
     particles in the system (directonally resolved in x and y direction). 
@@ -691,6 +693,10 @@ def __dhist2d(
         True if coords and other_coords are the same.
     pbc : bool
         If True, periodic boundary conditions are applied.
+    search_radius : float
+        The search radius which kDTree uses.
+    use_kDTree : bool
+        If True uses kDTree to build nearest neighbor list.
 
     Returns
     -------
@@ -698,6 +704,16 @@ def __dhist2d(
         2D histogram of distances.
 
     '''
+    # gets relevant boundary values
+    xlo, xhi = box_boundary[0][0], box_boundary[0][1]
+    ylo, yhi = box_boundary[1][0], box_boundary[1][1]
+    
+    # calculate box dimensions
+    Lx = xhi - xlo
+    Ly = yhi - ylo
+
+
+
     sl = slice(chunk, chunk+chunksize)
     
     hist = np.zeros((len(xbins)-1,len(ybins)-1), dtype=float)
@@ -707,66 +723,129 @@ def __dhist2d(
     # reduce overhead by defining particle range outside of loop
     if same:
         particlerange = np.arange(len(coords))
+    
+    if use_kDTree:
+        to_tree = kdtree(coords=coords, box_boundary=box_boundary, pbc=pbc)
+        box = box_boundary[:,1]-box_boundary[:,0]
+        if pbc: 
+            # get center of the simulation box
+            center = np.mean(box_boundary, axis=1)
+            # shift to center (required for pbc kdtree)
+            other_coords = fold(other_coords + box/2. - center, box_boundary) #Seams kinda fishy!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            coords = fold(coords + box/2. - center, box_boundary) #Seams kinda fishy!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        neighbors_list = to_tree.query_ball_point(other_coords, r=search_radius)
 
-    for n in np.arange(len(other_coords))[sl]:
-        # calculate distance vectors
-        if same:
-            # !!!!!!!!!Here change maybe check
-            r_ij = pbc_diff(
-                coords[particlerange != n], # exclude the particle itself
-                other_coords[n],
-                box_boundary,
-                pbc=pbc
-                )
-            # exclude the particle itself
-            # diff = other_coords[n] - coords[np.arange(len(coords)) != n]
-        else:
-            r_ij = pbc_diff(
-                coords,
-                other_coords[n], 
-                box_boundary, 
-                pbc=pbc
-                )
-            # diff = other_coords[n] - coords
-        
-        # reduce to only x and y coordinates
-        diff = r_ij[:,:2]
-
-        # Calculate distance to avoid square root cost for filtering
-        dist_sq = diff[:, 0]**2 + diff[:, 1]**2
-
-        # Filter out particles that are effectively at 0 distance (self-interaction or duplicates)
-        mask_nonzero = dist_sq > 1e-12 
-        diff = diff[mask_nonzero]
-
-        if local_rotation:
-            # Get orientation vector of the reference particle n
-            e_n = e[n]
+        for n in np.arange(len(other_coords))[sl]:
+            indices = neighbors_list[n]
+            if len(indices) <= 1: continue 
             
-            # Calculate angle of orientation in lab frame
-            phi = np.arctan2(e_n[1], e_n[0])
+            r_neighbors = coords[indices]
+            r_ij = pbc_diff(
+                r_neighbors,
+                other_coords[n],
+                box_boundary=box_boundary,
+                pbc=pbc
+                )
 
-            # Rotate neighbors by -phi to align e_n to +x
-            c = np.cos(-phi)
-            s = np.sin(-phi)
+            # reduce to only x and y coordinates
+            diff = r_ij[:,:2]
 
-            # Apply 2D rotation matrix manually
-            dx = diff[:, 0] * c - diff[:, 1] * s
-            dy = diff[:, 0] * s + diff[:, 1] * c
+            # Calculate distance to avoid square root cost for filtering
+            dist_sq = diff[:, 0]**2 + diff[:, 1]**2
 
-            # Update diff with rotated coordinates
-            diff[:, 0] = dx
-            diff[:, 1] = dy
+            if same:
+                # Filter out particles that are effectively at 0 distance (self-interaction or duplicates)
+                mask_nonzero = dist_sq > 1e-12 
+                diff = diff[mask_nonzero]
+            
+            if local_rotation:
+                # Get orientation vector of the reference particle n
+                e_n = e[n]
+                
+                # Calculate angle of orientation in lab frame
+                phi = np.arctan2(e_n[1], e_n[0])
 
-        elif angle != 0.0:
-            # rotate all coords
-            diff = rotate_coords(diff, -angle, np.array([0., 0.]))
+                # Rotate neighbors by -phi to align e_n to +x
+                c = np.cos(-phi)
+                s = np.sin(-phi)
 
+                # Apply 2D rotation matrix manually
+                dx = diff[:, 0] * c - diff[:, 1] * s
+                dy = diff[:, 0] * s + diff[:, 1] * c
+
+                # Update diff with rotated coordinates
+                diff[:, 0] = dx
+                diff[:, 1] = dy
+
+            elif angle != 0.0:
+                # rotate all coords
+                diff = rotate_coords(diff, -angle, np.array([0., 0.]))
+        
         # calculate 2D histogram
-        hist += np.histogram2d(diff[:, 0], diff[:, 1], [xbins, ybins])[0]
+            hist += np.histogram2d(diff[:, 0], diff[:, 1], [xbins, ybins])[0]
+
+
+    # If use_kDTree is Flase
+    else:
+
+        for n in np.arange(len(other_coords))[sl]:
+            # calculate distance vectors
+            if same:
+                # !!!!!!!!!Here change maybe check
+                r_ij = pbc_diff(
+                    coords[particlerange != n], # exclude the particle itself
+                    other_coords[n],
+                    box_boundary,
+                    pbc=pbc
+                    )
+                # exclude the particle itself
+                # diff = other_coords[n] - coords[np.arange(len(coords)) != n]
+            else:
+                r_ij = pbc_diff(
+                    coords,
+                    other_coords[n], 
+                    box_boundary, 
+                    pbc=pbc
+                    )
+                # diff = other_coords[n] - coords
+            
+            # reduce to only x and y coordinates
+            diff = r_ij[:,:2]
+
+            # Calculate distance to avoid square root cost for filtering
+            dist_sq = diff[:, 0]**2 + diff[:, 1]**2
+
+            # Filter out particles that are effectively at 0 distance (self-interaction or duplicates)
+            mask_nonzero = dist_sq > 1e-12 
+            diff = diff[mask_nonzero]
+
+            if local_rotation:
+                # Get orientation vector of the reference particle n
+                e_n = e[n]
+                
+                # Calculate angle of orientation in lab frame
+                phi = np.arctan2(e_n[1], e_n[0])
+
+                # Rotate neighbors by -phi to align e_n to +x
+                c = np.cos(-phi)
+                s = np.sin(-phi)
+
+                # Apply 2D rotation matrix manually
+                dx = diff[:, 0] * c - diff[:, 1] * s
+                dy = diff[:, 0] * s + diff[:, 1] * c
+
+                # Update diff with rotated coordinates
+                diff[:, 0] = dx
+                diff[:, 1] = dy
+
+            elif angle != 0.0:
+                # rotate all coords
+                diff = rotate_coords(diff, -angle, np.array([0., 0.]))
+
+            # calculate 2D histogram
+            hist += np.histogram2d(diff[:, 0], diff[:, 1], [xbins, ybins])[0]
     
     return hist
-        
 
 def pcf2d(
         coords: np.ndarray, box_boundary: np.ndarray,
@@ -774,7 +853,7 @@ def pcf2d(
         nybins: int | None = None, rmax: float | None = None,
         psi: np.ndarray | None = None, njobs: int = 1, pbc: bool = True,
         verbose: bool = False, chunksize: int | None = None,
-        e: np.ndarray = np.array([1.0, 0.0, 0.0]),
+        e: np.ndarray = np.array([1.0, 0.0, 0.0]), use_kDTree: bool = False
         ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     r'''
     Calculates the 2D pair correlation function by calculating histograms.
@@ -846,6 +925,8 @@ def pcf2d(
         The default is `np.array([1.0, 0.0, 0.0])`.
         Can also be an array of shape (N,3) to have different directions for each
         particle (such as `frame.orientations`).
+    use_kDTree : bool
+        If True uses kDTree to build nearest neighbor list.
         
 
     Returns
@@ -967,6 +1048,9 @@ def pcf2d(
 
     # compute the 2D histogram
     hist = np.zeros((nxbins,nybins), dtype=float)
+
+    # compute search radius for kDTree
+    search_radius = np.sqrt(2) * rmax + 1e-6
     
 
     # running __dhist2d directly allows to print during the calculation
@@ -988,6 +1072,8 @@ def pcf2d(
                 angle,
                 same,
                 pbc,
+                search_radius,
+                use_kDTree,
             )
         ]
     else:
@@ -1004,6 +1090,8 @@ def pcf2d(
             angle,
             same,
             pbc,
+            search_radius,
+            use_kDTree,
             njobs = njobs,
             verbose = verbose
         )
