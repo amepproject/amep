@@ -53,5 +53,7 @@ examples/data/lammps/##temp*
 examples/data/invalid
 main_data/
 Plot_PCF/
+.vscode/
 # PCF_test.py # Add if shipping
 # Compare_h5.py
+Low_Dens_G_xy.py

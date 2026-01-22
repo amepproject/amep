@@ -44,9 +44,24 @@ def main(n_particle: str, phi: str, epsilon: str, speed_u: str, D: str, D_r: str
         use_kDTree = use_kdTree,
     )
 
+    pcfangle = amep.evaluate.PCFangle(
+        traj, 
+        nav=traj.nframes, 
+        nabins = 90,
+        ndbins=200,
+        max_workers=njobs, 
+        rmax=rmax, 
+        skip=0.99,
+        mode="orientations",
+        use_kDTree = use_kdTree,
+    )
+
     PCF_path = os.path.join(plot_dir, f"PCF2d_{info_string}_{use_kdTree}.h5")
     PCF_plot = os.path.join(plot_dir, f"PCF2d_{info_string}_{use_kdTree}.png")
+    PCF_path_a = os.path.join(plot_dir, f"PCFangle_{info_string}_{use_kdTree}.h5")
+    PCF_plot_a = os.path.join(plot_dir, f"PCFangle_{info_string}_{use_kdTree}.pdf")
     pcf2d.save(PCF_path)
+    pcfangle.save(PCF_path_a)
     fig, axs = amep.plot.new(figsize=(3.6,3))
 
     mp = amep.plot.field(axs, pcf2d.avg, pcf2d.x, pcf2d.y)
@@ -66,6 +81,21 @@ def main(n_particle: str, phi: str, epsilon: str, speed_u: str, D: str, D_r: str
     axs.set_ylabel(r"$\Delta y$")   
 
     fig.savefig(PCF_plot)
+
+    r = pcfangle.r
+    theta = pcfangle.theta
+    X = r*np.cos(theta)
+    Y = r*np.sin(theta)
+    fig, axs = amep.plot.new(figsize=(3.6,3))
+    mp = amep.plot.field(
+        axs, pcfangle.avg, X, Y
+    )
+    cax = amep.plot.add_colorbar(
+    fig, axs, mp, label=r"$g(\Delta x, \Delta y)$"
+    )
+    axs.set_xlabel(r"$\Delta x$")
+    axs.set_ylabel(r"$\Delta y$")
+    fig.savefig(PCF_plot_a)
 
 
 if __name__ == "__main__": 

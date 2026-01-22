@@ -55,32 +55,44 @@ print("Files are identical:" if same else "Files differ")
 pcf_True = amep.load.evaluation("Plot_PCF/PCF2d_atom_5000_den_0.05_e_50_U_10_D_0.1_Dr_0_seed_2525_100%_True.h5")
 pcf_False = amep.load.evaluation("Plot_PCF/PCF2d_atom_5000_den_0.05_e_50_U_10_D_0.1_Dr_0_seed_2525_100%_False.h5")
 
+npz = np.load("main_data/AVERAGE_g_xy_atom_5000_den_0.05_e_50_U_10_D_0.1_Dr_0_seed_2525_100%.npz")
+
+avg_npz = npz["g_xy"]
+
+new_array = avg_npz.T[3:-3, 3:-3]
+
 diff_array = pcf_True.avg - pcf_False.avg
 val = diff_array.flat[np.argmax(np.abs(diff_array))]
 
 print(val)
 
-PCF_plot = "Plot_PCF/PCF2d_atom_5000_den_0.05_e_50_U_10_D_0.1_Dr_0_seed_2525_100%_Difference.png"
+diff_npz = new_array - pcf_False.avg
 
-fig, axs = amep.plot.new(figsize=(3.6,3))
+val2 = diff_npz.flat[np.argmax(np.abs(diff_npz))]
+print(val2)
+# print(diff_npz)
 
-mp = amep.plot.field(axs, pcf_True.avg - pcf_False.avg, pcf_True.x, pcf_True.y)
+# PCF_plot = "Plot_PCF/PCF2d_atom_5000_den_0.05_e_50_U_10_D_0.1_Dr_0_seed_2525_100%_Difference.png"
 
-cax = amep.plot.add_colorbar(
+# fig, axs = amep.plot.new(figsize=(3.6,3))
 
-    fig, axs, mp, label=r"$g(\Delta x, \Delta y)$"
+# mp = amep.plot.field(axs, pcf_True.avg - pcf_False.avg, pcf_True.x, pcf_True.y)
 
-)
+# cax = amep.plot.add_colorbar(
 
-# axs.set_xlim(-5,5)
+#     fig, axs, mp, label=r"$g(\Delta x, \Delta y)$"
 
-# axs.set_ylim(-5,5)
+# )
 
-axs.set_xlabel(r"$\Delta x$")
+# # axs.set_xlim(-5,5)
 
-axs.set_ylabel(r"$\Delta y$")   
+# # axs.set_ylim(-5,5)
 
-fig.savefig(PCF_plot)
+# axs.set_xlabel(r"$\Delta x$")
+
+# axs.set_ylabel(r"$\Delta y$")   
+
+# fig.savefig(PCF_plot)
 
 
 
