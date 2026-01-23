@@ -776,9 +776,18 @@ def __dhist2d(
                 diff[:, 1] = dy
 
             elif angle != 0.0:
-                # rotate all coords
-                diff = rotate_coords(diff, -angle, np.array([0., 0.]))
-        
+                # rotate all coords (2D rotation around origin [0,0])
+                c = np.cos(-angle)
+                s = np.sin(-angle)
+                
+                # Apply 2D rotation matrix directly: [c -s] [x]
+                #                                    [s  c] [y]
+                dx = diff[:, 0] * c - diff[:, 1] * s
+                dy = diff[:, 0] * s + diff[:, 1] * c
+                
+                diff[:, 0] = dx
+                diff[:, 1] = dy
+                    
         # calculate 2D histogram
             hist += np.histogram2d(diff[:, 0], diff[:, 1], [xbins, ybins])[0]
 
@@ -837,8 +846,17 @@ def __dhist2d(
                 diff[:, 1] = dy
 
             elif angle != 0.0:
-                # rotate all coords
-                diff = rotate_coords(diff, -angle, np.array([0., 0.]))
+                # rotate all coords (2D rotation around origin [0,0])
+                c = np.cos(-angle)
+                s = np.sin(-angle)
+                
+                # Apply 2D rotation matrix directly: [c -s] [x]
+                #                                    [s  c] [y]
+                dx = diff[:, 0] * c - diff[:, 1] * s
+                dy = diff[:, 0] * s + diff[:, 1] * c
+                
+                diff[:, 0] = dx
+                diff[:, 1] = dy
 
             # calculate 2D histogram
             hist += np.histogram2d(diff[:, 0], diff[:, 1], [xbins, ybins])[0]
