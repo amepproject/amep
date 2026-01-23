@@ -1,6 +1,7 @@
 name: "Test Workflow"
 
 on:
+  push:
   pull_request:
   workflow_dispatch:
   
