@@ -51,10 +51,3 @@ examples/data/lammps/traj.h5amep
 examples/data/lammps/#traj.h5amep
 examples/data/lammps/##temp*
 examples/data/invalid
-main_data/
-Plot_PCF/
-Plots_Cartesian/
-.vscode/
-# PCF_test.py # Add if shipping
-# Compare_h5.py
-Low_Dens_G_xy.py
