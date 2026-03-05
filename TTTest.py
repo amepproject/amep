@@ -3,6 +3,8 @@ os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 import amep
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 
 import time
 
@@ -61,6 +63,7 @@ def main(n_particle: str, phi: str, epsilon: str, speed_u: str, D: str, D_r: str
     PCF_plot = os.path.join(plot_dir, f"PCF2d_{info_string}_{use_kdTree}.png")
     PCF_path_a = os.path.join(plot_dir, f"PCFangle_{info_string}_{use_kdTree}.h5")
     PCF_plot_a = os.path.join(plot_dir, f"PCFangle_{info_string}_{use_kdTree}_!!!!!!!!!!.png")
+    PCF_plot_diff = os.path.join(plot_dir, f"PCFangle_{info_string}_{use_kdTree}_diff.png")
     pcf2d.save(PCF_path)
     pcfangle.save(PCF_path_a)
     fig, axs = amep.plot.new(figsize=(3.6,3))
@@ -83,10 +86,9 @@ def main(n_particle: str, phi: str, epsilon: str, speed_u: str, D: str, D_r: str
 
     fig.savefig(PCF_plot)
 
-    r = pcfangle.r
-    theta = pcfangle.theta
-    X = r*np.cos(theta)
-    Y = r*np.sin(theta)
+    # Use x and y directly instead of converting from r and theta
+    X = pcfangle.x
+    Y = pcfangle.y
     fig, axs = amep.plot.new(figsize=(3.6,3))
     mp = amep.plot.field(
         axs, pcfangle.avg, X, Y
@@ -97,6 +99,29 @@ def main(n_particle: str, phi: str, epsilon: str, speed_u: str, D: str, D_r: str
     axs.set_xlabel(r"$\Delta x$")
     axs.set_ylabel(r"$\Delta y$")
     fig.savefig(PCF_plot_a)
+
+    # --- New plot: pcf - 1, diverging colormap (blue < 0, white ~ 0, red > 0), log scale ---
+    diff_data = pcfangle.avg - 1.0
+
+    # Symmetric log norm: handles negative and positive values with log scaling
+    # linthresh defines the linear region around zero to avoid log(0)
+    linthresh = 0.01
+    norm = mcolors.SymLogNorm(linthresh=linthresh, linscale=1.0,
+                               vmin=-np.nanmax(np.abs(diff_data)),
+                               vmax=np.nanmax(np.abs(diff_data)))
+
+    fig, axs = amep.plot.new(figsize=(3.6,3))
+    mp = amep.plot.field(
+        axs, diff_data, X, Y,
+        cmap="RdBu_r",
+        norm=norm,
+    )
+    cax = amep.plot.add_colorbar(
+        fig, axs, mp, label=r"$g(\Delta x, \Delta y) - 1$"
+    )
+    axs.set_xlabel(r"$\Delta x$")
+    axs.set_ylabel(r"$\Delta y$")
+    fig.savefig(PCF_plot_diff)
 
 
 if __name__ == "__main__": 
