@@ -637,19 +637,23 @@ def rotate_coords(
       :align: center
 
     '''
-    # get rotation matrix
-    R = rotation(theta)
-    
-    # shift to put [0,0,0] into the center
-    coords = coords - center
-    
-    # rotate coordinates
-    coords = np.array([np.dot(R,coords[i]) for i in range(len(coords))])
-    
-    # redo the shift operation
-    coords = coords + center
-    
-    return coords
+    if isinstance(theta, (float, int)):
+        # get rotation matrix
+        R = rotation(theta)
+        
+        # shift to put [0,0,0] into the center
+        coords = coords - center
+        
+        # rotate coordinates
+        coords = np.array([np.dot(R,coords[i]) for i in range(len(coords))])
+        
+        # redo the shift operation
+        coords = coords + center
+        
+        return coords
+
+    else:
+        raise TypeError(f"Unsupported type: {type(theta)}")
 
 
 def in_box(

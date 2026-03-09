@@ -616,6 +616,7 @@ class PCF2d(BaseEvaluation):
     def __init__(
             self, traj: ParticleTrajectory, skip: float = 0.0, nav: int = 10,
             ptype: int | None = None, other: int | None = None,
+            mode: str = 'psi6',
             max_workers: int | None = 1,
             **kwargs) -> None:
         r'''
@@ -695,8 +696,16 @@ class PCF2d(BaseEvaluation):
         self.__nav    = nav
         self.__ptype  = ptype
         self.__other  = other
+        self.__mode = mode
         self.__max_workers = max_workers
         self.__kwargs = kwargs
+
+
+        if self.__mode not in ['psi6', 'orientations', 'x']:
+            raise ValueError(
+                "Mode not recognized. Possible values are "
+                "'psi6', 'orientations', and 'x'."
+            )
         
         self.__frames, res, self.__indices = average_func(
             self.__compute, self.__traj, skip=self.__skip,
@@ -727,25 +736,48 @@ class PCF2d(BaseEvaluation):
         y : np.ndarray
             y values
         '''
-        # hexagonal order parameter to specify mean orientation
-        psi = np.mean(psi_k(
-            frame.coords(),
-            frame.box,
-            k = 6
-        ))
-            
+
+        DEFAULT_E = np.array([1.0, 0.0, 0.0], dtype=float)
+
+        psi = None
+        e = DEFAULT_E # default works for modes that don't naturally define e
+
+        if self.__mode == "x":
+            # keep default psi
+            # keep default e
+            pass
+        elif self.__mode == "orientations":
+            # keep default psi
+            if self.__other is None:
+                e = frame.orientations(ptype=self.__ptype)
+            else:
+                e = frame.orientations(ptype=self.__other)
+        elif self.__mode == "psi6":
+            # hexagonal order parameter to specify mean orientation
+            psi = np.mean(psi_k(
+                frame.coords(),
+                frame.box,
+                k = 6
+            ))
+            psi = np.array([psi.real, psi.imag])
+            # keep default e
+        else:
+            raise ValueError(f"Unknown mode: {self.__mode!r}")
+
         if self.__other is None:
             gxy, x, y = pcf2d(
                 frame.coords(ptype = self.__ptype),
                 frame.box,
-                psi = np.array([psi.real, psi.imag]),
+                psi = psi,
+                e=e,
                 **self.__kwargs
             )
         else:
             gxy, x, y = pcf2d(
                 frame.coords(ptype = self.__ptype),
                 frame.box,
-                psi = np.array([psi.real, psi.imag]),
+                psi = psi,
+                e=e,
                 other_coords = frame.coords(ptype = self.__other),
                 **self.__kwargs) 
         return gxy, x, y
@@ -1687,7 +1719,7 @@ class SFiso(BaseEvaluation):
         ----------
         frame : BaseFrame
             Frame object of particle-based simulation data.
-              
+            
         Returns
         -------
         Sq : np.ndarray
