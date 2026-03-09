@@ -1,9 +1,9 @@
 # Contributing to AMEP
 
-Contributions are always welcome and the **AMEP** development team appreciates 
+Contributions are always welcome and the AMEP development team appreciates 
 any help you give. If you have any comments, ideas, or if you want to 
-contribute to this project, please contact the **AMEP** developers. When 
-contributing to **AMEP**, please follow the coding guidelines specified below.
+contribute to this project, please contact the AMEP developers. When 
+contributing to AMEP, please follow the coding guidelines specified below.
 
 ## Pull requests
 
@@ -25,9 +25,9 @@ original author to relicense the contributed code.
 
 ## Coding guidelines
 
-Python code in **AMEP** should follow the guidelines specified in 
+Python code in AMEP should follow the guidelines specified in 
 [PEP8](https://peps.python.org/pep-0008/) and should provide 
-[type hints](https://peps.python.org/pep-0484/). For the docstrings, **AMEP** 
+[type hints](https://peps.python.org/pep-0484/). For the docstrings, AMEP 
 uses the [NumPy guidelines](https://numpydoc.readthedocs.io/en/latest/format.html). 
 Here is a minimal example on how a function should be defined following our 
 guidelines:
@@ -114,9 +114,9 @@ specific as possible, and as short as possible.
 For each module, there should be a set of unit tests, which test the correct 
 behavior of the included methods and classes. These unit tests should be 
 summarized in one Python file per module and added to the `test` directory of 
-the **AMEP** repository. The tests should be short and simple, i.e., each test 
+the AMEP repository. The tests should be short and simple, i.e., each test 
 method should only test a single function. These tests should complete as fast 
-as possible. Whenever a new method is added to **AMEP**, it is required to also 
+as possible. Whenever a new method is added to AMEP, it is required to also 
 add the corresponding test method.
 
 ## Profiling code
