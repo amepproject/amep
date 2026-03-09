@@ -47,13 +47,22 @@ class TestSpatialcor(unittest.TestCase):
         """
         # initialize random number generator with seed 0
         rng = np.random.default_rng(0)
+        numberofparticles = 100
         # generate random coordinates
-        cls.coords = np.zeros((1000, 3))
+        cls.coords = np.zeros((numberofparticles, 3))
         cls.coords[:, :2] = rng.uniform(
             low=-10,
             high=10,
-            size=(1000, 2)
+            size=(numberofparticles, 2)
         )
+        # generate random orientations
+        cls.orientations = np.zeros((numberofparticles, 3))
+        cls.orientations[:, :2] = rng.uniform(
+            low=-1,
+            high=1,
+            size=(numberofparticles, 2)
+        )
+        cls.orientations=cls.orientations/np.linalg.norm(cls.orientations, axis=1)[:,None]
         # create box
         cls.box = np.array(
             [[-10, 10],
@@ -91,3 +100,25 @@ class TestSpatialcor(unittest.TestCase):
             'same. Got a summed difference of '
             f'{np.abs(rdf_diff-rdf_kdtree).sum()}'
         )
+
+
+    def test_pcf(self):
+        """Calculate spatial correlation functions."""
+        # calculate angular pcf with respect to particle orientations
+        grt, r, t = amep.spatialcor.pcf_angle(
+                self.coords,
+                self.box,
+                psi = None,
+                e=self.orientations,
+                nabins=10,
+                rmax=3,
+                ndbins=20
+            )
+        # calculate angular pcf with respect to x-axis (=default e)
+        grt_x, r_x, t_x = amep.spatialcor.pcf_angle(
+                self.coords,
+                self.box,
+                nabins=10,
+                rmax=3,
+                ndbins=20
+            )

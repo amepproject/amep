@@ -45,6 +45,7 @@ from .pbc import pbc_points, pbc_diff, distances, kdtree, fold
 from .continuum import coords_to_density
 from .continuum import sf2d as csf2d
 from .base import MAXMEM, get_module_logger
+from .utils import available_cpu_count
 
 # logger setup
 _log = get_module_logger(__name__)
@@ -926,7 +927,8 @@ def pcf2d(
 
 
 def __dhist_angle(
-        chunk, chunksize, coords, box_boundary, other_coords, dbins, abins, e,
+        chunk: int, chunksize: int, coords: np.ndarray, box_boundary: np.ndarray,
+        other_coords: np.ndarray, dbins: np.ndarray, abins: np.ndarray, e,
         angle, same, pbc):
     r'''
     Calculates the 2D histogram of distances and angles for all particles
@@ -954,8 +956,16 @@ def __dhist_angle(
         Bin edges for distances.
     abins : np.ndarray
         Bin edges for angles.
-    e : np.ndarray
+    e : np.ndarray of shape (3,) or (N,3)
         Direction/axis to which the angle is measured.
+        This can be either a single vector of shape (3,) or
+        an array of shape (N,3) containing a direction for
+        each particle.
+    same : bool
+        True if the pair correlation is calculated is for the same species.
+        This will exclude self-correlations which would lead to an error
+        in the angle calculation (since the distance is zero then).
+        False if coords and other_coords are different species for example.
     angle : np.ndarray
         Angle to rotate the system in order to orient its mean orientation
         along the x-axis.
@@ -965,7 +975,7 @@ def __dhist_angle(
     Returns
     -------
     hist : np.ndarray
-        2D histogram.
+        2D histogram of distances and angles. Angles :math:`\theta \in [0, 2\pi)`.
 
     '''
     sl = slice(chunk, chunk+chunksize)
@@ -973,27 +983,45 @@ def __dhist_angle(
     # compute the 2D histogram (r,theta)
     hist = np.zeros((len(dbins)-1,len(abins)-1), dtype=float)
 
-    for n in np.arange(len(other_coords))[sl]:
-        # calculate distance vectors
+    # reduce overhead by defining particle range outside of loop
+    if same:
+        particlerange = np.arange(len(coords))
+
+    for n in range(len(other_coords))[sl]:
+        # calculate connecting vectors between particle n of other_coords and
+        # all particles in coords. r_ij = r_j - r_i = r_j - r_n, where r_n
+        # is the position of particle n in other_coords.
         if same:
-            # diff = pbc_diff(
-            #     other_coords[n],
-            #     coords[np.arange(len(coords)) != n], # exclude the particle itself
-            #     box_boundary,
-            #     pbc=pbc
-            # )
-            # exclude the particle itself
-            diff = other_coords[n] - coords[np.arange(len(coords)) != n]
+            r_ij = pbc_diff(
+                coords[particlerange != n], # exclude the particle itself
+                other_coords[n],
+                box_boundary,
+                pbc=pbc
+            )
         else:
-            # diff = pbc_diff(other_coords[n], coords, box_boundary, pbc=pbc)
-            diff = other_coords[n] - coords
+            r_ij = pbc_diff(coords, other_coords[n], box_boundary, pbc=pbc)
         
         # get distances
-        dist = (diff**2).sum(axis=1)**0.5
+        dist = np.linalg.norm(r_ij, axis=1)
+        # remove zero distances to avoid issues in angle calculation
+        # This method is safer than excluding the n-th particle above,
+        # since the whole list of coords might contain duplicate particles
+        # as well as other particles. 
+        # Example: coords(ptype=None), other_coords(ptype=1) with total
+        # ptypes=[0,1,2,...]
+        mask_nonzero = dist > 0.0 # hopefully enough to avoid numerical issues
+        r_ij = r_ij[mask_nonzero]
+        dist = dist[mask_nonzero]
 
         # calculate angles
-        theta = np.arccos(np.dot(e, diff.T)/dist)
-        theta[diff[:,1] < 0.0] = 2*np.pi - theta[diff[:,1] < 0.0] # use angles between 0 and 2\pi
+        if len(e.shape) == 1:
+            e_n = e
+        else:
+            e_n = e[n]
+        # numerical issues might lead to values outside of [-1,1] for ratio
+        ratio = np.clip(np.dot(e_n, r_ij.T)/(dist*np.linalg.norm(e_n)), -1.0, 1.0)
+        theta = np.arccos(ratio)
+        theta[r_ij[:,1] < 0.0] = 2*np.pi - theta[r_ij[:,1] < 0.0] # use angles in [0, 2\pi)
         
         # orient x-axis along mean sample orientation
         # The rotation is applied to the difference vectors instead of the
@@ -1003,8 +1031,9 @@ def __dhist_angle(
         # are rotated)!
         if angle != 0.0:
             theta = theta - angle
+            # ensuring angles in [0, 2\pi)
             theta[theta<0.0] = theta[theta<0.0] + 2*np.pi
-            theta[theta>2*np.pi] = theta[theta>2*np.pi] - 2*np.pi
+            theta[theta>=2*np.pi] = theta[theta>=2*np.pi] - 2*np.pi
 
         # calculate 2D histogram
         hist += np.histogram2d(dist, theta, [dbins,abins])[0]
@@ -1014,10 +1043,11 @@ def __dhist_angle(
 
 def pcf_angle(
         coords: np.ndarray, box_boundary: np.ndarray, 
-        other_coords: np.ndarray | None = None, ndbins: int | None = None,
-        nabins: int | None = None, rmax: int | None = None,
+        other_coords: np.ndarray | None = None, ndbins: int = 500,
+        nabins: int = 100, rmax: float | None = None,
         psi: np.ndarray | None = None, njobs: int = 1, pbc: bool = True,
-        verbose: bool = False, chunksize: int | None = None
+        verbose: bool = False, chunksize: int | None = None,
+        e: np.ndarray = np.array([1.0, 0.0, 0.0])
         ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     r'''Calculate the angle dependent radial pair correlation function.
 
@@ -1042,10 +1072,12 @@ def pcf_angle(
     .. math::
        \cos(\theta)=\frac{\vec{r}_{ij}\cdot\vec{e}}{r_{ij}e}
 
-    Here, we choose :math:`\vec{e}=\hat{e}_x`.
+    The vector :math:`\vec{e}` is default the x-axis, but can be specified by supplying
+    the parameter `e`. See parameter description for details.
 
-    This version only works for 2D systems. For systems in 3D,
-    the z coordinate is discarded.
+    The angles are in the range :math:`\theta \in [0, 2\pi)`.
+
+    This method only works for 2D systems.
 
     References
     ----------
@@ -1071,9 +1103,9 @@ def pcf_angle(
         Coordinate frame of the other species to which the pair correlation
         is calculated. The default is None (uses coords).
     ndbins : int or None, optional
-        Number of distance bins. The default is None.
+        Number of distance bins. The default is 500.
     nabins : int or None, optional
-        Number of angle bins. The default is None.
+        Number of angle bins. The default is 100.
     rmax : float or None, optional
         Maximum distance to consider. The default is None.
     psi : np.ndarray of shape (2,) or None, optional
@@ -1083,19 +1115,18 @@ def pcf_angle(
         :math:`\psi=(Re(\Psi_6),Im(\Psi_6))`, where :math:`\Psi_6` is the mean
         hexagonal order parameter of the whole system. The default is None.
     njobs : int, optional
-        Number of jobs used for parallel computing.The default is 1.
-        Rule of thumb: Check how many your system has available with
-
-        >>> import os
-        >>> os.cpu_count()
-
-        and set njobs to between 1x this number and 2x this number.
+        Number of jobs used for parallel computing. The default is 1.
     pbc : bool, optional
         If True, periodic boundary conditions are applied. The default is True.
     verbose : bool, optional
         If True, a progress bar is shown. The default is False.
     chunksize : int or None, optional
         Divide calculation into chunks of this size. The default is None.
+    e : np.ndarray of shape (3,) or (N,3,), optional
+        Direction/axis to which the angle is measured.
+        The default is `np.array([1.0, 0.0, 0.0])`.
+        Can also be an array of shape (N,3) to have different directions for each
+        particle (such as `frame.orientations`).
 
     Returns
     -------
@@ -1114,23 +1145,41 @@ def pcf_angle(
     >>> frame = traj[-1]
     >>> grt, rt, theta = amep.spatialcor.pcf_angle(
     ...     frame.coords(), frame.box, njobs=4,
-    ...     ndbins=1000, nabins=1000
+    ...     ndbins=100, nabins=100, rmax=5
     ... )
-    >>> X = rt*np.cos(theta)
-    >>> Y = rt*np.sin(theta)
-    >>> fig, axs = amep.plot.new(figsize=(3.8,3))
-    >>> mp = amep.plot.field(axs, grt.T, X, Y)
-    >>> cax = amep.plot.add_colorbar(
-    ...     fig, axs, mp, label=r'$g(\Delta x, \Delta y)$'
-    ... )
-    >>> axs.set_xlim(-10,10)
-    >>> axs.set_ylim(-10,10)
-    >>> axs.set_xlabel(r'$\Delta x$')
-    >>> axs.set_ylabel(r'$\Delta y$')
-    >>> fig.savefig('./figures/spatialcor/spatialcor-pcf_angle.png')
-    >>> 
-    
+    >>> fig, axs = amep.plot.new(subplot_kw=dict(projection="polar"))
+    >>> mp = axs.pcolormesh(theta,rt, grt)
+    >>> cax = amep.plot.add_colorbar(fig, axs, mp, 
+    >>> label=r"$g(\Delta r, \Delta \theta)$")
+    >>> axs.grid(alpha=.5, lw=.5, c='w')
+    >>> axs.tick_params(axis='y', colors='white')
+    >>> fig.savefig('spatialcor-pcf_angle.png')
+
     .. image:: /_static/images/spatialcor/spatialcor-pcf_angle.png
+      :width: 400
+      :align: center
+
+    >>> # calculate angular pcf with respect to particle orientations
+    >>> grt, r, t = amep.spatialcor.pcf_angle(
+    ...        frame.coords(),
+    ...        frame.box,
+    ...        psi = None,
+    ...        e=frame.orientations(),
+    ...        nabins=36,
+    ...        rmax=3,
+    ...        ndbins=100
+    ...    )
+    >>> fig, axs = amep.plot.new(subplot_kw=dict(projection="polar"))
+    >>> mp = axs.pcolormesh(t,r, grt)
+    >>> cax = amep.plot.add_colorbar(fig, axs, mp, 
+    >>>        label=r"$g(\Delta r, \Delta \theta)$")
+    >>> axs.grid(alpha=.5, lw=.5, c='w')
+    >>> axs.set_rticks([0,1,2,3])
+    >>> axs.set_rlim(0,1.1)
+    >>> axs.tick_params(axis='y', colors='white')
+    >>> fig.savefig('spatialcor-pcf_angle_2.png')
+
+    .. image:: /_static/images/spatialcor/spatialcor-pcf_angle_2.png
       :width: 400
       :align: center
     
@@ -1144,6 +1193,11 @@ def pcf_angle(
         same = True
         
     # enforce 2D
+    if np.any(coords[:,-1] != 0.0) or np.any(other_coords[:,-1] != 0.0):
+        raise ValueError(
+            "amep.spatialcor.pcf_angle: Input coordinates are not 2D. "\
+            "The z-coordinate must be zero for all particles."
+        )
     coords[:,-1] = 0.0
     other_coords[:,-1] = 0.0
     
@@ -1151,16 +1205,34 @@ def pcf_angle(
     N = len(coords) 
     Nother = len(other_coords)
     
-    # calculate angle with respect to this unit vector
-    e = np.array([1.,0.,0.]) 
+    # check shape of e to match 1 or number of particles
+    if e.ndim == 1:
+        if e.shape[0] != 3:
+            raise ValueError(
+                "amep.spatialcor.pcf_angle: Invalid shape of e. "\
+                "If e is given as 1D array, it must have shape (3,)."
+            )
+    elif e.ndim == 2:
+        if e.shape != (N,3):
+            raise ValueError(
+                "amep.spatialcor.pcf_angle: Invalid shape of e. "\
+                "If e is given as 2D array, it must have shape (N,3), "\
+                "where N is the number of particles."
+            )
+    else:
+        raise ValueError(
+            "amep.spatialcor.pcf_angle: Invalid shape of e. "\
+            "e must be either 1D or 2D array."
+        )
 
+    # keeping this for backwards-compatibility
     if ndbins is None:
         ndbins = 500
     if nabins is None:
         nabins = 100
 
     if rmax is None:
-        rmax = max(box_boundary[:,1]-box_boundary[:,0])//2
+        rmax = max(box_boundary[:,1]-box_boundary[:,0])/2
         
     # angle to rotate (to orient x-axis along mean sample orientation)
     angle = 0.0
@@ -1181,7 +1253,10 @@ def pcf_angle(
     # limit chunksize
     if chunksize > N:
         chunksize = int(N/njobs)
-
+    # ensure that for njobs=1, the whole system is computed in one chunk
+    if njobs==1:
+        chunksize = Nother
+    
     # generate distance and angle bin edges
     dbins = np.linspace(0.0, rmax, ndbins+1)
     abins = np.linspace(0.0, 2*np.pi, nabins+1)
@@ -1189,22 +1264,44 @@ def pcf_angle(
     # compute the 2D histogram (r,theta)
     hist = np.zeros((ndbins,nabins), dtype=float)
     
-    results = compute_parallel(
-        __dhist_angle, 
-        range(0, Nother, chunksize),
-        chunksize,
-        coords,
-        box_boundary,
-        other_coords,
-        dbins,
-        abins,
-        e,
-        angle,
-        same,
-        pbc,
-        njobs = njobs,
-        verbose = verbose
-    )
+    # running __dhist_angle directly allows to print during the calculation
+    # useful for debugging and development
+    # The following code block can be simplified by removing the njobs==1
+    # clause in future releases if no debugging for development is needed 
+    # anymore or printing can be handled with logging.
+    if njobs == 1 :
+        results = [
+            __dhist_angle(
+                0,
+                chunksize,
+                coords,
+                box_boundary,
+                other_coords,
+                dbins,
+                abins,
+                e,
+                angle,
+                same,
+                pbc
+            )
+        ]
+    else:
+        results = compute_parallel(
+            __dhist_angle, 
+            range(0, Nother, chunksize), # __dhist_angle
+            chunksize,
+            coords,
+            box_boundary,
+            other_coords,
+            dbins,
+            abins,
+            e,
+            angle,
+            same,
+            pbc, # __dhist_angle
+            njobs = njobs, # compute_parallel
+            verbose = verbose # compute_parallel
+        )
     for res in results:
         hist += res
 
