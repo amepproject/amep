@@ -47,6 +47,7 @@ examples/data/continuum/traj.h5amep
 examples/data/continuum/#traj.h5amep
 examples/data/continuum/##temp*
 examples/data/trajs/
+examples/data/plots/
 examples/data/lammps/traj.h5amep
 examples/data/lammps/#traj.h5amep
 examples/data/lammps/##temp*

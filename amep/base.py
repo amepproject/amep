@@ -23,7 +23,7 @@ Base Classes
 
 .. module:: amep.base
 
-The AMEP module :mod:`amep.base` contains all basic classes used in the 
+The AMEP module :mod:`amep.base` contains all basic classes used in the
 backend of AMEP.
 
 """
@@ -35,9 +35,12 @@ import shutil
 import warnings
 import inspect
 import logging
+from pathlib import Path
+from datetime import datetime
 
 from typing import Collection, Iterable, Sequence
-from  io import StringIO
+from typing import overload
+from io import StringIO
 from contextlib import redirect_stdout
 from tqdm import TqdmExperimentalWarning
 
@@ -45,12 +48,12 @@ import h5py
 import numpy as np
 import scipy.odr as ODR
 
-from pathlib import Path
-from datetime import datetime
 from ._version import __version__
 
 warnings.simplefilter('always', UserWarning)
 warnings.filterwarnings("ignore", category=TqdmExperimentalWarning)
+
+
 # =============================================================================
 # UTILITIES
 # =============================================================================
@@ -83,10 +86,10 @@ def check_path(path: str, extension: str) -> tuple[str, str]:
     """
     # normalize path
     path = os.path.normpath(path)
-    
+
     # get extension
     _, file_extension = os.path.splitext(path)
-    
+
     # check extension
     if file_extension == extension:
         # split into directory and filename
@@ -96,7 +99,7 @@ def check_path(path: str, extension: str) -> tuple[str, str]:
             directory = os.getcwd()
     elif file_extension == '':
         directory = os.path.normpath(path)
-        filename  = ''
+        filename = ''
     else:
         raise ValueError(
             f'''Incorrect file extension. Got {file_extension} instead
@@ -134,28 +137,28 @@ KEYS = {
     'velocities': ['vx', 'vy', 'vz'],
     'angmom': ['angmomx', 'angmomy', 'angmomz']
 }
-KEYASSIGN    = {            # ['key',Index]
-    'x' : ['coords',0],
-    'y' : ['coords',1],
-    'z' : ['coords',2],
-    'xu' : ['uwcoords',0],
-    'yu' : ['uwcoords',1],
-    'zu' : ['uwcoords',2],
-    'njx' : ['njcoords',0],
-    'njy' : ['njcoords',1],
-    'njz' : ['njcoords',2],
-    'fx' : ['forces',0],
-    'fy' : ['forces',1],
-    'fz' : ['forces',2],
-    'omegax' : ['omegas',0],
-    'omegay' : ['omegas',1],
-    'omegaz' : ['omegas',2],
-    'mux' : ['orientations',0],
-    'muy' : ['orientations',1],
-    'muz' : ['orientations',2],
-    'vx' : ['velocities',0],
-    'vy' : ['velocities',1],
-    'vz' : ['velocities',2],
+KEYASSIGN = {  # ['key',Index]
+    'x': ['coords', 0],
+    'y': ['coords', 1],
+    'z': ['coords', 2],
+    'xu': ['uwcoords', 0],
+    'yu': ['uwcoords', 1],
+    'zu': ['uwcoords', 2],
+    'njx': ['njcoords', 0],
+    'njy': ['njcoords', 1],
+    'njz': ['njcoords', 2],
+    'fx': ['forces', 0],
+    'fy': ['forces', 1],
+    'fz': ['forces', 2],
+    'omegax': ['omegas', 0],
+    'omegay': ['omegas', 1],
+    'omegaz': ['omegas', 2],
+    'mux': ['orientations', 0],
+    'muy': ['orientations', 1],
+    'muz': ['orientations', 2],
+    'vx': ['velocities', 0],
+    'vy': ['velocities', 1],
+    'vz': ['velocities', 2],
     'angmomx': ['angmom', 0],
     'angmomy': ['angmom', 1],
     'angmomz': ['angmom', 2]
@@ -185,6 +188,7 @@ LOGGINGLEVEL = "INFO"
 # =============================================================================
 # set default format
 logging.basicConfig(format=LOGGERFORMAT)
+
 
 def get_module_logger(mod_name):
     r"""
@@ -245,24 +249,24 @@ class BaseReader:
     the hdf5 file format.
     """
     def __init__(
-            self, savedir: str, start: float, stop: float,
-            nth: int, filename: str) -> None:
+            self, savedir: os.PathLike, start: float, stop: float,
+            nth: int, filename: os.PathLike) -> None:
         r"""
         Initializes a BaseReader object.
 
         Parameters
         ----------
-        savedir : str
+        savedir : Pathlike
             Directory in which the .h5amep file is created.
         start : int
             Start reading the trajectory data from this fraction of the
             trajectory.
         stop : int
-            Stop reading the trajectory data from this fraction of the 
+            Stop reading the trajectory data from this fraction of the
             trajectory.
         nth : int
             Read each nth frame.
-        filename : str
+        filename : Pathlike
             Name of the trajectory file that is created. Needs to be an
             .h5amep file.
 
@@ -272,12 +276,13 @@ class BaseReader:
 
         """
         # filename of the hdf5 trajectory file
-        self.filename = filename
+        self.filename: Path = Path(filename)
+        self.savedir: Path = Path(savedir)
         # check if temporary file exists and delete before creating a new one
-        if "#temp#" in filename and os.path.exists(os.path.join(savedir, self.filename)):
-            os.remove(os.path.join(savedir, self.filename))
+        if "#temp#" in self.filename.name:
+            (self.savedir/self.filename).unlink(missing_ok=True)
         # create hdf5 file with default groups
-        with h5py.File(os.path.join(savedir, self.filename), 'a') as root:
+        with h5py.File(str(self.savedir/self.filename), 'a') as root:
             # ROOT Level (define groups)
             for g in ROOTGROUPS:
                 if g not in root.keys():
@@ -287,7 +292,6 @@ class BaseReader:
             if 'version' not in root['amep'].attrs.keys():
                 root['amep'].attrs['version'] = __version__
 
-        self.savedir = savedir
         # check loading configuration
         self.start = 0.0
         if start is not None:
@@ -305,61 +309,66 @@ class BaseReader:
 
     @property
     def start(self):
-        with h5py.File(os.path.join(self.savedir, self.filename), 'a') as root:
+        with h5py.File(str(self.savedir/self.filename), 'a') as root:
             x = root['params'].attrs['start']
         return x
 
     @start.setter
-    def start(self,x):
-        with h5py.File(os.path.join(self.savedir, self.filename), 'a') as root:
+    def start(self, x):
+        with h5py.File(str(self.savedir/self.filename), 'a') as root:
             root['params'].attrs['start'] = x
 
     @property
     def stop(self):
-        with h5py.File(os.path.join(self.savedir, self.filename), 'a') as root:
+        with h5py.File(str(self.savedir/self.filename), 'a') as root:
             x = root['params'].attrs['stop']
         return x
+
     @stop.setter
-    def stop(self,x):
-        with h5py.File(os.path.join(self.savedir, self.filename), 'a') as root:
+    def stop(self, x):
+        with h5py.File(str(self.savedir/self.filename), 'a') as root:
             root['params'].attrs['stop'] = x
 
     @property
     def nth(self):
-        with h5py.File(os.path.join(self.savedir, self.filename), 'a') as root:
+        with h5py.File(str(self.savedir/self.filename), 'a') as root:
             x = root['params'].attrs['nth']
         return x
+
     @nth.setter
-    def nth(self,x):
-        with h5py.File(os.path.join(self.savedir, self.filename), 'a') as root:
+    def nth(self, x):
+        with h5py.File(str(self.savedir/self.filename), 'a') as root:
             root['params'].attrs['nth'] = x
 
     @property
     def savedir(self):
         return self.__savedir
+
     @savedir.setter
-    def savedir(self,x):
+    def savedir(self, x):
         self.__savedir = x
 
     @property
     def dt(self):
-        with h5py.File(os.path.join(self.savedir, self.filename), 'a') as root:
+        with h5py.File(str(self.savedir/self.filename), 'a') as root:
             x = root['params'].attrs['dt']
         return x
+
     @dt.setter
-    def dt(self,x):
-        with h5py.File(os.path.join(self.savedir, self.filename), 'a') as root:
+    def dt(self, x):
+        with h5py.File(str(self.savedir/self.filename), 'a') as root:
             root['params'].attrs['dt'] = x
         self.times = self.steps*x
 
     @property
     def d(self):
-        with h5py.File(os.path.join(self.savedir, self.filename), 'a') as root:
+        with h5py.File(str(self.savedir/self.filename), 'a') as root:
             x = root['params'].attrs['d']
         return x
+
     @d.setter
-    def d(self,x):
-        with h5py.File(os.path.join(self.savedir, self.filename), 'a') as root:
+    def d(self, x):
+        with h5py.File(str(self.savedir/self.filename), 'a') as root:
             root['params'].attrs['d'] = x
 
     @property
@@ -369,12 +378,15 @@ class BaseReader:
         The simulation steps are also used
         to index the frame data in the HDF5-File.
         """
-        with h5py.File(os.path.join(self.savedir, self.filename), 'a') as root:
+        with h5py.File(str(self.savedir/self.filename), 'a') as root:
+            assert isinstance(root['frames'], h5py.Group)
+            assert isinstance(root['frames']['steps'], h5py.Dataset)
             return root['frames']['steps'][:]
 
     @steps.setter
     def steps(self, vals: Collection[int]):
-        with h5py.File(os.path.join(self.savedir, self.filename), 'a') as root:
+        with h5py.File(str(self.savedir/self.filename), 'a') as root:
+            assert isinstance(root['frames'], h5py.Group)
             if 'steps' not in root['frames'].keys():
                 root['frames'].create_dataset(
                     'steps',
@@ -387,18 +399,23 @@ class BaseReader:
                     maxshape=(None,)
                 )
             else:
+                # assert isinstance(root['frames']['steps'], h5py.Dataset)
+                # assert isinstance(root['frames']['steps'][:], np.ndarray)
+                # TODO: figure aout how to make this typesafe
+                # due to ndarrays being weird
                 root['frames']['steps'][:] = vals
 
     @property
     def times(self):
         """The array of physical times for each saved frame."""
-        with h5py.File(os.path.join(self.savedir, self.filename), 'a') as root:
+        with h5py.File(str(self.savedir/self.filename), 'a') as root:
             vals = root['frames']['times'][:]
         return vals
 
     @times.setter
     def times(self, vals: Collection[float]):
-        with h5py.File(os.path.join(self.savedir, self.filename), 'a') as root:
+        with h5py.File(str(self.savedir/self.filename), 'a') as root:
+            assert isinstance(root['frames'], h5py.Group)
             if 'times' not in root['frames'].keys():
                 root['frames'].create_dataset(
                     'times',
@@ -411,6 +428,8 @@ class BaseReader:
                     maxshape=(None,)
                 )
             else:
+                # TODO: figure aout how to make this typesafe
+                # due to ndarrays being weird
                 root['frames']['times'][:] = vals
 
     @property
@@ -1257,6 +1276,7 @@ class BaseField:
             return data, args
         return data
 
+
 # =============================================================================
 # TRAJECTORY BASE CLASS
 # =============================================================================
@@ -1280,6 +1300,13 @@ class BaseTrajectory:
 
         '''
         self.__reader = reader
+
+    @overload
+    def __getitem__(self, item: int) -> BaseFrame | BaseField: ...
+
+    @overload
+    def __getitem__(self, item: slice | Iterable[int]
+                    ) -> list[BaseField | BaseFrame]: ...
 
     def __getitem__(self, item: int | slice | Iterable[int]
                     ) -> BaseFrame | BaseField | list[BaseField | BaseFrame]:
@@ -1958,8 +1985,7 @@ class BaseEvaluation:
     def name(self, x: str) -> None:
         if type(x) == str:
             self.__name = x
-            
-            
+
 
 # =============================================================================
 # EVALUATION-DATA BASE CLASS
@@ -2040,11 +2066,11 @@ class BaseEvalData:
     @property
     def group(self) -> str:
         return self.__group
-    
-    
+
+
 # =============================================================================
 # DATABASE BASE CLASS
-# =============================================================================    
+# =============================================================================
 class BaseDatabase:
     """
     Evaluation database base class for storing and loading multiple evaluation
@@ -2178,8 +2204,8 @@ class BaseDatabase:
                 f"The key {name} does not exist. Available keys are "\
                 f"{self.keys()}."
             )
-    
-    
+
+
 # =============================================================================
 # FUNCTION BASE CLASS
 # =============================================================================

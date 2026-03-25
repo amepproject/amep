@@ -82,7 +82,7 @@ class H5amepReader(BaseReader):
 
         '''
         self.__version = None
-        
+
         path = os.path.join(directory, trajfile)
         if not os.path.exists(path):
             raise FileError(f'File {path} does not exist.')
@@ -109,11 +109,13 @@ class H5amepReader(BaseReader):
                 FileError('Wrong file format.')
         else:
             raise FileError('Not a .h5amep file.')
+
     @property
     def type(self):
         r"""The type of trajectory. Field or Particles."""
-        with h5py.File(os.path.join(self.savedir,self.filename),"r") as root:
+        with h5py.File(str(self.savedir/self.filename), "r") as root:
             return root.attrs["type"]
+
     @property
     def version(self):
         r'''
@@ -1538,7 +1540,6 @@ class HOOMDReader(BaseReader):
         if key=='':
             return float(basename.split('.')[0])
         return float(basename.split(key)[1].split('.')[0])
-
 
 
 class GROMACSReader(BaseReader):

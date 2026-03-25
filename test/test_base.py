@@ -32,8 +32,8 @@ import amep
 # =============================================================================
 # GLOBAL CONFIG.
 # =============================================================================
-DATADIR = Path('../examples/data/')
-FIELDDIR = DATADIR/"continuum"
+DATADIR = Path('../examples/data/').absolute().resolve()  # resolution needed so comparisons work correctly.
+FIELDDIR = (DATADIR/"continuum").resolve()
 RNG = np.random.default_rng(1234)
 
 # for field data creation
@@ -727,8 +727,8 @@ class TestBaseTrajectory(unittest.TestCase):
             f'''Invalid dimension. Got {self.traj.dim} instead of 3.'''
         )
         self.assertEqual(
-            self.traj.savedir,
-            os.path.abspath(FIELDDIR),
+            self.traj.savedir.absolute(),
+            FIELDDIR,
             f'''Invalid savedir. Got {self.traj.savedir} instead of
             {FIELDDIR}.'''
         )

@@ -46,6 +46,7 @@ from tqdm.autonotebook import tqdm
 
 from .base import BaseTrajectory
 
+
 # =============================================================================
 # PARTICLE TRAJECTORY
 # =============================================================================
@@ -72,7 +73,7 @@ class ParticleTrajectory(BaseTrajectory):
 
         """
         super().__init__(reader)
-        
+
         self.__nojump = False
 
         # add 'particles' group for particle information/properties
@@ -80,7 +81,7 @@ class ParticleTrajectory(BaseTrajectory):
 
             if 'particles' not in root.keys():
                 root.create_group('particles')
-                
+
             if 'njx' in self[0].keys:
                 self.__nojump = True
 
@@ -291,7 +292,7 @@ class ParticleTrajectory(BaseTrajectory):
                     del root['particles'][str(ptype)]
                 elif type(key)==str:
                     root['particles'][str(ptype)].attrs.__delitem__(key)
-                    
+
     def animate(self, filename: str, **kwargs) -> None:
         r"""
         Wrapper to `amep.plot.animate_trajectory`.
