@@ -33,9 +33,11 @@ import os
 # GLOBAL CONFIG.
 # =============================================================================
 DATADIR = Path('../examples/data/')
+TESTDATADIR = Path('./data/')
 LAMMPSDIR = DATADIR/'lammps'
 FIELDDIR = DATADIR/'continuum'
 EMPTYDIR = DATADIR/'empty'
+NEWDIR = TESTDATADIR/'written'
 SAVEDIR = DATADIR/'trajs'
 INVALIDFIELDDIR = DATADIR/'invalid'
 
@@ -557,11 +559,17 @@ class TestH5amepReader(unittest.TestCase):
         None.
 
         """
-        pass
+        TESTDATADIR.mkdir(exist_ok=True)
+        NEWDIR.mkdir(exist_ok=True)
+        (NEWDIR/"empty.h5amep").unlink(missing_ok=True)
 
     def test_trajfile(self):
         pass
 
+    def test_writing(self):
+        _ = amep.trajectory.ParticleTrajectory.new(NEWDIR/"empty.h5amep")
+        _ = amep.trajectory.ParticleTrajectory.new(NEWDIR/"empty.h5amep",
+                                                   overwrite=True)
 
 class TestGromacsReader(unittest.TestCase):
     """Testcase for GROMACS data.

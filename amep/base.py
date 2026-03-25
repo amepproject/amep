@@ -456,7 +456,7 @@ class BaseFrame:
 
         Parameters
         ----------
-        reader : 
+        reader :
             AMEP reader object.
         index : int
             Frame index.
@@ -467,15 +467,17 @@ class BaseFrame:
 
         """
         self.__reader = reader
-        self.__index  = index
+        self.__index = index
 
         # get step
         with h5py.File(
             os.path.join(self.__reader.savedir, self.__reader.filename), 'r'
         ) as root:
             self.__step = root['frames']['steps'][self.__index]
-    def __eq__(self,other):
-        return self.__reader==other.__reader and self.__index==other.__index
+
+    def __eq__(self, other):
+        return (self.__reader == other.__reader and
+                self.__index == other.__index)
 
     @property
     def step(self):
@@ -489,6 +491,7 @@ class BaseFrame:
 
         '''
         return self.__step
+
     @property
     def time(self) -> float:
         """The physical time of the frame."""
@@ -496,6 +499,7 @@ class BaseFrame:
             return self.__reader.times[self.__index]
         except:
             return self.__step*self.__reader.dt
+
     @property
     def center(self):
         '''
@@ -512,6 +516,7 @@ class BaseFrame:
         ) as root:
             cen = root['frames'][str(self.__step)]['center'][:]
         return cen
+
     @property
     def dim(self):
         '''
@@ -528,15 +533,16 @@ class BaseFrame:
         ) as root:
             dimension = root['frames'][str(self.__step)].attrs['d']
         return dimension
+
     def n(self, ptype=None):
         '''
         Total number of particles.
-        
+
         Parameters
         ----------
         ptype : int, optional
             Particle type. The default is None (all particles).
-            
+
         Returns
         -------
         int
@@ -548,45 +554,48 @@ class BaseFrame:
             types = root['frames'][str(self.__step)]['type'][:]
 
         if ptype in self.ptypes:
-            return np.where(types==ptype)[0].shape[0]
+            return np.where(types == ptype)[0].shape[0]
         return types.shape[0]
+
     def coords(self, **kwargs):
         '''
         All coordinates of all particles or of all particles of
         a specific particle type.
-        
+
         Parameters
         ----------
         ptype : int, optional
             Particle type. The default is None.
-            
+
         Returns
         -------
         np.ndarray
             Coordinate frame of particle coordinates.
         '''
         return self.__read_data('coords', **kwargs)
+
     def nojump_coords(self, **kwargs):
         '''
-        Returns the nojump coordinates of all particles or of 
+        Returns the nojump coordinates of all particles or of
         all particles of a specific particle type.
-        These coordinates are only available, when the nojump method of the 
+        These coordinates are only available, when the nojump method of the
         trajectory which contains the frames was called.
-        
+
         Parameters
         ----------
         ptype : int, optional
             Particle type. The default is None.
-            
+
         Returns
         -------
         np.ndarray
             Coordinate frame of particle coordinates.
         '''
         return self.__read_data('njcoords', **kwargs)
+
     def unwrapped_coords(self, **kwargs) -> np.ndarray:
         """
-        Returns the unwrapped coordinates of all particles or of 
+        Returns the unwrapped coordinates of all particles or of
         all particles of a specific particle type.
 
         Parameters
@@ -600,58 +609,62 @@ class BaseFrame:
             Coordinate frame of unwrapped particle coordinates.
 
         """
-        return self.__read_data("uwcoords",**kwargs)
+        return self.__read_data("uwcoords", **kwargs)
+
     def velocities(self, **kwargs) -> np.ndarray:
         '''
-        Returns the velocities of all particles or of 
+        Returns the velocities of all particles or of
         all particles of a specific particle type.
-        
+
         Parameters
         ----------
         ptype : int, optional
             Particle type. The default is None.
-            
+
         Returns
         -------
         np.ndarray
             Coordinate frame of particle velocities.
         '''
         return self.__read_data('velocities', **kwargs)
+
     def forces(self, **kwargs) -> np.ndarray:
         '''
-        Returns the forces acting on each particle or 
+        Returns the forces acting on each particle or
         on particles of a specific particle type.
-        
+
         Parameters
         ----------
         ptype : int, optional
             Particle type. The default is None.
-            
+
         Returns
         -------
         np.ndarray
             Coordinate frame of particle forces.
         '''
         return self.__read_data('forces', **kwargs)
+
     def orientations(self, **kwargs) -> np.ndarray:
         '''
         Returns the orientation vectors of all particles or of
         all particles of a specific particle type.
-        
+
         Parameters
         ----------
         ptype : int, optional
             Particle type. The default is None.
-            
+
         Returns
         -------
         np.ndarray
             Coordinate frame of particle orientation vectors.
         '''
         return self.__read_data('orientations', **kwargs)
+
     def omegas(self, **kwargs) -> np.ndarray:
         """
-        Returns the angular velocities of all particles or of 
+        Returns the angular velocities of all particles or of
         all particles of a specific particle type.
 
         Parameters
@@ -665,86 +678,92 @@ class BaseFrame:
             Coordinate frame of particle angular velocity vectors.
         """
         return self.__read_data('omegas', **kwargs)
+
     def torque(self, **kwargs) -> np.ndarray:
         '''
-        Returns the torque acting on each particle or on 
+        Returns the torque acting on each particle or on
         each particle of a specific particle type.
-        
+
         Parameters
         ----------
         ptype : int, optional
             Particle type. The default is None.
-            
+
         Returns
         -------
         np.ndarray
             Coordinate frame of particle torque vectors.
         '''
         return self.__read_data('torque', **kwargs)
+
     def radius(self, **kwargs) -> np.ndarray:
         '''
         Returns the radius of all particles or of
         all particles of a specific type.
-        
+
         Parameters
         ----------
         ptype : int, optional
             Particle type. The default is None.
-            
+
         Returns
         -------
         np.ndarray
             Array of particle radii.
         '''
-        return self.__read_data('radius',**kwargs)
+        return self.__read_data('radius', **kwargs)
+
     def mass(self, **kwargs) -> np.ndarray:
         '''
         Returns the mass of all particles or of
         all particles of a specific type.
-        
+
         Parameters
         ----------
         ptype : int, optional
             Particle type. The default is None.
-            
+
         Returns
         -------
         np.ndarray
             Array of particle masses.
         '''
-        return self.__read_data('mass',**kwargs)
+        return self.__read_data('mass', **kwargs)
+
     def angmom(self, **kwargs) -> np.ndarray:
         '''
         Returns the angular momentum of all particles or of
         all particles of a specific type.
-        
+
         Parameters
         ----------
         ptype : int, optional
             Particle type. The default is None.
-            
+
         Returns
         -------
         np.ndarray
             Array of particle angular momenta.
         '''
-        return self.__read_data('angmom',**kwargs)
+        return self.__read_data('angmom', **kwargs)
+
     def types(self, **kwargs) -> np.ndarray:
         '''
         Returns the particle type of each or of
         each particle of a specific type.
-        
+
         Parameters
         ----------
         ptype : int, optional
             Particle type. The default is None.
-            
+
         Returns
         -------
         np.ndarray
             Array of particle types.
         '''
-        return self.__read_data('type',**kwargs)
+        return self.__read_data('type', **kwargs)
+
     def ids(self, **kwargs) -> np.ndarray:
         '''
         Returns the particle indices of all particles or of
@@ -762,6 +781,7 @@ class BaseFrame:
 
         '''
         return self.__read_data('id', **kwargs)
+
     @property
     def keys(self) -> list:
         '''
@@ -780,7 +800,10 @@ class BaseFrame:
         ) as root:
 
             # get all available (combined) keys
-            rootkeys = list(root['frames'][str(self.__step)].keys())
+            assert isinstance(root['frames'], h5py.Group)
+            frame = root['frames'][str(self.__step)]
+            assert isinstance(frame, h5py.Group)
+            rootkeys = list(frame.keys())
 
         # convert combined keys to single keys
         for key in rootkeys:
@@ -790,13 +813,16 @@ class BaseFrame:
                 datakeys.append(key)
 
         return datakeys
-    def data(
-            self, *args: str | tuple[list[str], ...], ptype: int | None = None, zerofill: bool = False,
-            return_keys: bool = False) -> tuple[list, np.ndarray]:
+
+    def data(self,
+             *args: str | tuple[list[str], ...], ptype: int | None = None,
+             zerofill: bool = False,
+             return_keys: bool = False
+             ) -> tuple[list, np.ndarray]:
         r'''
         Returns the entire data frame for all particles or for
         all particles of a specific particle type.
-        
+
         Notes
         -----
         One can use _one_ wildcard character asterisk ("*") to load all data
@@ -806,7 +832,7 @@ class BaseFrame:
         "value[2]", ..., "value[any text with any length]".
 
         Duplicate keys are removed.
-        
+
         Parameters
         ----------
         *args : str | tuple[list[str], ...]
@@ -835,37 +861,42 @@ class BaseFrame:
         datakeys = []
 
         # allow lists of keys as input
-        islist=False
-        listresult=[]
+        islist = False
+        listresult = []
         for arg in args:
             if isinstance(arg, (list, np.ndarray)):
-                islist=True
-                listresult.append(self.data(*arg, ptype = ptype, zerofill = zerofill, return_keys = return_keys))
+                islist = True
+                listresult.append(self.data(*arg, ptype=ptype,
+                                            zerofill=zerofill,
+                                            return_keys=return_keys))
         if islist:
-            if len(args)==1:
+            if len(args) == 1:
                 return listresult[0]
             return listresult
-            
+
         # return all data if no arguments are given
-        if len(args)==0:
+        if len(args) == 0:
             args = self.keys
         else:
-            # Transform list of all given keys by allowing semi-wildcard matches
+            # Transform list of all given keys
+            # by allowing semi-wildcard matches
             # One asterisk * is allowed.
             extended_keys = []
 
             for arg in args:
                 found_key = False
-                argsplit=arg.split("*")
-                if len(argsplit)>2:
+                argsplit = arg.split("*")
+                if len(argsplit) > 2:
                     raise KeyError(f"Only one '*' allowed. You supplied {arg}.")
-                if len(argsplit)==1:
+                if len(argsplit) == 1:
                     if arg in self.keys:
                         extended_keys.append(arg)
                         found_key = True
-                else: # if a wildcard character asterisk (*) is used
+                else:  # if a wildcard character asterisk (*) is used
                     for key in self.keys:
-                        if key.startswith(argsplit[0]) and key.endswith(argsplit[1]) and len(arg)-1<=len(key):
+                        if (key.startswith(argsplit[0]) and
+                                key.endswith(argsplit[1]) and
+                                len(arg)-1 <= len(key)):
                             extended_keys.append(key)
                             found_key = True
                 if not found_key:
@@ -876,18 +907,18 @@ class BaseFrame:
             args = np.array(extended_keys)[np.sort(np.unique(extended_keys, return_index=True)[1])]
 
         # loop through given keys
-        for i,key in enumerate(args):
+        for i, key in enumerate(args):
 
             if key in KEYASSIGN:
                 # load partially from file
-                d = self.__read_data(KEYASSIGN[key][0], ptype=ptype)[:,KEYASSIGN[key][1]]
+                d = self.__read_data(KEYASSIGN[key][0], ptype=ptype)[:, KEYASSIGN[key][1]]
             elif key == '' and zerofill:
                 # add a column of zeroes
                 d = np.zeros(self.n(ptype=ptype))
             elif key == '' and not zerofill:
                 # don't add column of zeros and print warning
                 warnings.warn(
-                    "Empty string detected with zerofill=False. "\
+                    "Empty string detected with zerofill=False. "
                     "Empty string will be ignored."
                 )
                 d = None
@@ -904,7 +935,7 @@ class BaseFrame:
                         d = self.data(*ks, ptype=ptype)
                     else:
                         d = None
-                else:            
+                else:
                     # load directly from file
                     d = self.__read_data(key, ptype=ptype)
 
@@ -913,13 +944,13 @@ class BaseFrame:
                 if data is None:
                     data = np.copy(d)
                 elif data.ndim == 1 and d.ndim == 1:
-                    data = np.hstack((data[:,None],d[:,None]))
+                    data = np.hstack((data[:, None], d[:, None]))
                 elif data.ndim == 1 and d.ndim == 2:
-                    data = np.hstack((data[:,None],d))
+                    data = np.hstack((data[:, None], d))
                 elif data.ndim == 2 and d.ndim == 1:
-                    data = np.hstack((data,d[:,None]))
+                    data = np.hstack((data, d[:, None]))
                 else:
-                    data = np.hstack((data,d))
+                    data = np.hstack((data, d))
 
             # get list of keys
             if key in KEYS:
@@ -960,22 +991,26 @@ class BaseFrame:
         with h5py.File(
             os.path.join(self.__reader.savedir, self.__reader.filename), 'r'
         ) as root:
-
+            assert isinstance(root['frames'], h5py.Group)
+            frame = root['frames'][str(self.__step)]
+            assert isinstance(frame, h5py.Group), \
+                   f"it's: {root['frames'][str(self.__step)]}"
+            assert isinstance(frame['id'], h5py.Dataset)
             if pid:
-                data_ids = root['frames'][str(self.__step)]['id'][:]
+                data_ids = frame['id'][:]
                 if not isinstance(pid, Sequence):
                     pid = [pid]
                 id_list = [int(np.where(data_ids == part_id)[0])
                            for part_id in pid]
-                if key in root['frames'][str(self.__step)].keys():
-                    data = root['frames'][str(self.__step)][key][id_list]
+                if key in frame.keys():
+                    data = frame[key][id_list]
                     return data
 
             # get particle types
-            types = root['frames'][str(self.__step)]['type'][:]
+            types = frame['type'][:]
             # check if a dataset with the given key exists and read the data
-            if key in root['frames'][str(self.__step)].keys():
-                data = root['frames'][str(self.__step)][key][:]
+            if key in frame.keys():
+                data = frame[key][:]
                 # If no ptype is provided return all data
                 if not ptype:
                     return data
@@ -1019,7 +1054,7 @@ class BaseFrame:
 
         '''
         N = self.n()
-        if data.shape[0]==N and len(data.shape)<=2:
+        if data.shape[0] == N and len(data.shape) <= 2:
             with h5py.File(
                 os.path.join(self.__reader.savedir, self.__reader.filename),
                 'a'
@@ -1028,16 +1063,17 @@ class BaseFrame:
                     root['frames'][str(self.__step)].create_dataset(
                         key,
                         data.shape,
-                        data = data,
-                        dtype = DTYPE,
-                        compression = COMPRESSION,
-                        shuffle = SHUFFLE,
-                        fletcher32 = FLETCHER
+                        data=data,
+                        dtype=DTYPE,
+                        compression=COMPRESSION,
+                        shuffle=SHUFFLE,
+                        fletcher32=FLETCHER
                     )
                 else:
                     root['frames'][str(self.__step)][key][:] = data
         else:
             raise ValueError('The given data has the wrong shape.')
+
     @property
     def ptypes(self):
         '''
@@ -1046,8 +1082,9 @@ class BaseFrame:
         with h5py.File(
             os.path.join(self.__reader.savedir, self.__reader.filename), 'r'
         ) as root:
-            types  = root['frames'][str(self.__step)]['type'][:]
+            types = root['frames'][str(self.__step)]['type'][:]
         return np.unique(types)
+
     @property
     def box(self):
         '''
@@ -1058,6 +1095,7 @@ class BaseFrame:
         ) as root:
             boxe = root['frames'][str(self.__step)]['box'][:]
         return boxe
+
     @property
     def volume(self):
         '''
@@ -1068,16 +1106,17 @@ class BaseFrame:
             os.path.join(self.__reader.savedir, self.__reader.filename), 'r'
         ) as root:
             box = root['frames'][str(self.__step)]['box'][:]
-            d   = root['frames'][str(self.__step)].attrs['d']
+            d = root['frames'][str(self.__step)].attrs['d']
 
         if d == 2:
-            res = np.prod(np.diff(box).T[0,:2])
+            res = np.prod(np.diff(box).T[0, :2])
         elif d == 3:
             res = np.prod(np.diff(box).T[0])
         else:
             res = None
 
         return res
+
     def density(self, ptype=None):
         '''
         Returns the number density.
@@ -1086,10 +1125,10 @@ class BaseFrame:
             os.path.join(self.__reader.savedir, self.__reader.filename), 'r'
         ) as root:
             box = root['frames'][str(self.__step)]['box'][:]
-            d   = root['frames'][str(self.__step)].attrs['d']            
+            d = root['frames'][str(self.__step)].attrs['d']
 
         if d == 2:
-            res = self.n(ptype=ptype)/np.prod(np.diff(box).T[0,:2])
+            res = self.n(ptype=ptype)/np.prod(np.diff(box).T[0, :2])
         elif d == 3:
             res = self.n(ptype=ptype)/np.prod(np.diff(box).T[0])
         else:

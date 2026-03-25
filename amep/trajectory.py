@@ -37,14 +37,16 @@ continuum fields). The following classes are included:
 # =============================================================================
 # IMPORT MODULES
 # =============================================================================
-import h5py
 import os
+from typing import Self
 
+import h5py
 import numpy as np
 
 from tqdm.autonotebook import tqdm
 
 from .base import BaseTrajectory
+from .reader import H5amepReader
 
 
 # =============================================================================
@@ -82,8 +84,18 @@ class ParticleTrajectory(BaseTrajectory):
             if 'particles' not in root.keys():
                 root.create_group('particles')
 
-            if 'njx' in self[0].keys:
-                self.__nojump = True
+            try:
+                self.__nojump = root["params"].attrs["nojump"]
+            except KeyError:
+                if 'njx' in self[0].keys:
+                    self.__nojump = True
+
+    @classmethod
+    def new(cls,
+            path: os.PathLike,
+            overwrite: bool = False
+            ) -> Self:
+        return cls(H5amepReader.new(path, "particle",overwrite))
 
     def __get_jumps(self) -> np.ndarray:
         r"""

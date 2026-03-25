@@ -35,6 +35,8 @@ import os
 import glob
 import csv
 import warnings
+from typing import Self
+from pathlib import Path
 import h5py
 import string
 import numpy as np
@@ -42,6 +44,8 @@ from gsd import hoomd
 from chemfiles import Trajectory
 
 from tqdm.autonotebook import tqdm
+
+from ._version import __version__
 from .base import BaseReader, TRAJFILENAME, COMPRESSION, SHUFFLE, FLETCHER
 from .base import DTYPE, get_class_logger
 from .utils import quaternion_rotate, quaternion_conjugate, quaternion_multiply
@@ -62,7 +66,8 @@ class H5amepReader(BaseReader):
     '''Reads simulation data from an HDF5 trajectory file.
     '''
 
-    def __init__(self, directory, trajfile=TRAJFILENAME, **kwargs):
+    def __init__(self, directory: os.PathLike,
+                 trajfile=TRAJFILENAME, **kwargs):
         r'''
         Reader for an HDF5 trajectory file of name filename
         in the given directory.
@@ -83,14 +88,14 @@ class H5amepReader(BaseReader):
         '''
         self.__version = None
 
-        path = os.path.join(directory, trajfile)
-        if not os.path.exists(path):
+        path = Path(directory)/trajfile
+        if not path.exists():
             raise FileError(f'File {path} does not exist.')
         else:
             pass
 
         correct_file = True
-        if trajfile.endswith('.h5amep'):
+        if path.suffix == '.h5amep':
             with h5py.File(os.path.join(directory, trajfile), 'r') as root:
                 if 'params' in root.keys():
                     start = root['params'].attrs['start']
@@ -106,9 +111,62 @@ class H5amepReader(BaseReader):
             if correct_file:
                 super().__init__(directory, start, stop, nth, trajfile)
             else:
-                FileError('Wrong file format.')
+                raise FileError('Wrong file format.')
         else:
             raise FileError('Not a .h5amep file.')
+
+    @classmethod
+    def new(cls,
+            filepath: os.PathLike,
+            typus: str,
+            overwrite: bool = False
+            ) -> Self:
+        inter_path = Path(filepath)
+        if inter_path.is_dir():
+            outdir = inter_path
+            outname = TRAJFILENAME
+        else:
+            outdir = inter_path.parent
+            outname = inter_path.name
+
+        path = outdir/outname
+        if path.suffix != ".h5amep":
+            warnings.warn("H5AMEP file with wrong suffix created.")
+        if path.exists() and not overwrite:
+            raise FileExistsError(
+                    f'The AMEP file {path} '
+                    'you wanted to create already exists. '
+                    'If this is intended set the overwrite flag.'
+                    )
+        # Generate empty but compliant H5AMEP file.
+        with h5py.File(str(path), 'w') as root:
+            root.attrs["type"] = typus
+            match typus:
+                case "field":
+                    root.create_group('fields')
+                case "particle":
+                    root.create_group('particles')
+                case _:
+                    raise TypeError(
+                            f'You tried to use "{typus}" as a trajectory type.'
+                            ' This is not implemented.')
+            g_amep = root.create_group('amep')
+            g_amep.attrs['version'] = __version__
+            frames = root.create_group('frames')
+            frames.create_dataset("steps", dtype="uint64")
+            frames.create_dataset("times", dtype="float64")
+            root.create_group('info')
+            params = root.create_group('params')
+            params.attrs['start'] = 0.0
+            params.attrs['stop'] = 1.0
+            params.attrs['nth'] = 1
+            params.attrs['dt'] = 1.0
+            # A little hacky thing to not look up the first frame,
+            # as it doesn't exist yet.
+            params.attrs['nojump'] = True
+            root.create_group('scripts')
+
+        return cls(outdir, outname)
 
     @property
     def type(self):
