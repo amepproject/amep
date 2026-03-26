@@ -441,6 +441,47 @@ class BaseReader:
     def filename(self, val: Path | str):
         self.__filename = Path(val)
 
+    def add_frame(self,
+                  step: int,
+                  time: float,
+                  exist_ok:bool=False
+                  # ) -> BaseFrame | BaseField:
+                  ):
+        index = 0
+        with h5py.File(str(self.savedir/self.filename), 'a') as root:
+            frames = root["frames"]
+            if frames["steps"].shape is None:
+                frame = frames.create_group(str(step))
+                del frames["steps"]
+                del frames["times"]
+                frames["steps"] = [step,]
+                frames["times"] = [time,]
+                if root.attrs["type"] == "field":
+                    out = BaseField(self, index)
+                    return out
+                out = BaseFrame(self, index)
+                return out
+
+            if step in frames["steps"] or time in frames["times"]:
+                print("entered exists branch")
+                if exist_ok:
+                    index = np.searchsorted(frames["steps"], step)
+                    if root["type"] == "field":
+                        return BaseField(self, index)
+                    return BaseFrame(self, index)
+                raise IndexError("Tried to create a frame that already exists."
+                                 "If this is wanted change `exist_ok` to `True`")
+            frame = frames.create_group(str(step))
+            index = np.searchsorted(steps, step)
+            newsteps = np.insert(steps, index, step)
+            newtimes = np.insert(times, index, step)
+            del frames["steps"]
+            del frames["times"]
+            frames["steps"] = newsteps
+            frames["times"] = newtimes
+        if root["type"] == "field":
+            return BaseField(self, index)
+        return BaseFrame(self, index)
 
 # =============================================================================
 # FRAME BASE CLASS
@@ -548,10 +589,13 @@ class BaseFrame:
         int
             Total particle number of the given particle type.
         '''
-        with h5py.File(
-            os.path.join(self.__reader.savedir, self.__reader.filename), 'r'
-        ) as root:
-            types = root['frames'][str(self.__step)]['type'][:]
+        try:
+            with h5py.File(
+                os.path.join(self.__reader.savedir, self.__reader.filename), 'r'
+            ) as root:
+                types = root['frames'][str(self.__step)]['type'][:]
+        except KeyError:
+            raise KeyError("Type has not been set yet. Do this before your step.")
 
         if ptype in self.ptypes:
             return np.where(types == ptype)[0].shape[0]
@@ -1036,9 +1080,27 @@ class BaseFrame:
                     "Returning no data!"
                 )
 
+    def set_ptypes(self, types: np.ndarray[int]):
+        '''Set the ptypes for the frame.
+
+        You can only do this once. Your also supposed to do it once and only
+        write data afterwards.
+        So this after the data for the frame is already fixed and you are only writing.
+
+        Parameters
+        ----------
+        types: np.ndarray[int]
+            Typenumber for each particle. Should stay consistent over the whole trajectory.
+        '''
+        with h5py.File(str(self.__reader.savedir/self.__reader.filename), 'a') as root:
+            index = root["frames"]["steps"][self.__index]
+            root["frames"][str(index)]["type"] = types
+
     def add_data(self, key: str, data: np.ndarray) -> None:
         '''
         Adds new data to the frame.
+
+        If you want to add data to an empty frame you have to `set_ptypes` before.
 
         Parameters
         ----------
@@ -1054,25 +1116,28 @@ class BaseFrame:
 
         '''
         N = self.n()
-        if data.shape[0] == N and len(data.shape) <= 2:
-            with h5py.File(
-                os.path.join(self.__reader.savedir, self.__reader.filename),
-                'a'
-            ) as root:
-                if key not in root['frames'][str(self.__step)].keys():
-                    root['frames'][str(self.__step)].create_dataset(
-                        key,
-                        data.shape,
-                        data=data,
-                        dtype=DTYPE,
-                        compression=COMPRESSION,
-                        shuffle=SHUFFLE,
-                        fletcher32=FLETCHER
-                    )
-                else:
-                    root['frames'][str(self.__step)][key][:] = data
-        else:
-            raise ValueError('The given data has the wrong shape.')
+        try:
+            if data.shape[0] == N and len(data.shape) <= 2:
+                with h5py.File(
+                    os.path.join(self.__reader.savedir, self.__reader.filename),
+                    'a'
+                ) as root:
+                    if key not in root['frames'][str(self.__step)].keys():
+                        root['frames'][str(self.__step)].create_dataset(
+                            key,
+                            data.shape,
+                            data=data,
+                            dtype=DTYPE,
+                            compression=COMPRESSION,
+                            shuffle=SHUFFLE,
+                            fletcher32=FLETCHER
+                        )
+                    else:
+                        root['frames'][str(self.__step)][key][:] = data
+            else:
+                raise ValueError('The given data has the wrong shape.')
+        except KeyError:
+            raise KeyError("Type has not been set yet. Do this before adding data.")
 
     @property
     def ptypes(self):
@@ -1560,6 +1625,9 @@ class BaseTrajectory:
                 p = dict(a for a in root['info']['software'].attrs.items())
                 return p
             return {}
+    def add_frame(self, step: int, time: float ,exist_ok=False) -> BaseFrame:
+        self.__reader.add_frame(step, time, exist_ok=exist_ok)
+
     def add_script(self, path: Path | str) -> None:
         r'''
         Adds a script in text format to the hdf5 file.

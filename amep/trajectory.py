@@ -95,6 +95,10 @@ class ParticleTrajectory(BaseTrajectory):
             path: os.PathLike,
             overwrite: bool = False
             ) -> Self:
+        """
+        Create an empty `ParticleTrajectory`.
+        Can be used to write your own readers or write out data directly from simulations.
+        """
         return cls(H5amepReader.new(path, "particle",overwrite))
 
     def __get_jumps(self) -> np.ndarray:
@@ -357,6 +361,13 @@ class FieldTrajectory(BaseTrajectory):
         with h5py.File(os.path.join(self.reader.savedir, self.reader.filename), 'a') as root:
             if 'fields' not in root.keys():
                 root.create_group('fields')
+
+    @classmethod
+    def new(cls,
+            path: os.PathLike,
+            overwrite: bool = False
+            ) -> Self:
+        return cls(H5amepReader.new(path, "field",overwrite))
 
     def add_field_info(
             self, ftype: str, key: str, value: int | float | str) -> None:

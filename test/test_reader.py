@@ -542,7 +542,6 @@ class TestLammpsReader(unittest.TestCase):
             {os.path.join(SAVEDIR, 'lammps2.h5amep')} has not been deleted.'''
         )
 
-
 class TestH5amepReader(unittest.TestCase):
     """Testcase for the standard reader.
 
@@ -565,11 +564,6 @@ class TestH5amepReader(unittest.TestCase):
 
     def test_trajfile(self):
         pass
-
-    def test_writing(self):
-        _ = amep.trajectory.ParticleTrajectory.new(NEWDIR/"empty.h5amep")
-        _ = amep.trajectory.ParticleTrajectory.new(NEWDIR/"empty.h5amep",
-                                                   overwrite=True)
 
 class TestGromacsReader(unittest.TestCase):
     """Testcase for GROMACS data.

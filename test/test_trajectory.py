@@ -33,10 +33,12 @@ import amep
 # GLOBAL CONFIG.
 # =============================================================================
 DATADIR = Path("../examples/data")
+TESTDATADIR = Path('./data/')
 FIELDDIR = DATADIR/'continuum'
 LAMMPSDIR = DATADIR/'lammps'
 HOOMDDIR = DATADIR/'hoomd'
 GROMACSDIR = DATADIR/'gromacs'
+NEWDIR = TESTDATADIR/'written'
 
 RNG = np.random.default_rng(1234)
 
@@ -72,17 +74,21 @@ class TestParticleTrajectory(unittest.TestCase):
 
         """
         # generate some test LAMMPS data
-        
+
         # load the data
         cls.traj = amep.load.traj(
             LAMMPSDIR,
             mode='lammps',
             reload=True
         )
-        
+
         # add some particle information
         cls.traj.add_particle_info(1, 'name', 'atom A')
         cls.traj.add_particle_info(1, 'type', 'carbon')
+        #
+        TESTDATADIR.mkdir(exist_ok=True)
+        NEWDIR.mkdir(exist_ok=True)
+        (NEWDIR/"empty.h5amep").unlink(missing_ok=True)
 
     def test_key_access(self):
         self.assertIn(self.traj[0].coords(ptype=self.traj[0].ptypes[0]),
@@ -142,6 +148,18 @@ class TestParticleTrajectory(unittest.TestCase):
         self.traj.add_particle_info(1, 'name', 'atom A')
         self.traj.add_particle_info(1, 'type', 'carbon')
 
+    def test_writing(self):
+        _ = amep.trajectory.ParticleTrajectory.new(NEWDIR/"empty.h5amep")
+        traj = amep.trajectory.ParticleTrajectory.new(NEWDIR/"empty.h5amep",
+                                                      overwrite=True)
+        traj.add_frame(0, 0.0)
+        # traj[0].ptypes = [1,1]
+        traj[0].set_ptypes(np.asarray([1,1]))
+        traj[0].add_data("coords", np.asarray([[0.0, 0.0, 0.0], [0.0, 1.0, 0.0]]))
+        traj[0].add_data("uwcoords", np.asarray([[0.0, 0.0, 0.0], [0.0, 1.0, 0.0]]))
+        traj[0].add_data("velocities", np.asarray([[1.0, 1.0, 0.0], [1.0, 1.0, 1.0]]))
+
+
 # =============================================================================
 # FIELDTRAJECTORY TESTS
 # =============================================================================
@@ -165,6 +183,9 @@ class TestFieldTrajectory(unittest.TestCase):
             dumps='field_*.txt',
             reload=True
         )
+        TESTDATADIR.mkdir(exist_ok=True)
+        NEWDIR.mkdir(exist_ok=True)
+        (NEWDIR/"empty_field.h5amep").unlink(missing_ok=True)
 
         # add some field information
         cls.traj.add_field_info('c', 'name', 'chemicals')
@@ -210,6 +231,11 @@ class TestFieldTrajectory(unittest.TestCase):
         self.traj.add_field_info('c', 'name', 'chemicals')
         self.traj.add_field_info('rho', 'name', 'bacterial density')
 
+    def test_writing(self):
+        _ = amep.trajectory.FieldTrajectory.new(NEWDIR/"empty_field.h5amep")
+        traj = amep.trajectory.FieldTrajectory.new(NEWDIR/"empty_field.h5amep",
+                                                      overwrite=True)
+        # field = traj.add_frame(0, 0.0)
 
 class TestHOOMDReader(unittest.TestCase):
     """Testcase for HOOMD data.

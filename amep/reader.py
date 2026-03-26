@@ -46,7 +46,7 @@ from chemfiles import Trajectory
 from tqdm.autonotebook import tqdm
 
 from ._version import __version__
-from .base import BaseReader, TRAJFILENAME, COMPRESSION, SHUFFLE, FLETCHER
+from .base import BaseReader, BaseFrame, TRAJFILENAME, COMPRESSION, SHUFFLE, FLETCHER
 from .base import DTYPE, get_class_logger
 from .utils import quaternion_rotate, quaternion_conjugate, quaternion_multiply
 
@@ -186,7 +186,6 @@ class H5amepReader(BaseReader):
 
         '''
         return self.__version
-
 
 class LammpsReader(BaseReader):
     '''Reads LAMMPS simulation data and writes it to an hdf5 file.
