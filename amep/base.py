@@ -462,8 +462,7 @@ class BaseReader:
                 out = BaseFrame(self, index)
                 return out
 
-            if step in frames["steps"] or time in frames["times"]:
-                print("entered exists branch")
+            if (step in frames["steps"]) or (time in frames["times"]):
                 if exist_ok:
                     index = np.searchsorted(frames["steps"], step)
                     if root["type"] == "field":
@@ -472,16 +471,18 @@ class BaseReader:
                 raise IndexError("Tried to create a frame that already exists."
                                  "If this is wanted change `exist_ok` to `True`")
             frame = frames.create_group(str(step))
+            steps = frames["steps"][:]
+            times = frames["times"][:]
             index = np.searchsorted(steps, step)
             newsteps = np.insert(steps, index, step)
-            newtimes = np.insert(times, index, step)
+            newtimes = np.insert(times, index, time)
             del frames["steps"]
             del frames["times"]
             frames["steps"] = newsteps
             frames["times"] = newtimes
-        if root["type"] == "field":
-            return BaseField(self, index)
-        return BaseFrame(self, index)
+            if root.attrs["type"] == "field":
+                return BaseField(self, index)
+            return BaseFrame(self, index)
 
 # =============================================================================
 # FRAME BASE CLASS
