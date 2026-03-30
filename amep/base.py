@@ -442,8 +442,8 @@ class BaseReader:
         self.__filename = Path(val)
 
     def add_frame(self,
-                  step: int,
-                  time: float,
+                  step: int | Collection[int],
+                  time: float | Collection[int],
                   exist_ok:bool=False
                   # ) -> BaseFrame | BaseField:
                   ):
@@ -451,11 +451,18 @@ class BaseReader:
         with h5py.File(str(self.savedir/self.filename), 'a') as root:
             frames = root["frames"]
             if frames["steps"].shape is None:
-                frame = frames.create_group(str(step))
+                if isinstance(step, Collection):
+                    frame_collection = [frames.create_group(str(s)) for s in step]
+                else:
+                    frame = frames.create_group(str(step))
                 del frames["steps"]
                 del frames["times"]
-                frames["steps"] = [step,]
-                frames["times"] = [time,]
+                if isinstance(step, Collection) and isinstance(time, Collection):
+                    frames["steps"] = step
+                    frames["times"] = time
+                else:
+                    frames["steps"] = [step,]
+                    frames["times"] = [time,]
                 if root.attrs["type"] == "field":
                     out = BaseField(self, index)
                     return out
@@ -470,7 +477,10 @@ class BaseReader:
                     return BaseFrame(self, index)
                 raise IndexError("Tried to create a frame that already exists."
                                  "If this is wanted change `exist_ok` to `True`")
-            frame = frames.create_group(str(step))
+            if isinstance(step, Collection):
+                frame_collection = [frames.create_group(str(s)) for s in step]
+            else:
+                frame = frames.create_group(str(step))
             steps = frames["steps"][:]
             times = frames["times"][:]
             index = np.searchsorted(steps, step)
@@ -480,6 +490,10 @@ class BaseReader:
             del frames["times"]
             frames["steps"] = newsteps
             frames["times"] = newtimes
+            if isinstance(step, Collection):
+                if root.attrs["type"] == "field":
+                    return [BaseField(self, i) for i in index + arange(len(index))]
+                return [BaseFrame(self, i) for i in index + arange(len(index))]
             if root.attrs["type"] == "field":
                 return BaseField(self, index)
             return BaseFrame(self, index)
@@ -1097,6 +1111,22 @@ class BaseFrame:
             index = root["frames"]["steps"][self.__index]
             root["frames"][str(index)]["type"] = types
 
+    def set_ids(self, ids: np.ndarray[int]):
+        '''Set the ptypes for the frame.
+
+        You can only do this once. Your also supposed to do it once and only
+        write data afterwards.
+        So this after the data for the frame is already fixed and you are only writing.
+
+        Parameters
+        ----------
+        types: np.ndarray[int]
+            Typenumber for each particle. Should stay consistent over the whole trajectory.
+        '''
+        with h5py.File(str(self.__reader.savedir/self.__reader.filename), 'a') as root:
+            index = root["frames"]["steps"][self.__index]
+            root["frames"][str(index)]["id"] = ids
+
     def add_data(self, key: str, data: np.ndarray) -> None:
         '''
         Adds new data to the frame.
@@ -1626,8 +1656,9 @@ class BaseTrajectory:
                 p = dict(a for a in root['info']['software'].attrs.items())
                 return p
             return {}
+
     def add_frame(self, step: int, time: float ,exist_ok=False) -> BaseFrame:
-        self.__reader.add_frame(step, time, exist_ok=exist_ok)
+        return self.__reader.add_frame(step, time, exist_ok=exist_ok)
 
     def add_script(self, path: Path | str) -> None:
         r'''
