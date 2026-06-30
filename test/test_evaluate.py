@@ -140,6 +140,51 @@ class TestEvaluateMethods(unittest.TestCase):
         fsf2d = SF2d(ftraj, skip=0.9, nav=2, ftype="c")
         fsf2d.save(RESULT_DIR/"sf2d_eval.h5", database=True, name="field")
 
+    def test_pcf2d_modes(self):
+        """Test that PCF2d works with all three modes.
+
+        Ensures backwards compatibility: the default mode='psi6' should
+        produce identical results to calling PCF2d without a mode argument.
+        """
+        import numpy as np
+        traj = self.particle_traj
+
+        # Default call (mode='psi6', the old behavior)
+        pcf2d_default = PCF2d(
+            traj, nav=2, nxbins=50, nybins=50, skip=0.9
+        )
+
+        # Explicit psi6 mode — should match the default
+        pcf2d_psi6 = PCF2d(
+            traj, nav=2, nxbins=50, nybins=50, skip=0.9, mode='psi6'
+        )
+        np.testing.assert_array_equal(
+            pcf2d_default.avg, pcf2d_psi6.avg,
+            err_msg='PCF2d default and explicit psi6 mode should be identical'
+        )
+
+        # x-axis mode
+        pcf2d_x = PCF2d(
+            traj, nav=2, nxbins=50, nybins=50, skip=0.9, mode='x'
+        )
+        self.assertEqual(pcf2d_x.avg.shape, pcf2d_default.avg.shape,
+            'PCF2d x-mode avg has different shape from psi6 mode')
+
+        # orientations mode
+        pcf2d_ori = PCF2d(
+            traj, nav=2, nxbins=50, nybins=50, skip=0.9, mode='orientations'
+        )
+        self.assertEqual(pcf2d_ori.avg.shape, pcf2d_default.avg.shape,
+            'PCF2d orientations-mode avg has different shape from psi6 mode')
+
+    def test_pcf2d_invalid_mode(self):
+        """Test that PCF2d raises ValueError for an invalid mode."""
+        with self.assertRaises(ValueError):
+            PCF2d(
+                self.particle_traj, nav=2, nxbins=50, nybins=50,
+                skip=0.9, mode='invalid_mode'
+            )
+
     def test_distributions(self):
         """Test distribution functions.
         """

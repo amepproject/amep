@@ -616,6 +616,7 @@ class PCF2d(BaseEvaluation):
     def __init__(
             self, traj: ParticleTrajectory, skip: float = 0.0, nav: int = 10,
             ptype: int | None = None, other: int | None = None,
+            mode: str = 'psi6',
             max_workers: int | None = 1,
             **kwargs) -> None:
         r'''
@@ -658,6 +659,17 @@ class PCF2d(BaseEvaluation):
         other : float or None, optional
             Other particle type (to calculate the correlation between
             different particle types). The default is None.
+        mode : str, optional
+            Mode that defines with respect to which axis the angles
+            are calculated. Possible values are ``'psi6'``, ``'orientations'``,
+            and ``'x'``. The default is ``'psi6'``, which uses the hexagonal
+            order parameter to define the mean orientation.
+            The option `orientations` calculates :math:`g(x,y)`
+            with respect to the individual particle orientations
+            (useful for active particles). The option ``'x'`` uses the
+            :math:`x`-axis of the simulation box as reference.
+            The default is ``'psi6'``.
+            different particle types). The default is None.
         max_workers : int or None, optional
             Number of parallel workers. Will be forwarded to
             `utils.average_func`.
@@ -695,9 +707,15 @@ class PCF2d(BaseEvaluation):
         self.__nav    = nav
         self.__ptype  = ptype
         self.__other  = other
+        self.__mode   = mode
         self.__max_workers = max_workers
         self.__kwargs = kwargs
         
+        if self.__mode not in ['psi6', 'orientations', 'x']:
+            raise ValueError(
+                f"Mode not recognized. Possible values are "
+                f"'psi6', 'orientations', or 'x'."
+            )
         self.__frames, res, self.__indices = average_func(
             self.__compute, self.__traj, skip=self.__skip,
             nr=self.__nav, indices=True,
@@ -727,25 +745,47 @@ class PCF2d(BaseEvaluation):
         y : np.ndarray
             y values
         '''
-        # hexagonal order parameter to specify mean orientation
-        psi = np.mean(psi_k(
-            frame.coords(),
-            frame.box,
-            k = 6
-        ))
-            
+
+        DEFAULT_E = np.array([1, 0.0, 0.0], dtype=float)
+        psi = None
+        e = DEFAULT_E # for modes that dont naturally define e
+
+        if self.__mode == 'x':
+            # keep defailt psi and e
+            pass
+        elif self.__mode == 'orientations':
+            if self.__other == None:
+                e = frame.orientations(ptype = self.__ptype)
+            else:
+                e = frame.orientations(ptype = self.__other)
+            pass
+        elif self.__mode == 'psi6':
+            # hexagonal order parameter to specify mean orientation
+            psi = np.mean(psi_k(
+                frame.coords(),
+                frame.box,
+                k = 6
+            ))
+            psi = np.array([psi.real, psi.imag])
+        else:
+            raise ValueError(
+                f"Unknown mode: {self.__mode!r}"
+            )
+
         if self.__other is None:
             gxy, x, y = pcf2d(
                 frame.coords(ptype = self.__ptype),
                 frame.box,
-                psi = np.array([psi.real, psi.imag]),
+                psi = psi,
+                e=e,
                 **self.__kwargs
             )
         else:
             gxy, x, y = pcf2d(
                 frame.coords(ptype = self.__ptype),
                 frame.box,
-                psi = np.array([psi.real, psi.imag]),
+                psi = psi,
+                e=e,
                 other_coords = frame.coords(ptype = self.__other),
                 **self.__kwargs) 
         return gxy, x, y
