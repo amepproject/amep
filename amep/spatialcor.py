@@ -715,25 +715,21 @@ def __dhist2d(
         particlerange = np.arange(len(coords))
 
     for n in np.arange(len(other_coords))[sl]:
-        # calculate distance vectors
+        # Calculate distance vectors using pbc_diff.
+        # NOTE: The previous implementation used simple subtraction
+        # (other_coords[n] - coords[...]), which did not account for
+        # periodic boundary conditions. This caused incorrect distance
+        # vectors for particle pairs near opposite box edges, leading
+        # to errors in g(x,y). Using pbc_diff ensures that the minimum
+        # image convention is applied correctly.
         if same:
             r_ij = pbc_diff(
-                coords[particlerange != n], # exclude the particle itself
+                coords[particlerange != n],
                 other_coords[n],
                 box_boundary,
                 pbc=pbc,
             )
-            # diff = pbc_diff(
-            #     other_coords[n],
-            #     coords[np.arange(len(coords)) != n], # exclude the particle itself
-            #     box_boundary,
-            #     pbc=pbc
-            # )
-            # exclude the particle itself
-            # diff = other_coords[n] - coords[np.arange(len(coords)) != n]
         else:
-            # diff = pbc_diff(other_coords[n], coords, box_boundary, pbc=pbc)
-            # diff = other_coords[n] - coords
             r_ij = pbc_diff(
                 coords,
                 other_coords[n],
@@ -741,13 +737,14 @@ def __dhist2d(
                 pbc=pbc,
             )
         
-        # reduce to only y and y coordinates
+        # Reduce to only x and y coordinates
         diff = r_ij[:, :2]
 
-        # Caöculate distnace to avoide square root cost for filtering
+        # Calculate squared distance to filter self-interactions
+        # without the cost of a square root
         dist_sq = diff[:, 0]**2 + diff[:, 1]**2
 
-        # Filter out particles that are effectively too close to each other (self interactions)
+        # Filter out particles that are effectively at the same position
         mask_nonzero = dist_sq > 1e-9
         diff = diff[mask_nonzero]
 
@@ -774,11 +771,12 @@ def __dhist2d(
         # fit to each other (which is no longer the case when coordinates
         # are rotated)!
         elif angle != 0.0:
-            # get center of simulation box
-            center = np.mean(box_boundary, axis=1)
-            
-            # rotate all coords
-            diff = rotate_coords(diff, -angle, center)
+            # Apply 2D rotation by -angle to align mean orientation with x-axis
+            c = np.cos(-angle)
+            s = np.sin(-angle)
+            dx = diff[:, 0] * c - diff[:, 1] * s
+            dy = diff[:, 0] * s + diff[:, 1] * c
+            diff = np.column_stack((dx, dy))
 
 
         # calculate 2D histogram
