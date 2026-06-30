@@ -774,15 +774,11 @@ def __dhist2d(
         # fit to each other (which is no longer the case when coordinates
         # are rotated)!
         elif angle != 0.0:
-            # rotaate all coords (2D rotation around origin [0,0])
-            c = np.cos(-angle)
-            s = np.sin(-angle)
-
-            dx = diff[:, 0] * c - diff[:, 1] * s
-            dy = diff[:, 0] * s + diff[:, 1] * c
+            # get center of simulation box
+            center = np.mean(box_boundary, axis=1)
             
-            diff[:, 0] = dx
-            diff[:, 1] = dy
+            # rotate all coords
+            diff = rotate_coords(diff, -angle, center)
 
 
         # calculate 2D histogram
