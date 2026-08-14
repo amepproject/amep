@@ -1166,7 +1166,7 @@ class BaseFrame:
                     else:
                         root['frames'][str(self.__step)][key][:] = data
             else:
-                raise ValueError('The given data has the wrong shape.')
+                raise ValueError(f'The given data has the wrong shape. {data.shape[0]} vs {N} or {len(data.shape)}>2')
         except KeyError:
             raise KeyError("Type has not been set yet. Do this before adding data.")
 
@@ -1192,6 +1192,16 @@ class BaseFrame:
             boxe = root['frames'][str(self.__step)]['box'][:]
         return boxe
 
+    @box.setter
+    def box(self, value):
+        with h5py.File(
+            os.path.join(self.__reader.savedir, self.__reader.filename), 'r+'
+        ) as root:
+            try:
+                root['frames'][str(self.__step)]['box'][:] =value
+            except KeyError:
+                x_ds = root['frames'][str(self.__step)].create_dataset('box',(3,2), dtype="float32")
+                x_ds[:] = value
     @property
     def volume(self):
         '''
